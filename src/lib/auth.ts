@@ -11,7 +11,7 @@ function getKey(): string {
   const k = process.env.AVT_SESSION_SECRET;
   if (!k) {
     // Fallback for dev — admin auth still works but is less secure.
-    return "arabvision-tv-dev-secret-change-me";
+    return "wazani-tv-dev-secret-change-me";
   }
   return k;
 }
@@ -107,9 +107,9 @@ export async function ensureDefaultAdmin() {
   const passwordHash = await hashPassword("admin12345");
   const admin = await db.adminUser.create({
     data: {
-      email: "admin@arabvision.tv",
+      email: "admin@wazani.tv",
       passwordHash,
-      name: "مدير ArabVision",
+      name: "مدير WazaNI",
       role: "superadmin",
     },
   });

@@ -21,7 +21,7 @@ function at(daysOffset: number, hour: number, min = 0) {
 }
 
 async function main() {
-  console.log("Seeding ArabVision TV...");
+  console.log("Seeding WazaNI TV...");
 
   // ---------- Countries ----------
   const countries = [
@@ -72,9 +72,9 @@ async function main() {
   };
   const chanSeeds: ChanSeed[] = [
     // Demo channels with real working public test streams (clearly labeled بث تجريبي)
-    { name: "ArabVision Demo Sport", nameAr: "بث تجريبي - رياضة", country: "AR", cat: "sports", stream: TEST_STREAMS.bigBuckBunny, streamType: "hls", verified: true, featured: true, order: 1 },
-    { name: "ArabVision Demo Cinema", nameAr: "بث تجريبي - سينما", country: "AR", cat: "movies", stream: TEST_STREAMS.appleBipbop, streamType: "hls", verified: true, featured: true, order: 2 },
-    { name: "ArabVision Demo News", nameAr: "بث تجريبي - أخبار", country: "AR", cat: "news", stream: TEST_STREAMS.muxTears, streamType: "hls", verified: true, order: 3 },
+    { name: "WazaNI Demo Sport", nameAr: "بث تجريبي - رياضة", country: "AR", cat: "sports", stream: TEST_STREAMS.bigBuckBunny, streamType: "hls", verified: true, featured: true, order: 1 },
+    { name: "WazaNI Demo Cinema", nameAr: "بث تجريبي - سينما", country: "AR", cat: "movies", stream: TEST_STREAMS.appleBipbop, streamType: "hls", verified: true, featured: true, order: 2 },
+    { name: "WazaNI Demo News", nameAr: "بث تجريبي - أخبار", country: "AR", cat: "news", stream: TEST_STREAMS.muxTears, streamType: "hls", verified: true, order: 3 },
 
     // Moroccan
     { name: "2M Maroc", nameAr: "دوزيم", country: "MA", cat: "general", order: 10, featured: true },
@@ -261,7 +261,7 @@ async function main() {
   const bein = await db.channel.findFirst({ where: { name: "beIN Sports 1" } });
   const adSports = await db.channel.findFirst({ where: { name: "Abu Dhabi Sports" } });
   const arryadia = await db.channel.findFirst({ where: { name: "Arryadia" } });
-  const demoSport = await db.channel.findFirst({ where: { name: "ArabVision Demo Sport" } });
+  const demoSport = await db.channel.findFirst({ where: { name: "WazaNI Demo Sport" } });
 
   type M = {
     home: string; away: string; league: string; day: number; hour: number; min?: number;
@@ -327,7 +327,7 @@ async function main() {
   await db.setting.upsert({
     where: { key: "app.name" },
     update: {},
-    create: { key: "app.name", value: "ArabVision TV" },
+    create: { key: "app.name", value: "WazaNI TV" },
   });
   await db.setting.upsert({
     where: { key: "app.tagline" },

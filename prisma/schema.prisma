@@ -1,4 +1,4 @@
-// ArabVision TV - Prisma schema
+// WazaNI TV - Prisma schema
 // Arabic TV channels & football matches platform
 
 generator client {

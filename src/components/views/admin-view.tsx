@@ -184,7 +184,7 @@ function LoginScreen({ error }: { error?: string }) {
   const login = useAdmin((s) => s.login);
   const back = useNav((s) => s.back);
   const setView = useNav((s) => s.setView);
-  const [email, setEmail] = React.useState("admin@arabvision.tv");
+  const [email, setEmail] = React.useState("admin@wazani.tv");
   const [password, setPassword] = React.useState("admin12345");
   const [submitting, setSubmitting] = React.useState(false);
   const [localError, setLocalError] = React.useState<string | undefined>(error);
@@ -212,7 +212,7 @@ function LoginScreen({ error }: { error?: string }) {
             <span className="absolute -bottom-1 -left-1 h-3.5 w-3.5 rounded-full bg-gold ring-2 ring-card" />
           </div>
           <h1 className="mt-4 text-2xl font-extrabold text-emerald">
-            لوحة تحكم <span className="gold-text">ArabVision</span>
+            لوحة تحكم <span className="gold-text">WazaNI</span>
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             دخول المسؤول لإدارة القنوات والمباريات والبطولات
@@ -231,7 +231,7 @@ function LoginScreen({ error }: { error?: string }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pr-9 text-left"
-                    placeholder="admin@arabvision.tv"
+                    placeholder="admin@wazani.tv"
                     required
                   />
                 </div>
@@ -278,7 +278,7 @@ function LoginScreen({ error }: { error?: string }) {
           <span className="font-semibold text-gold">بيانات الدخول التجريبية:</span>
           <br />
           <code dir="ltr" className="text-[11px]">
-            admin@arabvision.tv / admin12345
+            admin@wazani.tv / admin12345
           </code>
         </div>
 
@@ -2636,7 +2636,7 @@ function Dashboard() {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-base font-extrabold text-emerald">
-                لوحة تحكم <span className="gold-text">ArabVision</span>
+                لوحة تحكم <span className="gold-text">WazaNI</span>
               </h1>
               <p className="truncate text-[11px] text-muted-foreground">
                 مرحبًا، {admin?.name || "المسؤول"}
@@ -2706,7 +2706,7 @@ function Dashboard() {
           <div className="flex items-center justify-center gap-1.5">
             <ListOrdered className="h-3 w-3" />
             <span>
-              لوحة تحكم ArabVision TV · جميع التعديلات تنعكس مباشرة على الموقع
+              لوحة تحكم WazaNI TV · جميع التعديلات تنعكس مباشرة على الموقع
             </span>
           </div>
         </footer>

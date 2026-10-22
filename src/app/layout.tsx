@@ -12,13 +12,13 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "ArabVision TV | القنوات العربية ومباريات كرة القدم",
-  description: "تطبيق ArabVision TV لمتابعة القنوات التلفزيونية العربية وجدول مباريات كرة القدم بتصميم عصري وفاخر.",
-  keywords: ["ArabVision", "قنوات عربية", "مباريات", "كرة القدم", "بث مباشر", "البطولات"],
-  authors: [{ name: "ArabVision TV" }],
+  title: "WazaNI TV | القنوات العربية ومباريات كرة القدم",
+  description: "تطبيق WazaNI TV لمتابعة القنوات التلفزيونية العربية وجدول مباريات كرة القدم بتصميم عصري وفاخر.",
+  keywords: ["WazaNI", "قنوات عربية", "مباريات", "كرة القدم", "بث مباشر", "البطولات"],
+  authors: [{ name: "WazaNI TV" }],
   manifest: undefined,
   openGraph: {
-    title: "ArabVision TV",
+    title: "WazaNI TV",
     description: "القنوات العربية ومباريات كرة القدم",
     type: "website",
   },

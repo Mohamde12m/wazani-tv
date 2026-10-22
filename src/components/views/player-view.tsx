@@ -217,8 +217,8 @@ export function PlayerView({ channelId }: { channelId: string }) {
         <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border bg-card/60 p-4 text-xs text-muted-foreground">
           <MonitorOff className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
           <p className="leading-relaxed">
-            لا تتوفر حالياً أي مصادر بث رسمية موثّقة لهذه القناة. العرب فيجن
-            تي في تلتزم بعرض المحتوى المرخّص فقط، ويعمل على إضافة المزيد من
+            لا تتوفر حالياً أي مصادر بث رسمية موثّقة لهذه القناة. WazaNI
+            TV تلتزم بعرض المحتوى المرخّص فقط، ويعمل على إضافة المزيد من
             القنوات التي تملك حقوق البث الرسمية باستمرار.
           </p>
         </div>

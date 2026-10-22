@@ -27,7 +27,7 @@ export function TopHeader({ title, subtitle, showBack = false }: { title?: strin
           <button
             onClick={() => setView({ name: "home" })}
             className="flex items-center gap-2"
-            aria-label="ArabVision TV"
+            aria-label="WazaNI TV"
           >
             <Logo />
           </button>
@@ -41,7 +41,7 @@ export function TopHeader({ title, subtitle, showBack = false }: { title?: strin
           ) : (
             <>
               <h1 className="text-lg font-extrabold leading-tight text-emerald">
-                Arab<span className="gold-text">Vision</span>
+                Waza<span className="gold-text">NI</span> <span className="text-sm font-bold text-muted-foreground">TV</span>
               </h1>
               <p className="text-[10px] text-muted-foreground">القنوات العربية ومباريات كرة القدم</p>
             </>

@@ -352,3 +352,37 @@ Work Log:
 
 Stage Summary:
 - The "بيانات تجريبية" demo ribbon is fully removed from match cards. Each match card now displays an elegant "ArabVision TV" gold brand watermark at the bottom (between two thin dividers), reinforcing the app identity on every card.
+
+---
+Task ID: 7
+Agent: main (orchestrator) — rename app to WazaNI TV
+Task: Rename the entire application from "ArabVision TV" to "WazaNI TV" everywhere (code, UI, metadata, database admin email + demo channel names + app.name setting).
+
+Work Log:
+- Grep'd the whole repo for ArabVision/Arab Vision/arabvision/العرب فيجن — found 9 source files + seed/schema.
+- Updated `src/app/layout.tsx`: metadata title, description, keywords, authors, openGraph title all → "WazaNI TV".
+- Updated `src/app/globals.css`: brand comment → "WazaNI TV brand tokens".
+- Updated `src/lib/auth.ts`: dev session secret → "wazani-tv-dev-secret-change-me"; default admin email → "admin@wazani.tv"; default admin name → "مدير WazaNI".
+- Updated `src/app/api/auth/init/route.ts`: defaultCredentialsHint → "admin@wazani.tv / admin12345".
+- Updated `src/components/shared/top-header.tsx`: aria-label → "WazaNI TV"; brand heading → "Waza<gold>NI</gold> TV" (emerald + gold split).
+- Updated `src/components/shared/match-card.tsx`: brand watermark → "WazaNI TV".
+- Updated `src/components/views/player-view.tsx`: honest-notice text "العرب فيجن تي في" → "WazaNI TV".
+- Updated `src/components/views/more-view.tsx`: about-card heading → "Waza<gold>NI</gold> TV"; disclaimer text → "WazaNI TV".
+- Updated `src/components/views/admin-view.tsx` (6 occurrences): login default email state, login heading "لوحة تحكم WazaNI", email placeholder, demo-credentials hint, dashboard header "لوحة تحكم WazaNI", dashboard footer "لوحة تحكم WazaNI TV".
+- Updated `prisma/schema.prisma` header comment → "WazaNI TV - Prisma schema".
+- Updated `prisma/seed.ts`: console log, 3 demo channel English names (WazaNI Demo Sport/Cinema/News), findFirst lookup, app.name setting value → "WazaNI TV".
+- Migrated the LIVE database (not just code) so the existing admin can still log in:
+  - adminUser email: admin@arabvision.tv → admin@wazani.tv; name → "مدير WazaNI".
+  - 3 demo channels: name field ArabVision Demo * → WazaNI Demo * (nameAr "بث تجريبي" unchanged).
+  - setting app.name value → "WazaNI TV".
+- Browser-verified (iPhone 14): 
+  - Page <title> = "WazaNI TV | القنوات العربية ومباريات كرة القدم".
+  - body has NO "ArabVision"/"العرب فيجن" anywhere; has "WazaNI" throughout.
+  - Match card brand watermark = "WazaNI TV".
+  - More view about-card h3 = "WazaNI TV".
+  - Admin login: default email = admin@wazani.tv; logged in successfully with admin@wazani.tv/admin12345 → dashboard header "لوحة تحكم WazaNI", footer "لوحة تحكم WazaNI TV".
+- VLM (glm-5v-turbo) confirmed on home + more screenshots: "'ArabVision' is not present anywhere", "WazaNI TV" visible.
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- App fully rebranded to "WazaNI TV". Brand display style: emerald "Waza" + gold "NI" + muted "TV". The old "ArabVision"/"العرب فيجن" text is 100% gone from both the codebase and the live database. Existing admin login now uses admin@wazani.tv (same password admin12345). Demo channels internally renamed but their Arabic display names ("بث تجريبي - رياضة/سينما/أخبار") are unchanged so the user-facing UI stays consistent.

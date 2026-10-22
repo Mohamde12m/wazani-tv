@@ -125,7 +125,7 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
       <div className="mt-3 flex items-center justify-center gap-1.5 pt-1">
         <span className="h-px flex-1 bg-border/60" />
         <span className="gold-text text-[9px] font-extrabold tracking-wide">
-          ArabVision TV
+          WazaNI TV
         </span>
         <span className="h-px flex-1 bg-border/60" />
       </div>

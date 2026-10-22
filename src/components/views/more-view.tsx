@@ -116,7 +116,7 @@ export function MoreView() {
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
                 <h3 className="text-base font-extrabold text-emerald">
-                  Arab<span className="gold-text">Vision</span> TV
+                  Waza<span className="gold-text">NI</span> TV
                 </h3>
                 <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-emerald">
                   v1.0.0
@@ -144,7 +144,7 @@ export function MoreView() {
             </span>
             <div className="space-y-2 text-[11px] leading-relaxed text-foreground/90">
               <p>
-                تطبيق <span className="font-bold">ArabVision TV</span> هو مشروع تجريبي تعليمي. لا تستضيف
+                تطبيق <span className="font-bold">WazaNI TV</span> هو مشروع تجريبي تعليمي. لا تستضيف
                 هذه المنصة أي بث ذات صلة ولا تخزّن روابط بث إلا عندما تكون مرخّصة وموثّقة من المصادر
                 الرسمية.
               </p>
