@@ -542,3 +542,21 @@ Work Log:
 
 Stage Summary:
 - The "WazaNI TV" wordmark text is restored beside the animated logo in the home header (and sub-page headers without titles), now with 3 layered, tasteful animations: a fade+slide-in on mount, a continuous golden shimmer crossing the "NI" letters, and a gentle breathing fade on the tagline. The logo+wordmark combo is alive and premium, matching the animated SVG logo beside it.
+
+---
+Task ID: 14
+Agent: main (orchestrator) — logo back to static image
+Task: Per user request, revert the logo to a clean static image exactly as provided (remove the SVG/animation effects from the logo itself), while keeping the dynamic animations on the wordmark TEXT beside it.
+
+Work Log:
+- Rewrote `src/components/shared/app-logo.tsx` to render the user-provided artwork as a plain `<img src="/wazani-logo.png">` with no effects — just `rounded-2xl object-cover bg-emerald-dark` and fixed width/height. The logo now displays exactly as the user sent it (static PNG, full lockup with icon + "WazaNI TV" wordmark + tagline inside the badge).
+- Kept `AppWordmark` (`src/components/shared/app-wordmark.tsx`) unchanged — the text beside the logo retains its 3 animations: fade+slide-in on mount (wazani-text-in), golden shimmer on "NI" (wazani-text-shine), and tagline fade (wazani-tagline-fade).
+- Browser-verified (iPhone 14):
+  - Header button contains both children: `IMG` (static logo, wazani-logo.png, 48px) + `DIV` (animated wordmark h1="WazaNI TV"). Confirmed via DOM inspection.
+  - getComputedStyle: h1Anim=wazani-text-in, niAnim=wazani-text-shine (text still animated); the logo IMG has no animation.
+  - VLM confirmed: "square logo image (dark green with golden W and TV) AND the text 'WazaNI TV' written beside it".
+  - No horizontal overflow (scrollW===clientW===390).
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The logo is now a clean static image exactly as the user provided (no SVG recreation, no breathing/sheen/glow effects on the logo). The dynamic/animated treatment lives ONLY on the wordmark text beside the logo (fade-in, gold shimmer on "NI", tagline fade). This matches the user's intent: logo = static image as sent; text = animated.
