@@ -59,6 +59,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAdmin } from "@/stores/admin";
+import { AppLogo } from "@/components/shared/app-logo";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { toast } from "sonner";
@@ -207,10 +208,8 @@ function LoginScreen({ error }: { error?: string }) {
     <div className="flex min-h-screen items-center justify-center bg-app px-4 py-8">
       <div className="w-full max-w-md space-y-5">
         <div className="flex flex-col items-center text-center">
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald to-emerald-dark text-white shadow-lg">
-            <ShieldCheck className="h-9 w-9" />
-            <span className="absolute -bottom-1 -left-1 h-3.5 w-3.5 rounded-full bg-gold ring-2 ring-card" />
-          </div>
+          <AppLogo size={64} className="shadow-lg" />
+          <div className="sr-only">WazaNI TV logo</div>
           <h1 className="mt-4 text-2xl font-extrabold text-emerald">
             لوحة تحكم <span className="gold-text">WazaNI</span>
           </h1>
@@ -2630,10 +2629,7 @@ function Dashboard() {
         {/* Top bar */}
         <header className="sticky top-0 z-30 -mx-4 mb-2 border-b border-border bg-card/90 px-4 py-3 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald to-emerald-dark text-white shadow-md">
-              <ShieldCheck className="h-5 w-5" />
-              <span className="absolute -bottom-1 -left-1 h-2.5 w-2.5 rounded-full bg-gold ring-2 ring-card" />
-            </div>
+            <AppLogo size={40} className="shadow-md" />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-base font-extrabold text-emerald">
                 لوحة تحكم <span className="gold-text">WazaNI</span>

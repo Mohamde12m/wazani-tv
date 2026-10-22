@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Search, Star, ChevronRight, ShieldCheck } from "lucide-react";
+import { Search, Star, ChevronRight } from "lucide-react";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
+import { AppLogo } from "@/components/shared/app-logo";
 import { cn } from "@/lib/utils";
 
 export function TopHeader({ title, subtitle, showBack = false }: { title?: string; subtitle?: string; showBack?: boolean }) {
@@ -29,7 +30,7 @@ export function TopHeader({ title, subtitle, showBack = false }: { title?: strin
             className="flex items-center gap-2"
             aria-label="WazaNI TV"
           >
-            <Logo />
+            <AppLogo size={36} />
           </button>
         )}
         <div className="min-w-0 flex-1">
@@ -71,14 +72,12 @@ export function TopHeader({ title, subtitle, showBack = false }: { title?: strin
   );
 }
 
+/**
+ * Backwards-compatible `Logo` re-export so existing imports
+ * (`import { Logo } from "@/components/shared/top-header"`) keep working.
+ * Now renders the custom AppLogo instead of the generic shield icon.
+ */
 export function Logo({ size = 36 }: { size?: number }) {
-  return (
-    <div
-      className={cn("relative flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald to-emerald-dark text-white shadow-md")}
-      style={{ width: size, height: size }}
-    >
-      <ShieldCheck className="h-1/2 w-1/2" />
-      <span className="absolute -bottom-1 -left-1 h-2.5 w-2.5 rounded-full bg-gold ring-2 ring-card" />
-    </div>
-  );
+  return <AppLogo size={size} />;
 }
+

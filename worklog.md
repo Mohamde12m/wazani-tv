@@ -412,3 +412,28 @@ Work Log:
 
 Stage Summary:
 - The home page now has a professional sticky header: WazaNI TV brand on the right (RTL start), search + notifications (bell with live-match badge) on the left. Both buttons are functional. Header stays pinned on scroll. No layout regressions.
+
+---
+Task ID: 9
+Agent: main (orchestrator) — custom app logo
+Task: Design a custom brand logo for WazaNI TV (replacing the generic ShieldCheck icon) that conveys both TV and football themes in the emerald/gold brand palette.
+
+Work Log:
+- Generated an AI preview image (`public/logo-wazani.png`, 1024×1024) via z-ai image-gen for a reference look: rounded-square emerald badge with a retro TV + golden soccer ball. VLM confirmed it conveys both themes and looks premium.
+- Created a new pure-SVG component `src/components/shared/app-logo.tsx` (razor-sharp at any size, themable, no raster):
+  - `AppLogo({ size, className })`: 64×64 viewBox SVG. Emerald gradient rounded-square badge (#0f9b6e → #084d37) with soft drop shadow, a subtle gold inner ring (luxury accent), a retro TV antenna in gold, a white TV body with a recessed emerald screen, TV stand + side knobs, and a golden soccer ball (with simplified pentagon pattern) centered on the screen, plus a gold corner accent dot.
+  - `AppLogoLockup({ size, className, showTagline })`: logo + "Waza<gold>NI</gold> TV" wordmark + optional tagline, for headers/landing.
+- Wired the new logo across the app:
+  - `src/components/shared/top-header.tsx`: replaced the generic `ShieldCheck`-based `Logo` with `AppLogo`. Kept a backwards-compatible `Logo` re-export that renders `AppLogo` so existing imports (`home-view.tsx`) keep working unchanged.
+  - `src/components/views/admin-view.tsx`: login screen hero (64px) + dashboard top bar (40px) now use `AppLogo`. Added the import.
+  - `src/components/views/more-view.tsx`: "About" card icon (48px) → `AppLogo`. Added the import.
+- Browser-verified (iPhone 14):
+  - Home header: SVG present, 38×38, aria-label="WazaNI TV", has gradients, has TV rect + ball circle, innerHTML length > 500 (rich detail).
+  - More view: 1 logo, 48px in the About card.
+  - Admin login: logo 40px at top of login card.
+  - No horizontal overflow (scrollWidth===clientWidth===390).
+- VLM (glm-5v-turbo) confirmed on home + admin screenshots: "custom-designed logo… television set with antenna and stand + soccer ball with pentagon/hexagon patterns… forest green + gold… premium sports broadcast feel… instantly recognizable as a football streaming service."
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- WazaNI TV now has a distinctive custom brand logo (SVG) replacing the generic shield icon. The same logo renders consistently in the home header, sub-page headers, admin login, admin dashboard, and the About card. It conveys both TV + football in the emerald/gold brand palette, stays sharp at any size, and is fully accessible (aria-label).
