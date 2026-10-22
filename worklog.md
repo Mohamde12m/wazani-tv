@@ -437,3 +437,30 @@ Work Log:
 
 Stage Summary:
 - WazaNI TV now has a distinctive custom brand logo (SVG) replacing the generic shield icon. The same logo renders consistently in the home header, sub-page headers, admin login, admin dashboard, and the About card. It conveys both TV + football in the emerald/gold brand palette, stays sharp at any size, and is fully accessible (aria-label).
+
+---
+Task ID: 10
+Agent: main (orchestrator) — user-provided brand logo
+Task: Replace the previous AI-generated SVG logo with the user-provided official WazaNI TV logo across the entire app.
+
+Work Log:
+- User uploaded `file_0000000051e481f493e6c7b65b1bad31.png` (1254×1254 PNG): a premium rounded-square emerald badge featuring a glossy "W" + golden TV icon (with play-button cutout), the wordmark "WazaNI TV" (white/gold), and a "LIVE TV • SPORTS • ARABIC CHANNELS" tagline with a gold divider. VLM confirmed the design.
+- Copied it to `public/wazani-logo.png` (full lockup).
+- Generated an icon-only crop `public/wazani-logo-mark.png` (512×~265) via sharp by extracting the top ~50% of the artwork (the "W" + TV icon without the wordmark) so small renderings stay legible. VLM confirmed it is "highly suitable as a small app icon".
+- Generated `src/app/icon.png` (256×256) from the mark → Next.js auto-serves it as the browser favicon (verified HTTP 200 at /icon.png).
+- Rewrote `src/components/shared/app-logo.tsx` to serve the static PNGs:
+  - `AppLogo({ size })` picks the asset automatically: `size < 56` → `/wazani-logo-mark.png` (icon only, legible at 36–55px); `size ≥ 56` → `/wazani-logo.png` (full lockup with text).
+  - Rendered as an `<img>` with `rounded-2xl object-cover bg-emerald-dark`, fixed width/height, `aria-label="WazaNI TV"`, `draggable=false`.
+  - Kept `AppLogoLockup` unchanged (logo + wordmark text in the DOM for headers).
+- Because `top-header.tsx`, `admin-view.tsx`, and `more-view.tsx` already import `AppLogo`, the new logo propagated everywhere automatically. Bumped the More-view "About" card logo from 48→56px so it now shows the full lockup (icon + text) instead of just the mark.
+- Browser-verified all placements (iPhone 14):
+  - Home header (38px) → mark ✓ (VLM: "clearly visible… stylized golden W and TV icon… easily recognizable").
+  - Admin login (64px) → full logo ✓ (VLM: "full logo with text… W icon, golden TV icon, and WazaNI TV text… premium with glossy 3D effect").
+  - Admin dashboard top bar (40px) → mark ✓ (VLM: "clearly visible in the top header bar… easily recognizable").
+  - More → About card (56px) → full logo ✓ (VLM: "full WazaNI TV logo… W icon with golden TV element and WazaNI TV text… premium").
+- favicon HTTP 200 at /icon.png; both logo assets HTTP 200.
+- Removed the previous AI-generated `public/logo-wazani.png`. No remaining references to `logo.svg` / `logo-wazani` in src.
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The user's official WazaNI TV logo now appears everywhere the previous logo did: home header (icon mark), sub-page headers (icon mark), admin login (full lockup), admin dashboard (icon mark), and the More→About card (full lockup). The browser tab favicon is also the new logo. Small sizes use the icon-only crop for legibility; large sizes use the full lockup with text. All driven by a single `AppLogo` component so future updates only need to swap the two PNG files.

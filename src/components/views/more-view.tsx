@@ -111,7 +111,7 @@ export function MoreView() {
         <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">حول التطبيق</h2>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-start gap-3">
-            <AppLogo size={48} className="shrink-0 shadow-md" />
+            <AppLogo size={56} className="shrink-0 shadow-md" />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
                 <h3 className="text-base font-extrabold text-emerald">
