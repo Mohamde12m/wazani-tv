@@ -386,3 +386,29 @@ Work Log:
 
 Stage Summary:
 - App fully rebranded to "WazaNI TV". Brand display style: emerald "Waza" + gold "NI" + muted "TV". The old "ArabVision"/"العرب فيجن" text is 100% gone from both the codebase and the live database. Existing admin login now uses admin@wazani.tv (same password admin12345). Demo channels internally renamed but their Arabic display names ("بث تجريبي - رياضة/سينما/أخبار") are unchanged so the user-facing UI stays consistent.
+
+---
+Task ID: 8
+Agent: main (orchestrator) — home sticky header
+Task: Add a sticky app header to the home page with logo + "WazaNI TV" name on the right (RTL start) and search + notification bell buttons on the left (RTL end).
+
+Work Log:
+- Edited `src/components/views/home-view.tsx`:
+  - Imported `Bell` from lucide-react and `Logo` from `@/components/shared/top-header`.
+  - Added a `liveCount` memo (matches that are live OR starting within 1 hour) to drive the notification badge.
+  - Wrapped the home return in a top-level `<div>` and inserted a `<header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">` BEFORE the padded body.
+  - Header layout (RTL): brand block (Logo 38px + "Waza<gold>NI</gold> TV" + tagline) on the right → `flex-1` spacer → search button (40×40, Search icon) → bell button (40×40, Bell icon, gold badge with liveCount when >0) on the left.
+  - Bell button navigates to `{ name: "matches", tab: "live" }`; search button navigates to `{ name: "search" }`.
+  - Kept the existing compact search-trigger bar as the first element of the padded body (now below the header) for discoverability.
+  - Closed the new wrapper div properly at the end of the return.
+- Browser-verified (iPhone 14, 390px):
+  - Header present, position:sticky, top:0, height 61px, visible on load AND after scrolling 800px down (stays pinned).
+  - h1 text = "WazaNI TV"; buttons aria-labels = ["WazaNI TV", "بحث", "التنبيهات"].
+  - Search button click → opens search view (body shows "البحث" + "تصفّح حسب التصنيف").
+  - Bell button click → opens matches view on the live tab.
+  - No horizontal overflow (scrollWidth===clientWidth===390). Header within viewport bounds.
+- VLM (glm-5v-turbo) confirmed: sticky header at top; logo+name "WazaNI TV" on the RIGHT; search+bell buttons on the LEFT; bell shows a notification badge with count "2"; looks premium and balanced. After-scroll screenshot also confirmed the header stays visible and pinned.
+- Lint: 0 errors, 0 warnings.
+
+Stage Summary:
+- The home page now has a professional sticky header: WazaNI TV brand on the right (RTL start), search + notifications (bell with live-match badge) on the left. Both buttons are functional. Header stays pinned on scroll. No layout regressions.

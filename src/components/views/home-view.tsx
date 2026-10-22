@@ -17,6 +17,7 @@ import {
   Plus,
   Star,
   Landmark,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import {
   ChannelCard,
 } from "@/components/shared/channel-card";
 import { MatchCard } from "@/components/shared/match-card";
+import { Logo } from "@/components/shared/top-header";
 import {
   SectionHeader,
   ChannelRow,
@@ -64,6 +66,16 @@ export function HomeView() {
   const channels = channelsData?.channels ?? [];
   const matches = matchesData?.matches ?? [];
   const allDemo = matches.length > 0 && matches.every((m) => m.demo);
+
+  // Live + soon-starting matches count → drives the notification badge
+  const liveCount = React.useMemo(() => {
+    const now = Date.now();
+    return matches.filter((m) => {
+      if (m.status === "live") return true;
+      const t = new Date(m.kickoff).getTime();
+      return t > now && t - now < 60 * 60 * 1000; // within 1 hour
+    }).length;
+  }, [matches]);
 
   // ---- Derived groupings (memoized) ----
   const {
@@ -152,8 +164,60 @@ export function HomeView() {
   }, [matches]);
 
   return (
-    <div className="space-y-6 px-4 py-4">
-      {/* 1. Quick search bar */}
+    <div>
+      {/* ===== App header (sticky) =====
+          RTL: brand on the RIGHT (start), search + bell on the LEFT (end) */}
+      <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2.5">
+          {/* Brand block (right side in RTL) */}
+          <button
+            onClick={() => setView({ name: "home" })}
+            className="flex items-center gap-2"
+            aria-label="WazaNI TV"
+          >
+            <Logo size={38} />
+            <div className="text-right leading-tight">
+              <h1 className="text-lg font-extrabold text-emerald">
+                Waza<span className="gold-text">NI</span>{" "}
+                <span className="text-sm font-bold text-muted-foreground">TV</span>
+              </h1>
+              <p className="-mt-0.5 text-[9px] text-muted-foreground">
+                القنوات العربية ومباريات كرة القدم
+              </p>
+            </div>
+          </button>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Search button (left side) */}
+          <button
+            onClick={() => setView({ name: "search" })}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-emerald transition-colors hover:bg-secondary/70 active:scale-95"
+            aria-label="بحث"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+
+          {/* Notifications button (left side) */}
+          <button
+            onClick={() => setView({ name: "matches", tab: "live" })}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-emerald transition-colors hover:bg-secondary/70 active:scale-95"
+            aria-label="التنبيهات"
+          >
+            <Bell className="h-5 w-5" />
+            {liveCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-bold text-white">
+                {liveCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Page body */}
+      <div className="space-y-6 px-4 py-4">
+      {/* 1. Compact search trigger */}
       <button
         onClick={() => setView({ name: "search" })}
         className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
@@ -332,6 +396,7 @@ export function HomeView() {
 
       {/* Footer spacing for bottom nav */}
       <div className="h-2" />
+      </div>
     </div>
   );
 }
