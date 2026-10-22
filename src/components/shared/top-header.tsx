@@ -27,24 +27,17 @@ export function TopHeader({ title, subtitle, showBack = false }: { title?: strin
         ) : (
           <button
             onClick={() => setView({ name: "home" })}
-            className="flex items-center gap-2"
+            className="flex items-center"
             aria-label="WazaNI TV"
           >
-            <AppLogo size={36} />
+            <AppLogo size={48} />
           </button>
         )}
         <div className="min-w-0 flex-1">
-          {title ? (
+          {title && (
             <>
               <h1 className="truncate text-base font-extrabold text-foreground">{title}</h1>
               {subtitle && <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>}
-            </>
-          ) : (
-            <>
-              <h1 className="text-lg font-extrabold leading-tight text-emerald">
-                Waza<span className="gold-text">NI</span> <span className="text-sm font-bold text-muted-foreground">TV</span>
-              </h1>
-              <p className="text-[10px] text-muted-foreground">القنوات العربية ومباريات كرة القدم</p>
             </>
           )}
         </div>

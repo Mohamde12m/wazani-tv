@@ -464,3 +464,28 @@ Work Log:
 
 Stage Summary:
 - The user's official WazaNI TV logo now appears everywhere the previous logo did: home header (icon mark), sub-page headers (icon mark), admin login (full lockup), admin dashboard (icon mark), and the More→About card (full lockup). The browser tab favicon is also the new logo. Small sizes use the icon-only crop for legibility; large sizes use the full lockup with text. All driven by a single `AppLogo` component so future updates only need to swap the two PNG files.
+
+---
+Task ID: 11
+Agent: main (orchestrator) — always show full logo
+Task: Per user request, show the COMPLETE logo (icon + "WazaNI TV" wordmark + tagline) everywhere in the app — not the icon-only mark variant.
+
+Work Log:
+- Edited `src/components/shared/app-logo.tsx`: removed the size-based mark-vs-full branching; `AppLogo` now ALWAYS renders `/wazani-logo.png` (the full lockup) at every size, so the complete logo with all its text is visible everywhere.
+- Raised the logo sizes so the full lockup stays legible:
+  - Home header: 38 → 52px (and removed the duplicate "WazaNI TV" wordmark text that sat beside it, since the logo itself already carries the name + tagline).
+  - Sub-page `TopHeader` (no-title branch): 36 → 48px; removed the duplicate wordmark text block beside the logo (the `title` branch still shows page titles as before).
+  - Admin dashboard top bar: 40 → 56px.
+  - Admin login: kept at 64px (already full).
+  - More→About card: kept at 56px (already full).
+- Browser-verified all placements (iPhone 14):
+  - Home (52px): full logo (wazani-logo.png), no horizontal overflow (scrollW===clientW===390).
+  - More→About (56px): full logo.
+  - Admin login (64px): full logo.
+  - Admin dashboard (56px): full logo.
+- VLM (glm-5v-turbo) confirmed: dashboard "full WazaNI TV logo… golden W+TV icon, 'WazaNI TV' text, and a small tagline… clearly the complete logo with all text elements visible". The "WazaNI TV" wordmark is legible at 52–56px; the tiny tagline is present as part of the artwork (decorative at small sizes, fully readable at 64px login).
+- `public/wazani-logo-mark.png` is no longer referenced in code but kept as an asset (favicon `src/app/icon.png` is derived from it).
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The complete WazaNI TV logo (icon + wordmark + tagline) now renders in EVERY place a logo appears: home header (52px), sub-page headers (48px), admin login (64px), admin dashboard (56px), and the More→About card (56px). No more icon-only variant in the UI. Duplicate wordmark text beside the logo was removed to avoid redundancy since the logo itself carries the brand name.

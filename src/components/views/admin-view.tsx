@@ -2629,7 +2629,7 @@ function Dashboard() {
         {/* Top bar */}
         <header className="sticky top-0 z-30 -mx-4 mb-2 border-b border-border bg-card/90 px-4 py-3 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <AppLogo size={40} className="shadow-md" />
+            <AppLogo size={56} className="shadow-md" />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-base font-extrabold text-emerald">
                 لوحة تحكم <span className="gold-text">WazaNI</span>

@@ -6,12 +6,13 @@ import { cn } from "@/lib/utils";
 /**
  * WazaNI TV — official brand logo.
  *
- * Uses two static PNG assets derived from the user-provided artwork:
- *  - /wazani-logo.png        — full lockup (icon + "WazaNI TV" wordmark + tagline)
- *  - /wazani-logo-mark.png   — icon-only crop (the "W" + golden TV) for small sizes
+ * Always renders the FULL lockup artwork (icon + "WazaNI TV" wordmark +
+ * "LIVE TV • SPORTS • ARABIC CHANNELS" tagline) from /wazani-logo.png,
+ * at every size, so the complete logo with all its text is visible
+ * everywhere in the app as required.
  *
- * Small renderings (≤48px) use the mark so the artwork stays legible; larger
- * renderings (login screens, about cards) use the full lockup.
+ * The logo is a square (1:1) so we keep width === height and use
+ * object-cover to fill the rounded badge nicely.
  */
 export function AppLogo({
   size = 40,
@@ -20,13 +21,9 @@ export function AppLogo({
   size?: number;
   className?: string;
 }) {
-  // Below this threshold the wordmark text inside the full logo becomes hard
-  // to read, so we switch to the icon-only mark.
-  const useMark = size < 56;
-  const src = useMark ? "/wazani-logo-mark.png" : "/wazani-logo.png";
   return (
     <img
-      src={src}
+      src="/wazani-logo.png"
       width={size}
       height={size}
       alt="WazaNI TV"

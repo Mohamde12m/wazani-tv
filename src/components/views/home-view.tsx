@@ -169,22 +169,14 @@ export function HomeView() {
           RTL: brand on the RIGHT (start), search + bell on the LEFT (end) */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2.5">
-          {/* Brand block (right side in RTL) */}
+          {/* Brand block (right side in RTL) — the full logo already carries
+              the wordmark + tagline, so no duplicate text is needed beside it. */}
           <button
             onClick={() => setView({ name: "home" })}
-            className="flex items-center gap-2"
+            className="flex items-center"
             aria-label="WazaNI TV"
           >
-            <Logo size={38} />
-            <div className="text-right leading-tight">
-              <h1 className="text-lg font-extrabold text-emerald">
-                Waza<span className="gold-text">NI</span>{" "}
-                <span className="text-sm font-bold text-muted-foreground">TV</span>
-              </h1>
-              <p className="-mt-0.5 text-[9px] text-muted-foreground">
-                القنوات العربية ومباريات كرة القدم
-              </p>
-            </div>
+            <Logo size={52} />
           </button>
 
           {/* Spacer */}
