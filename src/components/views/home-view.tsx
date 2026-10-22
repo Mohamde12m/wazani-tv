@@ -26,6 +26,7 @@ import {
 } from "@/components/shared/channel-card";
 import { MatchCard } from "@/components/shared/match-card";
 import { Logo } from "@/components/shared/top-header";
+import { AppWordmark } from "@/components/shared/app-wordmark";
 import {
   SectionHeader,
   ChannelRow,
@@ -169,14 +170,14 @@ export function HomeView() {
           RTL: brand on the RIGHT (start), search + bell on the LEFT (end) */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2.5">
-          {/* Brand block (right side in RTL) — the full logo already carries
-              the wordmark + tagline, so no duplicate text is needed beside it. */}
+          {/* Brand block (right side in RTL) — animated logo + animated wordmark */}
           <button
             onClick={() => setView({ name: "home" })}
-            className="flex items-center"
+            className="flex items-center gap-2"
             aria-label="WazaNI TV"
           >
-            <Logo size={52} />
+            <Logo size={48} />
+            <AppWordmark />
           </button>
 
           {/* Spacer */}

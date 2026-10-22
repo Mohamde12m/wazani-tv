@@ -515,3 +515,30 @@ Work Log:
 
 Stage Summary:
 - The WazaNI TV logo is now a DYNAMIC, animated SVG (no longer a flat PNG). It is alive with 7 layered, tasteful animations: a sweeping golden sheen, a gentle breathing scale, a glowing TV body, blinking antenna signal lights, a pulsing play button, and a loader-style progress bar — all staggered so the logo feels organic and premium. The animated logo renders consistently across home header (52px), sub-page headers (48px), admin login (64px), admin dashboard (56px), and the More→About card (56px). Accessibility respected via prefers-reduced-motion.
+
+---
+Task ID: 13
+Agent: main (orchestrator) — restore animated wordmark
+Task: Restore the "WazaNI TV" wordmark text beside the logo (which had been removed earlier) and make it dynamic/animated.
+
+Work Log:
+- Created `src/components/shared/app-wordmark.tsx` exporting `AppWordmark({ className, showTagline, size })`:
+  - "Waza" in emerald, "NI" in a moving gold gradient (shimmer), "TV" in muted.
+  - On mount: the h1 letters fade + slide in from the right (RTL) via `wazani-text-in` (0.7s cubic-bezier ease, both fill-mode).
+  - Continuously: the "NI" gold letters shimmer with a moving golden gradient (`wazani-text-shine`, 3s linear infinite) — uses an explicit 5-stop gold gradient background that pans 200%→-200%.
+  - Continuously: the tagline "القنوات العربية ومباريات كرة القدم" gently fades 0.55↔1.0 opacity (`wazani-tagline-fade`, 2.8s ease-in-out infinite).
+  - Supports 3 sizes (sm/md/lg) for reuse; honors prefers-reduced-motion (disabled via globals.css media query).
+- Added 3 new keyframes to `src/app/globals.css` (wazani-text-in, wazani-text-shine, wazani-tagline-fade) and added them to the prefers-reduced-motion disable list.
+- Restored the wordmark beside the logo in:
+  - `src/components/views/home-view.tsx` home header: `<Logo size={48}/> <AppWordmark/>` (logo slightly reduced 52→48 to make room for the text without overflow).
+  - `src/components/shared/top-header.tsx` no-title branch: `<AppLogo size={48}/> <AppWordmark/>` (so sub-pages without a title also show the animated wordmark).
+- Removed now-unused `cn` import from top-header.tsx.
+- Restarted dev server to bust Turbopack CSS cache (same issue as task 12).
+- Browser-verified (iPhone 14):
+  - Home header: h1="WazaNI TV", tagline="القنوات العربية ومباريات كرة القدم", all 3 animations live (h1Anim=wazani-text-in, niAnim=wazani-text-shine, taglineAnim=wazani-tagline-fade).
+  - VLM confirmed: "logo icon + 'WazaNI TV' text beside it + tagline under it" — all three present.
+  - No horizontal overflow (scrollW===clientW===390).
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The "WazaNI TV" wordmark text is restored beside the animated logo in the home header (and sub-page headers without titles), now with 3 layered, tasteful animations: a fade+slide-in on mount, a continuous golden shimmer crossing the "NI" letters, and a gentle breathing fade on the tagline. The logo+wordmark combo is alive and premium, matching the animated SVG logo beside it.

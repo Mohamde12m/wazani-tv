@@ -5,7 +5,7 @@ import { Search, Star, ChevronRight } from "lucide-react";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
 import { AppLogo } from "@/components/shared/app-logo";
-import { cn } from "@/lib/utils";
+import { AppWordmark } from "@/components/shared/app-wordmark";
 
 export function TopHeader({ title, subtitle, showBack = false }: { title?: string; subtitle?: string; showBack?: boolean }) {
   const setView = useNav((s) => s.setView);
@@ -27,10 +27,11 @@ export function TopHeader({ title, subtitle, showBack = false }: { title?: strin
         ) : (
           <button
             onClick={() => setView({ name: "home" })}
-            className="flex items-center"
+            className="flex items-center gap-2"
             aria-label="WazaNI TV"
           >
             <AppLogo size={48} />
+            <AppWordmark />
           </button>
         )}
         <div className="min-w-0 flex-1">
