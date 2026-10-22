@@ -587,3 +587,26 @@ Work Log:
 
 Stage Summary:
 - The featured match hero card on the home page is now meaningfully smaller and more compact (≈26% shorter), giving more above-the-fold space to the channel sections below while still being the clear focal point. All inner elements (logos, scores, countdown, buttons) were scaled down proportionally so the card stays balanced and premium-looking.
+
+---
+Task ID: 16
+Agent: main (orchestrator) — radically compact hero card
+Task: User feedback — even after the first shrink (task 15), the featured match card still took too much vertical space on mobile (25% of screen). Make it much more compact.
+
+Work Log:
+- Redesigned `FeaturedHero` in `src/components/views/home-view.tsx` from a tall multi-section card into a compact 3-row card:
+  - Row 1: tournament name (with trophy icon) + status pill (مباشر/انتهت/الوقت) — single line, text-[11px]/[9px].
+  - Row 2: teams + score/time in ONE grid row (the main content) — logos 40×40 (sm:48×48), score text-lg, countdown chips inline.
+  - Row 3: channel name + watch button + matches button — single compact line, text-[10px]/[11px], buttons h-7.
+- Removed the separate countdown row (was its own mt-3 block) — the countdown is now inline in the score column (hours/minutes/seconds chips only, no days).
+- Removed the duplicate meta row (stadium now hidden on mobile, shown only sm+).
+- Tightened all spacing: section px-3 py-2.5 (was p-3.5/sm:p-4); mb-3 → mb-2; mt-3 → mt-2; pt-2.5 → pt-2.
+- HeroTeam: logo h-12/w-12 sm:h-14/sm:w-14 → h-10/w-10 sm:h-12/sm:w-12; gap-1.5 → gap-1; name line-clamp-2 → line-clamp-1 max-w-[80px] text-[10px]; rounded-xl → rounded-lg.
+- HeroCountdownChip: px-1.5/py-0.5 → px-1/py-0.5; number text-sm → text-[11px]; label text-[8px] → text-[7px]; rounded-md → rounded.
+- Skeleton: h-44 → h-32.
+- Browser-verified (iPhone 14): hero card height dropped from 213px → 149px (from 25% → 18% of the 844px viewport). Cumulative reduction from the original ~290px is ~49% (nearly half).
+- VLM (glm-5v-turbo) confirmed: "(1) compact, fitting all data into a single horizontal row to minimize vertical space. (2) All key information clearly visible: teams, score, live status, channel, action buttons. (3) The home screen successfully displays significantly more content below it."
+- No horizontal overflow (scrollW===clientW===390). Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The featured match card is now radically more compact (149px tall, 18% of screen vs the original 25–30%). It packs tournament + status + teams + score/countdown + channel + watch button into 3 tight rows while keeping all critical info visible. The home screen now shows much more content below the card without scrolling, matching the user's request to not waste mobile screen space.

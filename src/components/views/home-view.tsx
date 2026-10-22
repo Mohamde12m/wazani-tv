@@ -227,7 +227,7 @@ export function HomeView() {
 
       {/* 2. Featured match hero */}
       {matchesLoading ? (
-        <div className="shimmer h-44 rounded-2xl bg-muted" />
+        <div className="shimmer h-32 rounded-2xl bg-muted" />
       ) : featuredMatch ? (
         <FeaturedHero match={featuredMatch} />
       ) : null}
@@ -407,118 +407,104 @@ function FeaturedHero({ match }: { match: Match }) {
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl border border-emerald-dark/30 bg-gradient-to-bl from-emerald via-emerald to-emerald-dark p-3.5 shadow-md sm:p-4"
+      className="relative overflow-hidden rounded-2xl border border-emerald-dark/30 bg-gradient-to-bl from-emerald via-emerald to-emerald-dark px-3 py-2.5 shadow-md"
     >
       {/* Decorative gold glow */}
-      <div className="pointer-events-none absolute -top-12 -left-12 h-36 w-36 rounded-full bg-gold/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-14 -right-8 h-40 w-40 rounded-full bg-emerald-light/30 blur-3xl" />
+      <div className="pointer-events-none absolute -top-10 -left-10 h-28 w-28 rounded-full bg-gold/20 blur-3xl" />
 
-      {/* Top row: tournament + status */}
-      <div className="relative mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15">
-            <Trophy className="h-3.5 w-3.5 text-gold-light" />
-          </span>
-          <span className="text-xs font-bold text-white/95">{tournamentName}</span>
+      {/* Top row: tournament + status (compact) */}
+      <div className="relative mb-2 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Trophy className="h-3.5 w-3.5 shrink-0 text-gold-light" />
+          <span className="truncate text-[11px] font-bold text-white/95">{tournamentName}</span>
         </div>
         {live ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-extrabold text-emerald-dark">
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-white px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-dark">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald live-dot" />
-            مباشر الآن
+            مباشر
           </span>
         ) : finished ? (
-          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white">
+          <span className="shrink-0 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-bold text-white">
             انتهت
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-white">
-            <Clock className="h-3 w-3" />
-            {dayLabel(match.kickoff)} · {formatTime(match.kickoff)}
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-white/15 px-1.5 py-0.5 text-[9px] font-bold text-white">
+            <Clock className="h-2.5 w-2.5" />
+            {formatTime(match.kickoff)}
           </span>
         )}
       </div>
 
-      {/* Teams */}
+      {/* Teams + score in ONE compact row */}
       <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <HeroTeam name={match.homeName} logo={match.homeLogo} />
         <div className="flex flex-col items-center">
           {live || finished ? (
-            <div className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 backdrop-blur-sm">
-              <span className="text-2xl font-extrabold tabular-nums text-white sm:text-3xl">
+            <div className="flex items-center gap-1 rounded-lg bg-white/15 px-2 py-1 backdrop-blur-sm">
+              <span className="text-lg font-extrabold tabular-nums text-white">
                 {match.homeScore ?? 0}
               </span>
-              <span className="text-base font-bold text-white/60">-</span>
-              <span className="text-2xl font-extrabold tabular-nums text-white sm:text-3xl">
+              <span className="text-xs font-bold text-white/60">-</span>
+              <span className="text-lg font-extrabold tabular-nums text-white">
                 {match.awayScore ?? 0}
               </span>
             </div>
+          ) : upcoming ? (
+            <div className="flex items-center gap-1 rounded-lg bg-white/15 px-2 py-1 backdrop-blur-sm">
+              <HeroCountdownChip v={cd.hours} l="س" />
+              <HeroCountdownChip v={cd.minutes} l="د" />
+              <HeroCountdownChip v={cd.seconds} l="ث" />
+            </div>
           ) : (
-            <div className="flex flex-col items-center rounded-xl bg-white/15 px-3 py-1.5 backdrop-blur-sm">
-              <span className="text-lg font-extrabold tabular-nums text-white">
+            <div className="flex flex-col items-center rounded-lg bg-white/15 px-2 py-1 backdrop-blur-sm">
+              <span className="text-sm font-extrabold tabular-nums text-white">
                 {formatTime(match.kickoff)}
               </span>
-              <span className="text-[9px] font-semibold text-white/80">
+              <span className="text-[8px] font-semibold text-white/80">
                 {dayLabel(match.kickoff)}
               </span>
             </div>
-          )}
-          {live && (
-            <span className="mt-1 text-[9px] font-semibold text-gold-light">
-              يتم البث الآن
-            </span>
           )}
         </div>
         <HeroTeam name={match.awayName} logo={match.awayLogo} />
       </div>
 
-      {/* Countdown */}
-      {upcoming && (
-        <div className="relative mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-white/10 px-2.5 py-2 backdrop-blur-sm">
-          <span className="text-[11px] font-semibold text-white/85">انطلاق خلال</span>
-          <HeroCountdownChip v={cd.days} l="يوم" />
-          <HeroCountdownChip v={cd.hours} l="ساعة" />
-          <HeroCountdownChip v={cd.minutes} l="دقيقة" />
-          <HeroCountdownChip v={cd.seconds} l="ثانية" />
-        </div>
-      )}
-
-      {/* Meta + actions */}
-      <div className="relative mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-2.5">
-        <div className="flex flex-wrap items-center gap-3 text-[11px] text-white/85">
-          {match.stadium && (
-            <span className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-gold-light" />
-              <span className="truncate max-w-[140px]">{match.stadium}</span>
-            </span>
-          )}
+      {/* Bottom row: channel + watch button (single compact line) */}
+      <div className="relative mt-2 flex items-center justify-between gap-2 border-t border-white/15 pt-2">
+        <div className="flex min-w-0 items-center gap-2 text-[10px] text-white/85">
           {match.channel && (
             <span className="flex items-center gap-1">
-              <Radio className="h-3.5 w-3.5 text-gold-light" />
-              <span className="font-bold text-white">
+              <Radio className="h-3 w-3 text-gold-light" />
+              <span className="truncate font-bold text-white">
                 {match.channel.nameAr ?? match.channel.name}
               </span>
             </span>
           )}
+          {match.stadium && (
+            <span className="hidden items-center gap-1 sm:flex">
+              <MapPin className="h-3 w-3 text-gold-light" />
+              <span className="truncate max-w-[100px]">{match.stadium}</span>
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1.5">
           {match.channel && (
             <Button
               onClick={() => setView({ name: "player", channelId: match.channel!.id })}
               size="sm"
-              className="h-8 bg-gold px-3 text-xs font-bold text-white shadow hover:bg-gold/90 hover:text-white"
+              className="h-7 bg-gold px-2.5 text-[11px] font-bold text-white shadow hover:bg-gold/90 hover:text-white"
             >
-              <Tv className="ml-1 h-3.5 w-3.5" />
-              شاهد القناة
+              <Tv className="ml-1 h-3 w-3" />
+              شاهد
             </Button>
           )}
           <Button
             onClick={() => setView({ name: "matches" })}
             size="sm"
             variant="outline"
-            className="h-8 border-white/40 bg-white/10 px-3 text-xs font-bold text-white hover:bg-white/20 hover:text-white"
+            className="h-7 border-white/40 bg-white/10 px-2.5 text-[11px] font-bold text-white hover:bg-white/20 hover:text-white"
           >
-            كل المباريات
-            <ChevronLeft className="h-3.5 w-3.5" />
+            المباريات
           </Button>
         </div>
       </div>
@@ -529,22 +515,22 @@ function FeaturedHero({ match }: { match: Match }) {
 function HeroTeam({ name, logo }: { name: string; logo?: string | null }) {
   const [err, setErr] = React.useState(false);
   return (
-    <div className="flex flex-col items-center gap-1.5 text-center">
-      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white/15 p-1 ring-1 ring-white/20 sm:h-14 sm:w-14">
+    <div className="flex flex-col items-center gap-1 text-center">
+      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white/15 p-0.5 ring-1 ring-white/20 sm:h-12 sm:w-12">
         {logo && !err ? (
           <img
             src={logo}
             alt={name}
             onError={() => setErr(true)}
-            className="h-full w-full rounded-lg object-cover"
+            className="h-full w-full rounded-md object-cover"
           />
         ) : (
-          <span className="text-xl font-extrabold text-white sm:text-2xl">
+          <span className="text-base font-extrabold text-white sm:text-lg">
             {name.slice(0, 1)}
           </span>
         )}
       </div>
-      <span className="line-clamp-2 text-[11px] font-bold leading-tight text-white sm:text-xs">
+      <span className="line-clamp-1 max-w-[80px] text-[10px] font-bold leading-tight text-white sm:text-[11px]">
         {name}
       </span>
     </div>
@@ -553,11 +539,11 @@ function HeroTeam({ name, logo }: { name: string; logo?: string | null }) {
 
 function HeroCountdownChip({ v, l }: { v: number; l: string }) {
   return (
-    <span className="flex flex-col items-center rounded-md bg-white/20 px-1.5 py-0.5 leading-none">
-      <span className="text-sm font-extrabold tabular-nums text-white">
+    <span className="flex flex-col items-center rounded bg-white/20 px-1 py-0.5 leading-none">
+      <span className="text-[11px] font-extrabold tabular-nums text-white">
         {String(v).padStart(2, "0")}
       </span>
-      <span className="mt-0.5 text-[8px] text-white/80">{l}</span>
+      <span className="mt-px text-[7px] text-white/80">{l}</span>
     </span>
   );
 }
