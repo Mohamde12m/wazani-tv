@@ -145,6 +145,7 @@ export function TournamentView({ id }: { id: string }) {
             value={tab}
             onValueChange={(v) => setTab(v as "matches" | "teams")}
             className="gap-3"
+            dir="rtl"
           >
             <TabsList className="no-scrollbar h-auto w-full gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1">
               <TabsTrigger

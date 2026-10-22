@@ -69,7 +69,7 @@ export function FavoritesView() {
         </span>
       </div>
 
-      <Tabs defaultValue="channels" className="w-full">
+      <Tabs defaultValue="channels" className="w-full" dir="rtl">
         <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-secondary p-1">
           <TabsTrigger value="channels" className="flex flex-col items-center gap-0.5 rounded-xl py-2">
             <Tv className="h-4 w-4" />

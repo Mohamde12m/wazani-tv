@@ -632,3 +632,27 @@ Work Log:
 
 Stage Summary:
 - The "مباريات اليوم المهمة" section on the home page now uses compact 210×120px match cards (down from 260×~190px), packing tournament + status + teams + score/time + channel into 3 tight rows. The home screen is now much less dominated by the today's-matches row, leaving more room for the channel sections below.
+
+---
+Task ID: 18
+Agent: main (orchestrator) — fix RTL direction on matches page
+Task: User reported the matches page content starts left-to-right instead of right-to-left. Fix the RTL direction.
+
+Work Log:
+- Diagnosed via Agent Browser DOM inspection: `getComputedStyle(tablist).direction` returned `"ltr"` despite `<html dir="rtl">` being set. Traced the inheritance chain and found the `Tabs` component (Radix UI `<TabsPrimitive.Root>`) was rendering with `dir="ltr"` on its root div, forcing ALL children (tablist + filter chip rows + content) into LTR.
+- Root cause: Radix UI's `Direction` provider defaults to `"ltr"` unless explicitly told otherwise. The shadcn `Tabs` wrapper (`src/components/ui/tabs.tsx`) doesn't pass `dir` through.
+- Fix: Added `dir="rtl"` to every `<Tabs>` usage in the app:
+  - `src/components/views/matches-view.tsx` — the page the user reported.
+  - `src/components/views/favorites-view.tsx` — same Radix issue, preemptive fix.
+  - `src/components/views/tournament-view.tsx` — same Radix issue, preemptive fix.
+  (Admin view doesn't use Tabs; channels view uses plain divs so it was already correct.)
+- Browser-verified (iPhone 14) on the matches page:
+  - `getComputedStyle(tablist).direction` → `"rtl"` ✓
+  - First tab "مباريات اليوم" now at left:251 right:369 (right side of 390px viewport) ✓
+  - First chip "الكل" now at left:325 (right side) ✓
+  - No horizontal overflow (scrollW===clientW===390).
+- VLM (glm-5v-turbo) confirmed: "(1) tabs start from the right ✓. (2) filter chips start from the right ✓. (3) overall layout properly RTL ✓. (4) looks correct for an Arabic app ✓. Home team on the right, away team on the left — standard for Arabic layouts."
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The matches page (and favorites + tournament detail pages) now correctly flow right-to-left. The root cause was Radix UI's Direction provider defaulting to "ltr" on the Tabs component. Adding `dir="rtl"` to each `<Tabs>` instance forces Radix to respect Arabic RTL for all its children — tabs, filter chips, and content all now start from the right as expected.
