@@ -610,3 +610,25 @@ Work Log:
 
 Stage Summary:
 - The featured match card is now radically more compact (149px tall, 18% of screen vs the original 25–30%). It packs tournament + status + teams + score/countdown + channel + watch button into 3 tight rows while keeping all critical info visible. The home screen now shows much more content below the card without scrolling, matching the user's request to not waste mobile screen space.
+
+---
+Task ID: 17
+Agent: main (orchestrator) — compact today's matches cards
+Task: Shrink the "مباريات اليوم المهمة" (today's important matches) cards on the home page — they were too big.
+
+Work Log:
+- Replaced the big `MatchCard` (260px wide × ~190px tall) used in the home "today's matches" horizontal row with a new dedicated `TodayMatchCard` component (`src/components/views/home-view.tsx`):
+  - Width 260 → 210px; height ~190 → 120px (≈37% shorter, ≈19% narrower).
+  - 3 tight rows: (1) tournament + status pill, (2) teams + score/time, (3) channel name — instead of the big card's 4+ rows + actions + brand watermark.
+  - Team logos: 48×48 → 36×36 (`TeamMini` helper).
+  - All text scaled down: text-[8px]–[10px].
+  - Card padding p-4 → p-2.5; rounded-2xl → rounded-xl.
+  - The whole card is a single button → navigates to matches view (the big card had separate favorite + watch buttons; for the home horizontal strip a single tap target is cleaner and more compact).
+- Added the missing `import { cn } from "@/lib/utils"` (the new TodayMatchCard uses cn for conditional border/ring classes; previously cn was not imported in home-view, causing a client-side ReferenceError on first edit — fixed).
+- Removed the now-unused `import { MatchCard }` from home-view (MatchCard is still used elsewhere, e.g. matches view).
+- Browser-verified (iPhone 14): 7 today cards render at 210×120px each, horizontally scrollable. No client errors. No horizontal page overflow (scrollW===clientW===390).
+- VLM (glm-5v-turbo) confirmed: "match cards are compact and small. They clearly display team logos, the score or time, the tournament name, and the broadcasting channel. The section is designed to take up minimal vertical space by using a horizontal scroll layout."
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The "مباريات اليوم المهمة" section on the home page now uses compact 210×120px match cards (down from 260×~190px), packing tournament + status + teams + score/time + channel into 3 tight rows. The home screen is now much less dominated by the today's-matches row, leaving more room for the channel sections below.

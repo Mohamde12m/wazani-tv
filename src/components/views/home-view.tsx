@@ -24,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   ChannelCard,
 } from "@/components/shared/channel-card";
-import { MatchCard } from "@/components/shared/match-card";
 import { Logo } from "@/components/shared/top-header";
 import { AppWordmark } from "@/components/shared/app-wordmark";
 import {
@@ -36,6 +35,7 @@ import {
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
+import { cn } from "@/lib/utils";
 import type { Channel, Match } from "@/lib/types";
 
 // Channel with optional createdAt for sorting recent additions
@@ -259,9 +259,7 @@ export function HomeView() {
         ) : (
           <ChannelRow>
             {todaysMatches.map((m) => (
-              <div key={m.id} className="w-[260px] shrink-0">
-                <MatchCard match={m} />
-              </div>
+              <TodayMatchCard key={m.id} match={m} />
             ))}
           </ChannelRow>
         )}
@@ -390,6 +388,94 @@ export function HomeView() {
       {/* Footer spacing for bottom nav */}
       <div className="h-2" />
       </div>
+    </div>
+  );
+}
+
+// ============ Compact today match card (horizontal, minimal height) ============
+function TodayMatchCard({ match }: { match: Match }) {
+  const setView = useNav((s) => s.setView);
+  const live = match.status === "live";
+  const finished = match.status === "finished";
+  const tournamentName =
+    match.tournamentName ?? match.tournament?.nameAr ?? match.tournament?.name ?? "بطولة";
+
+  return (
+    <button
+      onClick={() => setView({ name: "matches" })}
+      className={cn(
+        "relative w-[210px] shrink-0 overflow-hidden rounded-xl border bg-card p-2.5 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
+        live ? "border-emerald/40 ring-1 ring-emerald/20" : "border-border",
+      )}
+    >
+      {/* Row 1: tournament + status (single line) */}
+      <div className="mb-1.5 flex items-center justify-between gap-1.5">
+        <span className="truncate text-[10px] font-bold text-emerald">{tournamentName}</span>
+        {live ? (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald px-1.5 py-0.5 text-[8px] font-bold text-white">
+            <span className="h-1 w-1 rounded-full bg-white live-dot" />
+            مباشر
+          </span>
+        ) : finished ? (
+          <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold text-muted-foreground">
+            انتهت
+          </span>
+        ) : (
+          <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[8px] font-bold text-emerald">
+            {formatTime(match.kickoff)}
+          </span>
+        )}
+      </div>
+
+      {/* Row 2: teams + score/time (single row) */}
+      <div className="flex items-center justify-between gap-1.5">
+        <TeamMini name={match.homeName} logo={match.homeLogo} />
+        <div className="flex shrink-0 flex-col items-center">
+          {live || finished ? (
+            <div className="flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-sm font-extrabold text-emerald-dark">
+              <span>{match.homeScore ?? 0}</span>
+              <span className="text-[10px] text-muted-foreground">-</span>
+              <span>{match.awayScore ?? 0}</span>
+            </div>
+          ) : (
+            <span className="text-sm font-extrabold text-emerald">{formatTime(match.kickoff)}</span>
+          )}
+        </div>
+        <TeamMini name={match.awayName} logo={match.awayLogo} />
+      </div>
+
+      {/* Row 3: channel (single line, optional) */}
+      {match.channel && (
+        <div className="mt-1.5 flex items-center gap-1 border-t border-border pt-1.5 text-[9px] text-muted-foreground">
+          <Radio className="h-2.5 w-2.5 shrink-0 text-gold" />
+          <span className="truncate font-semibold text-emerald">
+            {match.channel.nameAr ?? match.channel.name}
+          </span>
+        </div>
+      )}
+    </button>
+  );
+}
+
+function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
+  const [err, setErr] = React.useState(false);
+  return (
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 text-center">
+      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-secondary p-0.5">
+        {logo && !err ? (
+          <img
+            src={logo}
+            alt={name}
+            onError={() => setErr(true)}
+            className="h-full w-full rounded object-cover"
+          />
+        ) : (
+          <span className="text-sm font-extrabold text-emerald">{name.slice(0, 1)}</span>
+        )}
+      </div>
+      <span className="line-clamp-1 max-w-[72px] text-[9px] font-bold leading-tight text-foreground">
+        {name}
+      </span>
     </div>
   );
 }
