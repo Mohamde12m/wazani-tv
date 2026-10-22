@@ -121,11 +121,14 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
         </button>
       </div>
 
-      {match.demo && (
-        <span className="absolute -right-8 top-4 rotate-45 bg-muted-foreground/70 px-8 py-0.5 text-[8px] font-bold text-white">
-          بيانات تجريبية
+      {/* Brand watermark — replaces the old "بيانات تجريبية" ribbon */}
+      <div className="mt-3 flex items-center justify-center gap-1.5 pt-1">
+        <span className="h-px flex-1 bg-border/60" />
+        <span className="gold-text text-[9px] font-extrabold tracking-wide">
+          ArabVision TV
         </span>
-      )}
+        <span className="h-px flex-1 bg-border/60" />
+      </div>
     </div>
   );
 }

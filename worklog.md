@@ -334,3 +334,21 @@ Work Log:
 
 Stage Summary:
 - The video player is now edge-to-edge full-width like YouTube — no left/right margins, sharp corners. Content below the player (channel info, navigation, suggestions) retains the standard px-4 padding. HLS playback still works correctly.
+
+---
+Task ID: 6
+Agent: main (orchestrator) — match card brand watermark
+Task: Remove the "بيانات تجريبية" (demo data) rotated ribbon from match cards and replace it with the app name "ArabVision TV" as a brand watermark.
+
+Work Log:
+- Located the demo ribbon in `src/components/shared/match-card.tsx` (lines 124-128): a rotated corner span showing "بيانات تجريبية" only when `match.demo === true`.
+- Replaced the entire `{match.demo && (...)}` rotated ribbon block with a permanent brand watermark at the bottom of every match card:
+  - A centered row with two thin divider lines (`h-px flex-1 bg-border/60`) flanking the brand name.
+  - Brand text "ArabVision TV" using the existing `gold-text` class (gold gradient) at `text-[9px] font-extrabold tracking-wide`.
+  - Shows on ALL match cards (not just demo) since it's now a brand element, not a demo indicator.
+- Browser-verified (iPhone 14): opened matches view, inspected an individual match card → `{hasDemoRibbon: false, hasBrand: true}`. The card text now ends with "ArabVision TV" brand watermark.
+- VLM (glm-5v-turbo) confirmed: "(1) No 'بيانات تجريبية' ribbon on the match cards. (2) Yes, 'ArabVision TV' brand text at the bottom of each match card — thin horizontal line with brand name in gold text centered."
+- Lint: 0 errors, 0 warnings.
+
+Stage Summary:
+- The "بيانات تجريبية" demo ribbon is fully removed from match cards. Each match card now displays an elegant "ArabVision TV" gold brand watermark at the bottom (between two thin dividers), reinforcing the app identity on every card.
