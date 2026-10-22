@@ -70,13 +70,16 @@ export function PlayerView({ channelId }: { channelId: string }) {
 
   if (loading || !channel) {
     return (
-      <div className="space-y-4 px-4 py-4">
-        <div className="shimmer aspect-video w-full rounded-2xl bg-muted" />
-        <div className="flex items-center gap-3">
-          <div className="shimmer h-12 w-12 rounded-xl bg-muted" />
-          <div className="flex-1 space-y-2">
-            <div className="shimmer h-4 w-1/3 rounded bg-muted" />
-            <div className="shimmer h-3 w-1/4 rounded bg-muted" />
+      <div>
+        {/* Full-width skeleton — edge to edge like YouTube */}
+        <div className="shimmer aspect-video w-full bg-muted" />
+        <div className="space-y-4 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="shimmer h-12 w-12 rounded-xl bg-muted" />
+            <div className="flex-1 space-y-2">
+              <div className="shimmer h-4 w-1/3 rounded bg-muted" />
+              <div className="shimmer h-3 w-1/4 rounded bg-muted" />
+            </div>
           </div>
         </div>
       </div>
@@ -87,7 +90,8 @@ export function PlayerView({ channelId }: { channelId: string }) {
     !!channel.streamUrl && channel.streamType !== "none";
 
   return (
-    <div className="space-y-4 px-4 py-4">
+    <div>
+      {/* Full-width video player — edge to edge like YouTube (no side margins) */}
       <Player
         key={channel.id}
         streamUrl={channel.streamUrl ?? null}
@@ -95,6 +99,8 @@ export function PlayerView({ channelId }: { channelId: string }) {
         channelName={channel.nameAr ?? channel.name}
       />
 
+      {/* Padded content below the player */}
+      <div className="space-y-4 px-4 py-4">
       {/* Channel info bar */}
       <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
         <ChannelLogo
@@ -217,6 +223,7 @@ export function PlayerView({ channelId }: { channelId: string }) {
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -389,7 +396,7 @@ function Player({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-video w-full overflow-hidden rounded-2xl bg-emerald-dark shadow-md"
+      className="relative aspect-video w-full overflow-hidden bg-emerald-dark"
     >
       {/* Video element is always mounted (controls overlay depends on it) */}
       {!showUnavailable && !showError && (

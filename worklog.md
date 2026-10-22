@@ -314,3 +314,23 @@ Stage Summary:
 - Design: premium emerald/gold/cream RTL Arabic UI, Cairo font, VLM-rated 8.5/10.
 - Lint: 0 errors, 0 warnings. No runtime errors.
 - Default admin: admin@arabvision.tv / admin12345.
+
+---
+Task ID: 5
+Agent: main (orchestrator) — player full-width fix
+Task: Make the video player edge-to-edge full-width (like YouTube) with no left/right margins, per user request with screenshot evidence.
+
+Work Log:
+- User uploaded a mobile screenshot showing the player had ~16px side margins (px-4 wrapper) making it look like an inset card rather than edge-to-edge like YouTube.
+- Analyzed the screenshot with VLM: confirmed the player was NOT full-width — had consistent side margins on both left and right.
+- Restructured `src/components/views/player-view.tsx`:
+  - Pulled the `<Player>` component OUT of the `px-4 py-4` padded wrapper.
+  - New layout: `<div>` (no padding) → full-width `<Player>` → `<div className="space-y-4 px-4 py-4">` wrapping only the content below (channel info bar, prev/next, suggestions, notice).
+  - Removed `rounded-2xl shadow-md` from the player container so it has sharp corners edge-to-edge (YouTube mobile style).
+  - Applied the same full-width treatment to the loading skeleton (shimmer aspect-video now full-width, padded content below).
+- Browser-verified (iPhone 14, 390px viewport): opened demo channel "بث تجريبي - رياضة" → player bounding box = {left:0, rightGap:0, width:390, viewport:390, edgeToEdge:true}. Video still plays correctly (videoPlaying:true, readyState:4, duration:635s).
+- VLM (glm-5v-turbo) confirmed: "(1) Yes the player spans full width edge-to-edge. (2) No empty space on either side."
+- Lint: 0 errors, 0 warnings. No runtime errors in dev.log.
+
+Stage Summary:
+- The video player is now edge-to-edge full-width like YouTube — no left/right margins, sharp corners. Content below the player (channel info, navigation, suggestions) retains the standard px-4 padding. HLS playback still works correctly.
