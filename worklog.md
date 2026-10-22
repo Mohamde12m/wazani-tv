@@ -489,3 +489,29 @@ Work Log:
 
 Stage Summary:
 - The complete WazaNI TV logo (icon + wordmark + tagline) now renders in EVERY place a logo appears: home header (52px), sub-page headers (48px), admin login (64px), admin dashboard (56px), and the More→About card (56px). No more icon-only variant in the UI. Duplicate wordmark text beside the logo was removed to avoid redundancy since the logo itself carries the brand name.
+
+---
+Task ID: 12
+Agent: main (orchestrator) — animated dynamic logo
+Task: Per user request, replace the static full-logo image with a DYNAMIC, animated SVG logo that looks alive and professional — not a flat image.
+
+Work Log:
+- Rebuilt `src/components/shared/app-logo.tsx` as a hand-crafted ANIMATED SVG that faithfully recreates the official logo: rounded-square dark-emerald radial-gradient badge → thin gold border → glossy emerald "W" ribbon (with white gloss highlight) on the left → golden retro TV (antenna rods + signal balls + beveled body + screen + play triangle + stand + side knobs) on the right → "WazaNI" (white gradient) + "TV" (gold) wordmark → "LIVE TV • SPORTS • ARABIC CHANNELS" tagline → gold progress-bar line + play triangle at the bottom.
+- Added 7 layered CSS keyframes in `src/app/globals.css` (prefixed `wazani-*`):
+  1. `wazani-sheen` (3.5s) — a golden sheen sweeps diagonally across the badge.
+  2. `wazani-breathe` (3.2s) — the whole badge gently scales 1→1.025 with a deepening drop-shadow.
+  3. `wazani-glow` (2.4s) — the golden TV body glows in/out.
+  4. `wazani-signal` (2s) + `wazani-signal-delay` (2s, 0.6s delay) — antenna tips blink like signal lights, staggered.
+  5. `wazani-play` (1.8s) — the play triangle pulses to invite a click.
+  6. `wazani-fill` (3s) — the bottom progress line fills/empties like a media loader (stroke-dasharray).
+- Honors `prefers-reduced-motion` (all 7 animations disabled for users who request reduced motion).
+- Fixed a Turbopack stale-cache issue: the new keyframes weren't in the compiled CSS until the dev server was restarted (pkill + bun run dev). After restart, all 7 `animationName`s report correctly.
+- Browser-verified (iPhone 14) — getComputedStyle confirms all 7 animations live with their intended durations:
+  - sheen 3.5s, breathe 3.2s, glow 2.4s, play 1.8s, fill 3s, signal 2s×2.
+  - Home header (52px), More→About (56px), admin login (64px), admin dashboard (56px) — all carry the animated SVG with `animationName: wazani-breathe` active.
+  - No horizontal overflow (scrollW===clientW===390).
+- VLM (glm-5v-turbo) confirmed the logo design: "stylized W + golden retro TV with antenna and play button, 'WazaNI TV' wordmark + tagline, gold border… rich, premium, professional appearance… 3D-style shading, glowing effects, polished golden/green palette… suggests interactivity".
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The WazaNI TV logo is now a DYNAMIC, animated SVG (no longer a flat PNG). It is alive with 7 layered, tasteful animations: a sweeping golden sheen, a gentle breathing scale, a glowing TV body, blinking antenna signal lights, a pulsing play button, and a loader-style progress bar — all staggered so the logo feels organic and premium. The animated logo renders consistently across home header (52px), sub-page headers (48px), admin login (64px), admin dashboard (56px), and the More→About card (56px). Accessibility respected via prefers-reduced-motion.
