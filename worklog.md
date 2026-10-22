@@ -560,3 +560,30 @@ Work Log:
 
 Stage Summary:
 - The logo is now a clean static image exactly as the user provided (no SVG recreation, no breathing/sheen/glow effects on the logo). The dynamic/animated treatment lives ONLY on the wordmark text beside the logo (fade-in, gold shimmer on "NI", tagline fade). This matches the user's intent: logo = static image as sent; text = animated.
+
+---
+Task ID: 15
+Agent: main (orchestrator) — shrink featured match hero card
+Task: Reduce the size of the large featured match card at the top of the home page — it was too big.
+
+Work Log:
+- Edited the `FeaturedHero` component in `src/components/views/home-view.tsx`:
+  - Section padding: p-5/sm:p-6 → p-3.5/sm:p-4; rounded-3xl → rounded-2xl; shadow-lg → shadow-md.
+  - Decorative glow blobs: h-48/w-48 → h-36/w-36 (top), h-56/w-56 → h-40/w-40 (bottom); offsets tightened.
+  - Top row: mb-4 → mb-3; trophy badge h-7/w-7 → h-6/w-6 (icon h-4 → h-3.5); tournament text sm → xs; status pills px-2.5/py-1 text-[11px] → px-2/py-0.5 text-[10px]; live dot h-2/w-2 → h-1.5/w-1.5.
+  - Teams grid: gap-3 → gap-2.
+  - HeroTeam: logo box h-16/w-16 sm:h-20/sm:w-20 → h-12/w-12 sm:h-14/sm:w-14; rounded-2xl → rounded-xl; fallback letter text-2xl/sm:text-3xl → text-xl/sm:text-2xl; team name text-xs/sm:text-sm → text-[11px]/sm:text-xs; gap-2 → gap-1.5.
+  - Score block: rounded-2xl → rounded-xl; px-4/py-2 → px-3/py-1.5; gap-2 → gap-1.5; score text-3xl/sm:text-4xl → text-2xl/sm:text-3xl; dash text-xl → text-base.
+  - Kickoff block: px-4/py-2 → px-3/py-1.5; time text-2xl → text-lg; rounded-2xl → rounded-xl.
+  - "يتم البث الآن" label: mt-1.5/text-[10px] → mt-1/text-[9px].
+  - Countdown row: mt-4 → mt-3; rounded-2xl → rounded-xl; px-3/py-2.5 → px-2.5/py-2; gap-2 → gap-1.5; label text-xs → text-[11px].
+  - HeroCountdownChip: rounded-lg → rounded-md; px-2/py-1 → px-1.5/py-0.5; number text-base → text-sm; label text-[9px] → text-[8px].
+  - Meta + actions row: mt-4/pt-3 → mt-3/pt-2.5; gap-3 → gap-2.
+  - Action buttons: added explicit h-8 px-3 text-xs (smaller than default sm); icon h-4 → h-3.5; gap-2 → gap-1.5.
+  - Loading skeleton: h-64 → h-44.
+- Browser-verified (iPhone 14): hero card height dropped to 213px (was ~290px) — a ~26% reduction. Width 358px, padding 14px. No horizontal overflow (scrollW===clientW===390).
+- VLM (glm-5v-turbo) confirmed: "reasonable, compact size… well-proportioned for a mobile home screen, taking up enough space to be the clear focal point without being so tall that it pushes all other content out of view".
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The featured match hero card on the home page is now meaningfully smaller and more compact (≈26% shorter), giving more above-the-fold space to the channel sections below while still being the clear focal point. All inner elements (logos, scores, countdown, buttons) were scaled down proportionally so the card stays balanced and premium-looking.

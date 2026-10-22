@@ -227,7 +227,7 @@ export function HomeView() {
 
       {/* 2. Featured match hero */}
       {matchesLoading ? (
-        <div className="shimmer h-64 rounded-2xl bg-muted" />
+        <div className="shimmer h-44 rounded-2xl bg-muted" />
       ) : featuredMatch ? (
         <FeaturedHero match={featuredMatch} />
       ) : null}
@@ -407,31 +407,31 @@ function FeaturedHero({ match }: { match: Match }) {
 
   return (
     <section
-      className="relative overflow-hidden rounded-3xl border border-emerald-dark/30 bg-gradient-to-bl from-emerald via-emerald to-emerald-dark p-5 shadow-lg sm:p-6"
+      className="relative overflow-hidden rounded-2xl border border-emerald-dark/30 bg-gradient-to-bl from-emerald via-emerald to-emerald-dark p-3.5 shadow-md sm:p-4"
     >
       {/* Decorative gold glow */}
-      <div className="pointer-events-none absolute -top-16 -left-16 h-48 w-48 rounded-full bg-gold/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-emerald-light/30 blur-3xl" />
+      <div className="pointer-events-none absolute -top-12 -left-12 h-36 w-36 rounded-full bg-gold/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-14 -right-8 h-40 w-40 rounded-full bg-emerald-light/30 blur-3xl" />
 
       {/* Top row: tournament + status */}
-      <div className="relative mb-4 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
-            <Trophy className="h-4 w-4 text-gold-light" />
+      <div className="relative mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15">
+            <Trophy className="h-3.5 w-3.5 text-gold-light" />
           </span>
-          <span className="text-sm font-bold text-white/95">{tournamentName}</span>
+          <span className="text-xs font-bold text-white/95">{tournamentName}</span>
         </div>
         {live ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-emerald-dark">
-            <span className="h-2 w-2 rounded-full bg-emerald live-dot" />
+          <span className="flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-extrabold text-emerald-dark">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald live-dot" />
             مباشر الآن
           </span>
         ) : finished ? (
-          <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white">
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white">
             انتهت
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold text-white">
+          <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-white">
             <Clock className="h-3 w-3" />
             {dayLabel(match.kickoff)} · {formatTime(match.kickoff)}
           </span>
@@ -439,31 +439,31 @@ function FeaturedHero({ match }: { match: Match }) {
       </div>
 
       {/* Teams */}
-      <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <HeroTeam name={match.homeName} logo={match.homeLogo} />
         <div className="flex flex-col items-center">
           {live || finished ? (
-            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <span className="text-3xl font-extrabold tabular-nums text-white sm:text-4xl">
+            <div className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 backdrop-blur-sm">
+              <span className="text-2xl font-extrabold tabular-nums text-white sm:text-3xl">
                 {match.homeScore ?? 0}
               </span>
-              <span className="text-xl font-bold text-white/60">-</span>
-              <span className="text-3xl font-extrabold tabular-nums text-white sm:text-4xl">
+              <span className="text-base font-bold text-white/60">-</span>
+              <span className="text-2xl font-extrabold tabular-nums text-white sm:text-3xl">
                 {match.awayScore ?? 0}
               </span>
             </div>
           ) : (
-            <div className="flex flex-col items-center rounded-2xl bg-white/15 px-4 py-2 backdrop-blur-sm">
-              <span className="text-2xl font-extrabold tabular-nums text-white">
+            <div className="flex flex-col items-center rounded-xl bg-white/15 px-3 py-1.5 backdrop-blur-sm">
+              <span className="text-lg font-extrabold tabular-nums text-white">
                 {formatTime(match.kickoff)}
               </span>
-              <span className="text-[10px] font-semibold text-white/80">
+              <span className="text-[9px] font-semibold text-white/80">
                 {dayLabel(match.kickoff)}
               </span>
             </div>
           )}
           {live && (
-            <span className="mt-1.5 text-[10px] font-semibold text-gold-light">
+            <span className="mt-1 text-[9px] font-semibold text-gold-light">
               يتم البث الآن
             </span>
           )}
@@ -473,8 +473,8 @@ function FeaturedHero({ match }: { match: Match }) {
 
       {/* Countdown */}
       {upcoming && (
-        <div className="relative mt-4 flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-3 py-2.5 backdrop-blur-sm">
-          <span className="text-xs font-semibold text-white/85">انطلاق خلال</span>
+        <div className="relative mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-white/10 px-2.5 py-2 backdrop-blur-sm">
+          <span className="text-[11px] font-semibold text-white/85">انطلاق خلال</span>
           <HeroCountdownChip v={cd.days} l="يوم" />
           <HeroCountdownChip v={cd.hours} l="ساعة" />
           <HeroCountdownChip v={cd.minutes} l="دقيقة" />
@@ -483,7 +483,7 @@ function FeaturedHero({ match }: { match: Match }) {
       )}
 
       {/* Meta + actions */}
-      <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-3">
+      <div className="relative mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/15 pt-2.5">
         <div className="flex flex-wrap items-center gap-3 text-[11px] text-white/85">
           {match.stadium && (
             <span className="flex items-center gap-1">
@@ -500,14 +500,14 @@ function FeaturedHero({ match }: { match: Match }) {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {match.channel && (
             <Button
               onClick={() => setView({ name: "player", channelId: match.channel!.id })}
               size="sm"
-              className="bg-gold text-[13px] font-bold text-white shadow hover:bg-gold/90 hover:text-white"
+              className="h-8 bg-gold px-3 text-xs font-bold text-white shadow hover:bg-gold/90 hover:text-white"
             >
-              <Tv className="ml-1 h-4 w-4" />
+              <Tv className="ml-1 h-3.5 w-3.5" />
               شاهد القناة
             </Button>
           )}
@@ -515,10 +515,10 @@ function FeaturedHero({ match }: { match: Match }) {
             onClick={() => setView({ name: "matches" })}
             size="sm"
             variant="outline"
-            className="border-white/40 bg-white/10 text-[13px] font-bold text-white hover:bg-white/20 hover:text-white"
+            className="h-8 border-white/40 bg-white/10 px-3 text-xs font-bold text-white hover:bg-white/20 hover:text-white"
           >
             كل المباريات
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
@@ -529,22 +529,22 @@ function FeaturedHero({ match }: { match: Match }) {
 function HeroTeam({ name, logo }: { name: string; logo?: string | null }) {
   const [err, setErr] = React.useState(false);
   return (
-    <div className="flex flex-col items-center gap-2 text-center">
-      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white/15 p-1.5 ring-1 ring-white/20 sm:h-20 sm:w-20">
+    <div className="flex flex-col items-center gap-1.5 text-center">
+      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white/15 p-1 ring-1 ring-white/20 sm:h-14 sm:w-14">
         {logo && !err ? (
           <img
             src={logo}
             alt={name}
             onError={() => setErr(true)}
-            className="h-full w-full rounded-xl object-cover"
+            className="h-full w-full rounded-lg object-cover"
           />
         ) : (
-          <span className="text-2xl font-extrabold text-white sm:text-3xl">
+          <span className="text-xl font-extrabold text-white sm:text-2xl">
             {name.slice(0, 1)}
           </span>
         )}
       </div>
-      <span className="line-clamp-2 text-xs font-bold leading-tight text-white sm:text-sm">
+      <span className="line-clamp-2 text-[11px] font-bold leading-tight text-white sm:text-xs">
         {name}
       </span>
     </div>
@@ -553,11 +553,11 @@ function HeroTeam({ name, logo }: { name: string; logo?: string | null }) {
 
 function HeroCountdownChip({ v, l }: { v: number; l: string }) {
   return (
-    <span className="flex flex-col items-center rounded-lg bg-white/20 px-2 py-1 leading-none">
-      <span className="text-base font-extrabold tabular-nums text-white">
+    <span className="flex flex-col items-center rounded-md bg-white/20 px-1.5 py-0.5 leading-none">
+      <span className="text-sm font-extrabold tabular-nums text-white">
         {String(v).padStart(2, "0")}
       </span>
-      <span className="mt-0.5 text-[9px] text-white/80">{l}</span>
+      <span className="mt-0.5 text-[8px] text-white/80">{l}</span>
     </span>
   );
 }
