@@ -1,0 +1,207 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-cairo);
+  --font-mono: var(--font-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* ArabVision brand tokens */
+  --color-emerald: #0b6e4f;
+  --color-emerald-dark: #084d37;
+  --color-emerald-light: #0f9b6e;
+  --color-gold: #c9962e;
+  --color-gold-light: #e3b45a;
+  --color-cream: #faf6ec;
+}
+
+:root {
+  --radius: 0.875rem;
+  /* Warm cream background — no harsh white, no black */
+  --background: #faf6ec;
+  --foreground: #1c3a30; /* deep emerald-tinted charcoal, not black */
+  --card: #ffffff;
+  --card-foreground: #1c3a30;
+  --popover: #ffffff;
+  --popover-foreground: #1c3a30;
+  --primary: #0b6e4f;
+  --primary-foreground: #ffffff;
+  --secondary: #eef5ef;
+  --secondary-foreground: #0b6e4f;
+  --muted: #f0ece0;
+  --muted-foreground: #6b7a72;
+  --accent: #c9962e;
+  --accent-foreground: #2a2008;
+  --destructive: #c0392b;
+  --border: #e6ddc8;
+  --input: #ece3cf;
+  --ring: #c9962e;
+  --chart-1: #0b6e4f;
+  --chart-2: #c9962e;
+  --chart-3: #1b9e7a;
+  --chart-4: #e3b45a;
+  --chart-5: #2e7d5b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1c3a30;
+  --sidebar-primary: #0b6e4f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0ece0;
+  --sidebar-accent-foreground: #1c3a30;
+  --sidebar-border: #e6ddc8;
+  --sidebar-ring: #c9962e;
+}
+
+.dark {
+  --background: #06140f;
+  --foreground: #eef5ef;
+  --card: #0c1f17;
+  --card-foreground: #eef5ef;
+  --popover: #0c1f17;
+  --popover-foreground: #eef5ef;
+  --primary: #16a085;
+  --primary-foreground: #06140f;
+  --secondary: #11281f;
+  --secondary-foreground: #eef5ef;
+  --muted: #11281f;
+  --muted-foreground: #8fa89c;
+  --accent: #e3b45a;
+  --accent-foreground: #2a2008;
+  --destructive: #e74c3c;
+  --border: #1b3a2c;
+  --input: #1b3a2c;
+  --ring: #e3b45a;
+  --sidebar: #0c1f17;
+  --sidebar-foreground: #eef5ef;
+  --sidebar-primary: #16a085;
+  --sidebar-primary-foreground: #06140f;
+  --sidebar-accent: #11281f;
+  --sidebar-accent-foreground: #eef5ef;
+  --sidebar-border: #1b3a2c;
+  --sidebar-ring: #e3b45a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern";
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* RTL niceties */
+  [dir="rtl"] {
+    text-align: right;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
+/* Hide horizontal scrollbar on carousels but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Subtle gradient backgrounds used across the app */
+.bg-app {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
+    var(--background);
+}
+
+.glass-card {
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.gold-text {
+  background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.emerald-text {
+  color: var(--primary);
+}
+
+/* Live pulse */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+.live-dot {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+/* Smooth shimmer for skeletons */
+@keyframes shimmer {
+  100% { transform: translateX(-100%); }
+}
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--muted-foreground) 12%, transparent), transparent);
+  animation: shimmer 1.6s infinite;
+}

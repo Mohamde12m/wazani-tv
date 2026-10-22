@@ -1,0 +1,207 @@
+"use client";
+
+import * as React from "react";
+import {
+  Trophy,
+  Tv,
+  CalendarDays,
+  ChevronLeft,
+  Sun,
+  Moon,
+  Lock,
+  Info,
+  ShieldAlert,
+  Settings,
+  type LucideIcon,
+} from "lucide-react";
+import { useNav } from "@/stores/nav";
+import { useTheme } from "next-themes";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+
+export function MoreView() {
+  const setView = useNav((s) => s.setView);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const isDark = mounted && theme === "dark";
+
+  const toggleTheme = (checked: boolean) => {
+    setTheme(checked ? "dark" : "light");
+    toast.success(checked ? "تم التبديل إلى الوضع الداكن" : "تم التبديل إلى الوضع الفاتح");
+  };
+
+  return (
+    <div className="space-y-4 px-4 py-4">
+      {/* Page header */}
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald to-emerald-dark text-white shadow-md">
+          <Settings className="h-5 w-5" />
+        </span>
+        <div>
+          <h1 className="text-xl font-extrabold leading-tight text-foreground">المزيد</h1>
+          <p className="text-[11px] text-muted-foreground">الإعدادات والقوائم ومعلومات التطبيق</p>
+        </div>
+      </div>
+
+      {/* Navigation menu */}
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">قائمة التنقل</h2>
+        <MenuCard
+          icon={Trophy}
+          iconTone="emerald"
+          title="البطولات الرياضية"
+          subtitle="تصفح أهم البطولات والفرق"
+          onClick={() => setView({ name: "tournaments" })}
+        />
+        <MenuCard
+          icon={Tv}
+          iconTone="emerald"
+          title="جميع القنوات"
+          subtitle="استكشف القنوات العربية حسب الدولة والتصنيف"
+          onClick={() => setView({ name: "channels" })}
+        />
+        <MenuCard
+          icon={CalendarDays}
+          iconTone="emerald"
+          title="جدول المباريات"
+          subtitle="مباريات اليوم والأسبوع القادم"
+          onClick={() => setView({ name: "matches" })}
+        />
+      </section>
+
+      {/* Settings */}
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">الإعدادات</h2>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald/10 text-emerald">
+              {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground">المظهر</p>
+              <p className="text-[11px] text-muted-foreground">
+                {isDark ? "الوضع الداكن مفعل" : "الوضع الفاتح مفعل"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-muted-foreground">فاتح</span>
+              <Switch checked={isDark} onCheckedChange={toggleTheme} aria-label="تبديل المظهر" />
+              <span className="text-[11px] font-bold text-muted-foreground">داكن</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Admin panel */}
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">الإدارة</h2>
+        <MenuCard
+          icon={Lock}
+          iconTone="gold"
+          title="لوحة تحكم المسؤول"
+          subtitle="إدارة القنوات والمباريات والبطولات"
+          onClick={() => setView({ name: "admin" })}
+        />
+      </section>
+
+      {/* About */}
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">حول التطبيق</h2>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald to-emerald-dark text-white shadow-md">
+              <Tv className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="text-base font-extrabold text-emerald">
+                  Arab<span className="gold-text">Vision</span> TV
+                </h3>
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-emerald">
+                  v1.0.0
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs font-semibold text-foreground">القنوات العربية ومباريات كرة القدم</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                تطبيق عربي عصري يجمع بين قنوات التلفزيون العربية وجدول مباريات كرة القدم، بتصميم أنيق ودعم
+                كامل للغة العربية واتجاه الكتابة من اليمين إلى اليسار.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Disclaimer */}
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          حقوق المصادر وإخلاء المسؤولية
+        </h2>
+        <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold">
+              <ShieldAlert className="h-5 w-5" />
+            </span>
+            <div className="space-y-2 text-[11px] leading-relaxed text-foreground/90">
+              <p>
+                تطبيق <span className="font-bold">ArabVision TV</span> هو مشروع تجريبي تعليمي. لا تستضيف
+                هذه المنصة أي بث ذات صلة ولا تخزّن روابط بث إلا عندما تكون مرخّصة وموثّقة من المصادر
+                الرسمية.
+              </p>
+              <p>
+                القنوات المُعلَّمة بـ«<span className="font-bold text-emerald">متاح</span>» تتوفر لها روابط
+                بث موثّقة، فيما تظهر بقية القنوات بوصفها «<span className="font-bold">غير متاح</span>» حتى
+                يتم التحقق من توفر بث رسمي لها.
+              </p>
+              <p>
+                المباريات المُعلَّمة بـ«<span className="font-bold">بيانات تجريبية</span>» تستخدم بثاً
+                تجريبياً عاماً لأغراض العرض فقط ولا تمثّل مباريات حقيقية. التحقق من توفر القنوات الناقلة
+                يعتمد كلياً على المصادر الرسمية لأصحاب الحقوق.
+              </p>
+              <p className="text-muted-foreground">
+                جميع الأسماء والشعارات والعلامات التجارية ملك لأصحابها الأصليين ويتم استخدامها لأغراض
+                التعريف فقط.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function MenuCard({
+  icon: Icon,
+  iconTone = "emerald",
+  title,
+  subtitle,
+  onClick,
+}: {
+  icon: LucideIcon;
+  iconTone?: "emerald" | "gold";
+  title: string;
+  subtitle: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-right shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald/40 hover:shadow-md active:scale-[0.99]"
+    >
+      <span
+        className={
+          iconTone === "gold"
+            ? "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold"
+            : "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald/10 text-emerald"
+        }
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-bold text-foreground">{title}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
+      </div>
+      <ChevronLeft className="h-5 w-5 shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
