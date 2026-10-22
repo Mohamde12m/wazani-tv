@@ -282,3 +282,35 @@ Stage Summary:
 - Lint: 0 errors, 0 warnings.
 - Default admin: admin@arabvision.tv / admin12345
 - Honest behavior: only 3 demo channels have working public test HLS streams; all other 81 channels honestly show "البث غير متاح"; demo matches clearly ribbed "بيانات تجريبية".
+
+---
+Task ID: 4
+Agent: main (orchestrator) — re-verification pass
+Task: Re-verify the existing ArabVision TV app end-to-end with Agent Browser after session restart, confirm all core flows still work, and validate visual quality with VLM.
+
+Work Log:
+- Started dev server (`bun run dev`) → Ready in 1450ms, GET / 200.
+- Verified DB seed data via Prisma: 84 channels, 19 matches, 14 tournaments, 77 teams, 17 countries, 9 categories, 1 admin. 3 demo channels carry real public test HLS streams; the other 81 have streamType="none" (honest "غير متاح").
+- Agent Browser (iPhone 14 viewport) end-to-end checks:
+  1. Home: all 13 sections render (featured match hero with countdown, today's matches, 8 channel-category carousels, recently added). Demo channels show "متاح", real channels honestly show "غير متاح". No console/runtime errors.
+  2. Player: opened "بث تجريبي - رياضة" → HLS video ACTUALLY PLAYS (eval: paused=false, readyState=4, duration=634s, currentTime advancing, src=test-streams.mux.dev HLS, error=null). Custom controls present.
+  3. Real channel "دوزيم" player → honestly shows "البث غير متاح حالياً" + "لا تملك هذه القناة مصدر بث رسمي موثّق".
+  4. Matches: 6 tabs (today/tomorrow/live/upcoming/finished/favorites) + tournament/country/date/status filter chips all present.
+  5. Channels: 17 country chips (with flag emojis) + category chips + search. Morocco filter correctly shows only Moroccan channels (دوزيم, الأولى, الرياضية, الرابعة, المغربية).
+  6. Search: typed "جزيرة" → 3 instant results (Al Jazeera channels). Arabic-aware filtering works.
+  7. Favorites: favorited a match via UI → POST /api/favorites 200 → appears in Favorites view ("1 عنصر", المباريات: 1). DELETE via query params → back to 0.
+  8. Admin login: admin@arabvision.tv / admin12345 → dashboard with 8 sections. Stats show real DB numbers (84/19/14/77/17/9/2-live/18-featured/3-verified/1-admin).
+  9. Admin CRUD: created "Test Channel"/"قناة اختبار" via dialog → /api/channels count 84→85, visible in public API. Deleted via confirm dialog → 85→84. Changes reflect in user-facing views automatically.
+  10. Tournaments view: 14 cards incl. الدوري المغربي, الدوري الإنجليزي, دوري أبطال, كأس العالم, كأس أمم.
+- Layout: no horizontal overflow (scrollWidth===clientWidth on both mobile & 1280px desktop). Bottom nav position:fixed at viewport bottom (navFixed:true), main has pb-24 (96px) so content never hides behind nav.
+- Lint: `bun run lint` → 0 errors, 0 warnings.
+- dev.log: no errors/warnings during the entire verification session.
+- VLM (glm-5v-turbo) rated the home visual design 8.5/10: praised the emerald+cream luxury palette, soft-shadowed rounded cards, typography hierarchy, gradient hero card with gold CTA, consistent gold section icons. (The "black text" note is a false positive — actual foreground is #1c3a30 deep emerald-tinted charcoal, never pure black.)
+- Cleaned up test artifacts (deleted Test Channel + test favorite) so DB is back to canonical seed state.
+
+Stage Summary:
+- App is FULLY FUNCTIONAL and browser-verified again. Every core flow confirmed working: browsing channels by country/category, watching real HLS streams, match schedule with tabs/filters, instant Arabic search, favorites persistence, admin login + CRUD that reflects live in the public UI.
+- Honest behavior intact: only 3 demo channels play; all other 81 channels honestly show "البث غير متاح"; demo matches clearly labeled "بيانات تجريبية".
+- Design: premium emerald/gold/cream RTL Arabic UI, Cairo font, VLM-rated 8.5/10.
+- Lint: 0 errors, 0 warnings. No runtime errors.
+- Default admin: admin@arabvision.tv / admin12345.
