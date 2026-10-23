@@ -21,74 +21,55 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-all hover:shadow-md",
+        "relative overflow-hidden rounded-xl border bg-card p-2.5 shadow-sm transition-all hover:shadow-md",
         featured ? "border-gold/40 ring-1 ring-gold/20" : "border-border",
         live && "ring-1 ring-emerald/40",
       )}
     >
-      {/* top row */}
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span className="truncate font-semibold text-emerald">{match.tournamentName ?? match.tournament?.nameAr ?? "بطولة"}</span>
-        </div>
+      {/* Row 1: tournament + status (compact single line) */}
+      <div className="mb-2 flex items-center justify-between gap-1.5">
+        <span className="truncate text-[10px] font-bold text-emerald">
+          {match.tournamentName ?? match.tournament?.nameAr ?? "بطولة"}
+        </span>
         {live ? (
-          <span className="flex items-center gap-1 rounded-full bg-emerald px-2 py-0.5 text-[10px] font-bold text-white">
-            <span className="h-1.5 w-1.5 rounded-full bg-white live-dot" />
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald px-1.5 py-0.5 text-[9px] font-bold text-white">
+            <span className="h-1 w-1 rounded-full bg-white live-dot" />
             {statusLabel(match.status)}
           </span>
         ) : (
-          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", finished ? "bg-muted text-muted-foreground" : "bg-secondary text-emerald")}>
+          <span
+            className={cn(
+              "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
+              finished ? "bg-muted text-muted-foreground" : "bg-secondary text-emerald",
+            )}
+          >
             {statusLabel(match.status)}
           </span>
         )}
       </div>
 
-      {/* teams */}
-      <div className="flex items-center justify-between gap-2">
+      {/* Row 2: teams + score/time (single row, compact) */}
+      <div className="flex items-center justify-between gap-1.5">
         <TeamCol name={match.homeName} logo={match.homeLogo} />
-        <div className="flex flex-col items-center px-1">
+        <div className="flex shrink-0 flex-col items-center">
           {finished || live ? (
-            <div className="flex items-center gap-1.5 rounded-xl bg-secondary px-3 py-1.5 text-lg font-extrabold text-emerald-dark">
+            <div className="flex items-center gap-1 rounded-lg bg-secondary px-2 py-0.5 text-sm font-extrabold text-emerald-dark">
               <span>{match.homeScore ?? 0}</span>
-              <span className="text-muted-foreground">-</span>
+              <span className="text-[10px] text-muted-foreground">-</span>
               <span>{match.awayScore ?? 0}</span>
             </div>
           ) : (
-            <div className="text-center">
-              <div className="text-base font-extrabold text-emerald">{formatTime(match.kickoff)}</div>
-            </div>
+            <span className="text-sm font-extrabold text-emerald">{formatTime(match.kickoff)}</span>
           )}
-          <div className="mt-1 text-[10px] text-muted-foreground">{dayLabel(match.kickoff)}</div>
+          <span className="mt-0.5 text-[8px] text-muted-foreground">{dayLabel(match.kickoff)}</span>
         </div>
         <TeamCol name={match.awayName} logo={match.awayLogo} />
       </div>
 
-      {/* meta */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5 text-[11px] text-muted-foreground">
-        <div className="flex items-center gap-1">
-          {match.stadium && (
-            <>
-              <MapPin className="h-3 w-3" />
-              <span className="truncate max-w-[110px]">{match.stadium}</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          {match.channel ? (
-            <>
-              <Radio className="h-3 w-3 text-gold" />
-              <span className="font-semibold text-emerald">{match.channel.nameAr ?? match.channel.name}</span>
-            </>
-          ) : (
-            <span>قناة ناقلة غير محددة</span>
-          )}
-        </div>
-      </div>
-
-      {/* countdown for featured upcoming */}
+      {/* Row 3: countdown for featured upcoming (compact) */}
       {featured && !live && !finished && !cd.done && (
-        <div className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-l from-emerald to-emerald-light px-2 py-1.5 text-white">
-          <span className="text-[10px] font-semibold">انطلاق خلال</span>
+        <div className="mt-2 flex items-center justify-center gap-1 rounded-lg bg-gradient-to-l from-emerald to-emerald-light px-1.5 py-1 text-white">
+          <span className="text-[9px] font-semibold">انطلاق خلال</span>
           <CountdownChip v={cd.days} l="ي" />
           <CountdownChip v={cd.hours} l="س" />
           <CountdownChip v={cd.minutes} l="د" />
@@ -96,38 +77,61 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
         </div>
       )}
 
-      {/* actions */}
-      <div className="mt-3 flex items-center gap-2">
-        {match.channel && (
-          <button
-            onClick={() => setView({ name: "player", channelId: match.channel!.id })}
-            className="flex-1 rounded-xl bg-emerald px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-dark"
-          >
-            مشاهدة القناة
-          </button>
-        )}
-        <button
-          onClick={() => {
-            toggle("match", match.id);
-            toast.success(fav ? "أُزيلت من المفضلة" : "أُضيفت إلى المفضلة");
-          }}
-          className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-xl border transition-colors",
-            fav ? "border-gold bg-gold text-white" : "border-border text-muted-foreground hover:text-gold",
+      {/* Row 4: meta (stadium + channel) + actions (watch + fav) — merged into one compact row */}
+      <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-border pt-1.5">
+        {/* Left: stadium + channel (compact) */}
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          {match.stadium && (
+            <span className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
+              <MapPin className="h-2.5 w-2.5 shrink-0" />
+              <span className="truncate max-w-[90px]">{match.stadium}</span>
+            </span>
           )}
-          aria-label="إضافة للمفضلة"
-        >
-          <Star className="h-4 w-4" fill={fav ? "currentColor" : "none"} />
-        </button>
+          {match.channel ? (
+            <span className="flex items-center gap-0.5 text-[9px]">
+              <Radio className="h-2.5 w-2.5 shrink-0 text-gold" />
+              <span className="truncate font-bold text-emerald">
+                {match.channel.nameAr ?? match.channel.name}
+              </span>
+            </span>
+          ) : (
+            <span className="text-[9px] text-muted-foreground">قناة غير محددة</span>
+          )}
+        </div>
+
+        {/* Right: actions (compact) */}
+        <div className="flex shrink-0 items-center gap-1">
+          {match.channel && (
+            <button
+              onClick={() => setView({ name: "player", channelId: match.channel!.id })}
+              className="rounded-lg bg-emerald px-2 py-1 text-[10px] font-bold text-white transition-colors hover:bg-emerald-dark"
+            >
+              مشاهدة
+            </button>
+          )}
+          <button
+            onClick={() => {
+              toggle("match", match.id);
+              toast.success(fav ? "أُزيلت من المفضلة" : "أُضيفت إلى المفضلة");
+            }}
+            className={cn(
+              "flex h-7 w-7 items-center justify-center rounded-lg border transition-colors",
+              fav
+                ? "border-gold bg-gold text-white"
+                : "border-border text-muted-foreground hover:text-gold",
+            )}
+            aria-label="إضافة للمفضلة"
+          >
+            <Star className="h-3.5 w-3.5" fill={fav ? "currentColor" : "none"} />
+          </button>
+        </div>
       </div>
 
-      {/* Brand watermark — replaces the old "بيانات تجريبية" ribbon */}
-      <div className="mt-3 flex items-center justify-center gap-1.5 pt-1">
-        <span className="h-px flex-1 bg-border/60" />
-        <span className="gold-text text-[9px] font-extrabold tracking-wide">
-          WazaNI TV
-        </span>
-        <span className="h-px flex-1 bg-border/60" />
+      {/* Brand watermark — minimal */}
+      <div className="mt-1.5 flex items-center justify-center gap-1">
+        <span className="h-px flex-1 bg-border/50" />
+        <span className="gold-text text-[8px] font-extrabold tracking-wide">WazaNI TV</span>
+        <span className="h-px flex-1 bg-border/50" />
       </div>
     </div>
   );
@@ -136,25 +140,26 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
 function TeamCol({ name, logo }: { name: string; logo?: string | null }) {
   const [err, setErr] = React.useState(false);
   return (
-    <div className="flex flex-1 flex-col items-center gap-1.5 text-center">
-      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-secondary ring-1 ring-border">
+    <div className="flex flex-1 flex-col items-center gap-1 text-center">
+      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-secondary ring-1 ring-border">
         {logo && !err ? (
-           
           <img src={logo} alt={name} onError={() => setErr(true)} className="h-full w-full object-cover" />
         ) : (
-          <span className="text-base font-bold text-emerald">{name.slice(0, 1)}</span>
+          <span className="text-sm font-bold text-emerald">{name.slice(0, 1)}</span>
         )}
       </div>
-      <span className="line-clamp-2 text-xs font-bold leading-tight text-foreground">{name}</span>
+      <span className="line-clamp-1 max-w-[72px] text-[10px] font-bold leading-tight text-foreground">
+        {name}
+      </span>
     </div>
   );
 }
 
 function CountdownChip({ v, l }: { v: number; l: string }) {
   return (
-    <span className="flex items-baseline gap-0.5 rounded-md bg-white/20 px-1.5 py-0.5 text-xs font-bold tabular-nums">
+    <span className="flex items-baseline gap-0.5 rounded bg-white/20 px-1 py-0.5 text-[10px] font-bold tabular-nums">
       {String(v).padStart(2, "0")}
-      <span className="text-[9px] opacity-80">{l}</span>
+      <span className="text-[7px] opacity-80">{l}</span>
     </span>
   );
 }

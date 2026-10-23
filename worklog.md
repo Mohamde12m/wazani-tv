@@ -682,3 +682,30 @@ Work Log:
 
 Stage Summary:
 - The matches page filter section is now ~80% shorter (78px vs ~400px). Instead of 4 stacked chip rows, there is a single group-tab bar (البطولة/الدولة/التاريخ/الحالة) + one dynamic chip row for the active group. Users can switch groups with one tap, see a gold dot on groups with active filters, and clear everything with one tap. The match cards are now visible immediately on page load.
+
+---
+Task ID: 20
+Agent: main (orchestrator) — compact match cards without losing info
+Task: Compact the MatchCard cards without losing any elements — distribute them professionally.
+
+Work Log:
+- Rewrote `src/components/shared/match-card.tsx` to a tighter, 4-row compact layout that preserves EVERY element:
+  - Row 1: tournament name + status pill (text-[10px]/[9px], tighter gap).
+  - Row 2: teams (logos 48→40px, names text-xs→text-[10px] line-clamp-1) + score/time (text-lg→text-sm) + day label (text-[10px]→text-[8px]).
+  - Row 3 (featured only): countdown bar — chips text-xs→text-[10px], label text-[9px]; rounded-xl→rounded-lg.
+  - Row 4 (merged meta + actions): stadium + channel on the right (stacked, text-[9px], icons h-2.5), watch button + favorite star on the left — all in ONE row instead of two separate rows.
+  - Row 5: WazaNI TV watermark (text-[9px]→text-[8px]).
+- Specific compactions:
+  - Card padding p-4 → p-2.5; rounded-2xl → rounded-xl.
+  - TeamCol logo h-12/w-12 → h-10/w-10; name line-clamp-2 → line-clamp-1 max-w-[72px] text-[10px]; gap-1.5 → gap-1.
+  - Score block: rounded-xl → rounded-lg; px-3/py-1.5 → px-2/py-0.5; text-lg → text-sm; gap-1.5 → gap-1.
+  - Favorite button: h-9/w-9 → h-7/w-7; star h-4 → h-3.5.
+  - Watch button: text-xs → text-[10px]; px-3/py-2 → px-2/py-1; label "مشاهدة القناة" → "مشاهدة".
+  - Merged the separate meta row + actions row into a single border-t row (saved ~40px).
+  - All mt-3/mb-3 → mt-2/mb-2; pt-2.5 → pt-1.5.
+- Browser-verified (iPhone 14): featured card (with countdown) = 201px, 24% of viewport; non-featured cards are shorter. No horizontal overflow (scrollW===clientW===390). Multiple cards visible per screen.
+- VLM (glm-5v-turbo) confirmed: "cards are compact and efficiently organized. They display ALL info: tournament name, status, team logos and names, score or time, stadium, channel, watch button, favorite star, and WazaNI TV watermark. Layout is clean, professional, and allows multiple cards to be visible on a single screen."
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- Match cards are now compact (~201px for featured, less for regular) while retaining every element: tournament, status, teams+logos, score/time, day, countdown (featured), stadium, channel, watch button, favorite star, and WazaNI TV watermark. The meta row and actions row were merged into a single border-t row for maximum space efficiency. The layout is clean, professional, and shows multiple cards on screen.
