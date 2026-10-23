@@ -6,6 +6,7 @@ import type { Match } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, statusLabel, useCountdown } from "@/lib/datetime";
+import { imgUrl } from "@/lib/img";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -143,7 +144,13 @@ function TeamCol({ name, logo }: { name: string; logo?: string | null }) {
     <div className="flex flex-1 flex-col items-center gap-1 text-center">
       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-secondary ring-1 ring-border">
         {logo && !err ? (
-          <img src={logo} alt={name} onError={() => setErr(true)} className="h-full w-full object-cover" />
+          <img
+            src={imgUrl(logo)}
+            alt={name}
+            referrerPolicy="no-referrer"
+            onError={() => setErr(true)}
+            className="h-full w-full object-cover"
+          />
         ) : (
           <span className="text-sm font-bold text-emerald">{name.slice(0, 1)}</span>
         )}

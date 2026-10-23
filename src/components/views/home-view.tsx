@@ -36,6 +36,7 @@ import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
+import { imgUrl } from "@/lib/img";
 import type { Channel, Match } from "@/lib/types";
 
 // Channel with optional createdAt for sorting recent additions
@@ -464,8 +465,9 @@ function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
       <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-secondary p-0.5">
         {logo && !err ? (
           <img
-            src={logo}
+            src={imgUrl(logo)}
             alt={name}
+            referrerPolicy="no-referrer"
             onError={() => setErr(true)}
             className="h-full w-full rounded object-cover"
           />
@@ -605,8 +607,9 @@ function HeroTeam({ name, logo }: { name: string; logo?: string | null }) {
       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white/15 p-0.5 ring-1 ring-white/20 sm:h-12 sm:w-12">
         {logo && !err ? (
           <img
-            src={logo}
+            src={imgUrl(logo)}
             alt={name}
+            referrerPolicy="no-referrer"
             onError={() => setErr(true)}
             className="h-full w-full rounded-md object-cover"
           />

@@ -9,6 +9,7 @@ import { useFetch } from "@/hooks/use-fetch";
 import { useFavorites } from "@/stores/favorites";
 import { dayLabel } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
+import { imgUrl } from "@/lib/img";
 import { toast } from "sonner";
 import type { Match, Tournament, Team } from "@/lib/types";
 
@@ -85,7 +86,7 @@ export function TournamentView({ id }: { id: string }) {
           <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-l from-emerald/5 to-card p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <TournamentLogo
-                src={tournament.logo}
+                src={imgUrl(tournament.logo)}
                 name={tournament.nameAr ?? tournament.name}
                 size={72}
               />
@@ -269,7 +270,7 @@ function TeamCard({ team }: { team: Team }) {
         {team.logo && !err ? (
            
           <img
-            src={team.logo}
+            src={imgUrl(team.logo)}
             alt={name}
             onError={() => setErr(true)}
             className="h-full w-full object-cover"

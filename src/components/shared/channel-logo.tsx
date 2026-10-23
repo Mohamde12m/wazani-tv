@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { imgUrl } from "@/lib/img";
 
 export function ChannelLogo({
   src,
@@ -25,11 +26,11 @@ export function ChannelLogo({
       style={{ width: size, height: size }}
     >
       {show ? (
-         
         <img
-          src={src!}
+          src={imgUrl(src)}
           alt={name}
           loading="lazy"
+          referrerPolicy="no-referrer"
           onError={() => setError(true)}
           className="h-full w-full object-cover"
         />

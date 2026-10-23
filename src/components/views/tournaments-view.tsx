@@ -6,6 +6,7 @@ import { SectionHeader, EmptyState, LoadingGrid } from "@/components/shared/sect
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { cn } from "@/lib/utils";
+import { imgUrl } from "@/lib/img";
 import type { Tournament } from "@/lib/types";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -86,7 +87,7 @@ function TournamentCard({
         {tournament.logo && !err ? (
            
           <img
-            src={tournament.logo}
+            src={imgUrl(tournament.logo)}
             alt={tournament.nameAr ?? tournament.name}
             onError={() => setErr(true)}
             className="h-full w-full object-cover"

@@ -29,6 +29,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import type { Channel } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { imgUrl } from "@/lib/img";
 import { toast } from "sonner";
 
 import type HlsType from "hls.js";

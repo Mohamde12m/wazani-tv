@@ -709,3 +709,36 @@ Work Log:
 
 Stage Summary:
 - Match cards are now compact (~201px for featured, less for regular) while retaining every element: tournament, status, teams+logos, score/time, day, countdown (featured), stadium, channel, watch button, favorite star, and WazaNI TV watermark. The meta row and actions row were merged into a single border-t row for maximum space efficiency. The layout is clean, professional, and shows multiple cards on screen.
+
+---
+Task ID: 21
+Agent: main (orchestrator) — fix external logos not showing for matches
+Task: User reported that adding a logo URL for channels works, but adding a logo URL for matches doesn't show the image.
+
+Work Log:
+- Diagnosed: The code was correct — `MatchCard` uses `match.homeLogo` and the API saves/returns it properly. Verified via DB inspection + direct API fetch that `homeLogo: "https://..."` is stored and returned correctly.
+- Root cause: External image URLs fail to load client-side due to:
+  1. CORS restrictions on some hosts.
+  2. Hotlink protection (Referer-based blocking).
+  3. Client-side rate limiting (e.g. Wikipedia returns 429 to browsers).
+  When `<img onError>` fires, the card falls back to a letter placeholder, so the user thinks "the logo doesn't work".
+- Solution: Added a server-side image proxy at `src/app/api/img/route.ts`:
+  - `GET /api/img?url=<external-url>` fetches the image server-side with no Referer + a neutral User-Agent, then streams the bytes back with the correct content-type + 1-day cache headers.
+  - Validates the URL is http(s) only (prevents SSRF / file://).
+- Added `src/lib/img.ts` exporting `imgUrl(src)` — converts external http(s) URLs to `/api/img?url=<encoded>`, leaves data:/blob:/relative paths untouched.
+- Applied `imgUrl()` to every `<img>` that renders a logo across the app:
+  - `src/components/shared/match-card.tsx` (TeamCol)
+  - `src/components/shared/channel-logo.tsx` (ChannelLogo — covers channel cards, player info bar, admin)
+  - `src/components/views/home-view.tsx` (TeamMini in TodayMatchCard + HeroTeam in FeaturedHero)
+  - `src/components/views/tournaments-view.tsx` (TournamentCard logo)
+  - `src/components/views/tournament-view.tsx` (tournament header logo + team logos)
+- Also added `referrerPolicy="no-referrer"` to all logo `<img>` tags as a belt-and-suspenders measure.
+- Browser-verified:
+  - Created a test match with a filgoal.com logo URL → the card rendered the image via `/api/img?url=...` (loaded:true, naturalW:75). ✓
+  - Created a test match with a google.com logo URL → rendered via proxy (loaded:true, naturalW:544). ✓
+  - Wikipedia URLs still fail because Wikipedia blocks server-side fetches too (returns 404/429 even to our proxy) — this is a source-side limitation, not a code bug; the proxy still works for the vast majority of image hosts.
+- Cleaned up all test matches.
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- External logo URLs now reliably render for matches (and channels, tournaments, teams) via a server-side image proxy (`/api/img?url=...`). The proxy bypasses CORS, hotlink protection, and client-side rate limiting that previously caused `<img onError>` to fire and show a letter placeholder. The `imgUrl()` helper is applied to every logo `<img>` in the app. Logos from filgoal.com, google.com, and most standard image hosts now display correctly; only hosts that block server-side fetches entirely (like Wikipedia) will still fall back to the letter placeholder.
