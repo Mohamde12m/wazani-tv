@@ -742,3 +742,33 @@ Work Log:
 
 Stage Summary:
 - External logo URLs now reliably render for matches (and channels, tournaments, teams) via a server-side image proxy (`/api/img?url=...`). The proxy bypasses CORS, hotlink protection, and client-side rate limiting that previously caused `<img onError>` to fire and show a letter placeholder. The `imgUrl()` helper is applied to every logo `<img>` in the app. Logos from filgoal.com, google.com, and most standard image hosts now display correctly; only hosts that block server-side fetches entirely (like Wikipedia) will still fall back to the letter placeholder.
+
+---
+Task ID: 22
+Agent: main (orchestrator) — official Video.js player
+Task: Replace the custom hand-rolled HLS player with a professional Video.js player that supports HLS, DASH, MP4, YouTube, and live streaming with premium controls.
+
+Work Log:
+- Installed Video.js 8.24.2 + plugins: @videojs/http-streaming (HLS/DASH via VHS), videojs-youtube (YouTube tech), videojs-landscape-fullscreen (later removed — caused SSR/plugin issues). Video.js 10 was tried first but removed the legacy plugin registry that videojs-youtube/landscape depend on, so pinned to v8.
+- Created `src/components/shared/videojs-player.tsx` — a reusable `VideoJsPlayer` React component:
+  - Supports HLS (.m3u8), DASH (.mpd), MP4, YouTube live/VOD via a `kind` prop.
+  - Source resolution maps each kind to the correct MIME type ("application/x-mpegURL", "application/dash+xml", "video/mp4", "video/youtube") and sets `techOrder: ["youtube","html5"]` for YouTube.
+  - Autoplay muted (browser-friendly), defers `play()` until `canplay` fires to avoid "Illegal invocation" errors.
+  - VHS options (when needed): overrideNative, enableWorker, lowLatencyMode, backBufferLength.
+  - poster (channel logo), playbackRates [0.5,1,1.25,1.5,2], PiP toggle, inline volume panel.
+  - Error + ready callbacks; reloadNonce prop forces a source refresh.
+- Created `src/lib/videojs-theme.css` — a premium emerald/gold Video.js skin: gold big-play button, emerald-dark control bar gradient, gold progress/volume sliders, gold loading spinner, themed menus, and a "WazaNI TV" badge overlay.
+- Rewrote `src/components/views/player-view.tsx` to use `VideoJsPlayer` (loaded via `next/dynamic` with `ssr:false` because Video.js touches `window`/`screen` at import time). Kept all surrounding UI: channel info bar, prev/next navigation, suggestions row, unavailable-notice. Removed the old custom controls (Slider, manual HLS.js wiring) since Video.js provides native controls.
+- Fixed two critical runtime errors:
+  1. "Cannot set properties of undefined (setting 'lockOrientationUniversal')" — caused by videojs-landscape-fullscreen running at SSR; fixed by dynamic-importing the player with ssr:false.
+  2. "Illegal invocation" at HTMLDivElement.removeAttribute — caused by using a `<div>` as the Video.js mount; fixed by using a `<video>` element (Video.js 8 expects a `<video>`).
+- Added `dash` + `youtube` stream types to the admin channel form's streamType `<Select>` (with Arabic labels: "HLS (بث مباشر m3u8)", "DASH (بث مباشر mpd)", "MP4 (فيديو)", "YouTube (بث/فيديو)") and a DASH badge in `StreamTypeBadge`.
+- Browser-verified (iPhone 14):
+  - Opened "بث تجريبي - رياضة" (HLS) → Video.js player initialises, video plays (playing:true, readyState:4, duration:635s, muted:true).
+  - All controls present: control-bar, play/pause, progress, volume panel, fullscreen, big-play button.
+  - No "Illegal invocation" errors after the autoplay-mute fix.
+  - No horizontal overflow.
+- Lint: 0 errors, 0 warnings.
+
+Stage Summary:
+- WazaNI TV now has a professional Video.js 8 player as its official viewer. It plays HLS live streams (verified with the demo channel), and also supports DASH, MP4, and YouTube live/VOD. The player has a custom emerald/gold premium skin, native controls (play, seek, volume, PiP, fullscreen, playback rate), ABR quality switching via VHS, muted autoplay, and robust error handling. Admins can now choose from 4 stream types (HLS/DASH/MP4/YouTube) when adding channels. The player is loaded client-side only to avoid SSR issues.

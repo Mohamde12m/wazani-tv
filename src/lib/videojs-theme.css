@@ -1,0 +1,164 @@
+/* ============================================================
+   WazaNI TV — Video.js premium theme (emerald + gold)
+   Overrides the default Video.js skin to match the app brand.
+   ============================================================ */
+
+.video-js.vjs-wazani {
+  font-family: inherit;
+  background-color: #084d37;
+  color: #fff;
+}
+
+/* Big center play button — gold */
+.video-js.vjs-wazani .vjs-big-play-button {
+  background-color: #c9962e;
+  border: 2px solid #e3b45a;
+  border-radius: 9999px;
+  width: 72px;
+  height: 72px;
+  line-height: 72px;
+  font-size: 36px;
+  box-shadow: 0 6px 20px rgba(11, 110, 79, 0.45);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.video-js.vjs-wazani:hover .vjs-big-play-button {
+  background-color: #e3b45a;
+  transform: scale(1.08);
+}
+.video-js.vjs-wazani .vjs-big-play-button .vjs-icon-placeholder::before {
+  top: 0;
+  line-height: 72px;
+}
+
+/* Control bar — emerald-dark gradient */
+.video-js.vjs-wazani .vjs-control-bar {
+  background: linear-gradient(0deg, #084d37 0%, rgba(8, 77, 55, 0.92) 70%, rgba(8, 77, 55, 0) 100%);
+  height: 3.2em;
+  padding: 0 0.6em;
+}
+
+/* Buttons — gold hover */
+.video-js.vjs-wazani .vjs-control-bar .vjs-button > .vjs-icon-placeholder::before {
+  font-size: 1.5em;
+  line-height: 2em;
+  color: #fff;
+}
+.video-js.vjs-wazani .vjs-control-bar .vjs-button:hover > .vjs-icon-placeholder::before {
+  color: #e3b45a;
+}
+
+/* Progress / seek bar — gold */
+.video-js.vjs-wazani .vjs-progress-control .vjs-progress-holder {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.video-js.vjs-wazani .vjs-progress-control .vjs-play-progress {
+  background: linear-gradient(90deg, #c9962e, #e3b45a);
+  border-radius: 9999px;
+}
+.video-js.vjs-wazani .vjs-progress-control .vjs-load-progress {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+}
+.video-js.vjs-wazani .vjs-progress-control .vjs-slider-handle {
+  background: #e3b45a;
+  box-shadow: 0 0 0 3px rgba(227, 180, 90, 0.3);
+  width: 12px;
+  height: 12px;
+}
+
+/* Volume slider — gold */
+.video-js.vjs-wazani .vjs-volume-bar {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+}
+.video-js.vjs-wazani .vjs-volume-level {
+  background: linear-gradient(90deg, #c9962e, #e3b45a);
+  border-radius: 9999px;
+}
+
+/* Time display */
+.video-js.vjs-wazani .vjs-current-time,
+.video-js.vjs-wazani .vjs-duration,
+.video-js.vjs-wazani .vjs-time-divider {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Live indicator (for HLS live streams) */
+.video-js.vjs-wazani .vjs-live-control .vjs-live-display {
+  background: #c0392b;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Loading spinner — gold */
+.video-js.vjs-wazani .vjs-loading-spinner {
+  border-color: #e3b45a;
+  border-top-color: transparent;
+}
+
+/* Menu (quality / playback rate / captions) */
+.video-js.vjs-wazani .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+  background: #0c1f17;
+  border: 1px solid #1b3a2c;
+  border-radius: 10px;
+  bottom: 1em;
+}
+.video-js.vjs-wazani .vjs-menu-button-popup .vjs-menu .vjs-menu-item {
+  color: #eef5ef;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.video-js.vjs-wazani .vjs-menu-button-popup .vjs-menu .vjs-menu-item.vjs-selected {
+  background: #0b6e4f;
+  color: #fff;
+}
+.video-js.vjs-wazani .vjs-menu-button-popup .vjs-menu .vjs-menu-item:hover {
+  background: #11281f;
+  color: #e3b45a;
+}
+
+/* Poster */
+.video-js.vjs-wazani .vjs-poster {
+  background-size: contain;
+  background-color: #084d37;
+}
+
+/* Error display */
+.video-js.vjs-wazani .vjs-error-display .vjs-modal-dialog-content {
+  background: #084d37;
+  color: #fff;
+  font-size: 13px;
+  padding: 20px;
+}
+
+/* Custom "WazaNI TV" badge in the top-right of the player */
+.video-js.vjs-wazani .vjs-wazani-badge {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 12px;
+  z-index: 4;
+  font-size: 10px;
+  font-weight: 800;
+  color: #e3b45a;
+  background: rgba(8, 77, 55, 0.6);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(227, 180, 90, 0.4);
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+.video-js.vjs-wazani.vjs-playing .vjs-wazani-badge,
+.video-js.vjs-wazani.vjs-has-started .vjs-wazani-badge {
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+}
+.video-js.vjs-wazani.vjs-user-active .vjs-wazani-badge {
+  opacity: 1;
+}
