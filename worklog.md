@@ -656,3 +656,29 @@ Work Log:
 
 Stage Summary:
 - The matches page (and favorites + tournament detail pages) now correctly flow right-to-left. The root cause was Radix UI's Direction provider defaulting to "ltr" on the Tabs component. Adding `dir="rtl"` to each `<Tabs>` instance forces Radix to respect Arabic RTL for all its children — tabs, filter chips, and content all now start from the right as expected.
+
+---
+Task ID: 19
+Agent: main (orchestrator) — compact matches filters
+Task: User reported the 4 filter rows on the matches page (حسب البطولة / حسب الدولة / حسب التاريخ / حسب الحالة with all their chips) take ~40% of the screen and push match cards down. Make them compact.
+
+Work Log:
+- Analyzed the screenshot with VLM: confirmed the 4 ChipRow blocks occupy ~40-45% of viewport (~400px) before any match card is visible.
+- Redesigned the filter section in `src/components/views/matches-view.tsx` from 4 stacked rows into a 2-row compact "group tabs + dynamic chips" system:
+  - Row 1: a single pill-bar of 4 group tabs (البطولة / الدولة / التاريخ / الحالة) — only the active group is highlighted; a gold dot appears on a tab if that group has a non-"all" value selected.
+  - Row 2: the chips for ONLY the currently selected group (horizontal scroll). Switching tabs swaps the chips.
+  - Plus a small "مسح كل الفلاتر" (clear all) link that appears only when at least one filter is set.
+- Added state `filterGroup: "tournament" | "country" | "date" | "status"` (default "tournament").
+- Added new `FilterTab` component (active = emerald bg; inactive with a value = gold dot indicator).
+- Removed the now-unused `ChipRow` component.
+- Added `X` icon import (for the clear-all link).
+- Browser-verified (iPhone 14):
+  - Filter section height: 400px → 78px (≈80% reduction; 45% → 9% of viewport).
+  - Switching to "التاريخ" shows date chips (الكل / اليوم / غدًا / الأحد...); switching to "الحالة" shows status chips (الكل / مباشر / مجدولة / منتهية) — all working.
+  - First match card now visible immediately below the filters without scrolling.
+  - No horizontal overflow (scrollW===clientW===390).
+- VLM (glm-5v-turbo) confirmed: "filters are now compact… single row of group tabs + one row of chips. The actual match content is clearly visible immediately below the filters without any need to scroll. Clean, organized, highly usable."
+- Lint: 0 errors, 0 warnings. No runtime errors.
+
+Stage Summary:
+- The matches page filter section is now ~80% shorter (78px vs ~400px). Instead of 4 stacked chip rows, there is a single group-tab bar (البطولة/الدولة/التاريخ/الحالة) + one dynamic chip row for the active group. Users can switch groups with one tap, see a gold dot on groups with active filters, and clear everything with one tap. The match cards are now visible immediately on page load.

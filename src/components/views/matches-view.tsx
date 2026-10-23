@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Star,
   Trophy,
+  X,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchCard } from "@/components/shared/match-card";
@@ -56,6 +57,10 @@ export function MatchesView({ tab }: { tab?: string }) {
   const [fCountry, setFCountry] = React.useState<string>("all");
   const [fDate, setFDate] = React.useState<string>("all");
   const [fStatus, setFStatus] = React.useState<string>("all");
+  // Which filter group is expanded (compact UI: one group visible at a time)
+  const [filterGroup, setFilterGroup] = React.useState<
+    "tournament" | "country" | "date" | "status"
+  >("tournament");
 
   const { data, loading } = useFetch<{ matches: Match[] }>("/api/matches");
   const matches = data?.matches ?? [];
@@ -223,63 +228,112 @@ export function MatchesView({ tab }: { tab?: string }) {
           ))}
         </TabsList>
 
-        {/* Filter chips */}
-        <div className="space-y-2.5">
-          <ChipRow title="حسب البطولة">
-            <Chip
-              active={fTournament === "all"}
-              label="الكل"
-              onClick={() => setFTournament("all")}
+        {/* Compact filter bar: one row of group tabs + one row of chips for the active group */}
+        <div className="space-y-2">
+          {/* Group selector tabs (single row) */}
+          <div className="no-scrollbar flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1">
+            <FilterTab
+              active={filterGroup === "tournament"}
+              label="البطولة"
+              hasValue={fTournament !== "all"}
+              onClick={() => setFilterGroup("tournament")}
             />
-            {tournaments.map((t) => (
-              <Chip
-                key={t.id}
-                active={fTournament === t.id}
-                label={t.name}
-                onClick={() => setFTournament(t.id)}
+            {countries.length > 0 && (
+              <FilterTab
+                active={filterGroup === "country"}
+                label="الدولة"
+                hasValue={fCountry !== "all"}
+                onClick={() => setFilterGroup("country")}
               />
-            ))}
-          </ChipRow>
+            )}
+            <FilterTab
+              active={filterGroup === "date"}
+              label="التاريخ"
+              hasValue={fDate !== "all"}
+              onClick={() => setFilterGroup("date")}
+            />
+            <FilterTab
+              active={filterGroup === "status"}
+              label="الحالة"
+              hasValue={fStatus !== "all"}
+              onClick={() => setFilterGroup("status")}
+            />
+          </div>
 
-          {countries.length > 0 && (
-            <ChipRow title="حسب الدولة">
-              <Chip
-                active={fCountry === "all"}
-                label="الكل"
-                onClick={() => setFCountry("all")}
-              />
-              {countries.map((c) => (
+          {/* Active chips for the selected group (single scrollable row) */}
+          <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
+            {filterGroup === "tournament" && (
+              <>
                 <Chip
-                  key={c}
-                  active={fCountry === c}
-                  label={c}
-                  onClick={() => setFCountry(c)}
+                  active={fTournament === "all"}
+                  label="الكل"
+                  onClick={() => setFTournament("all")}
+                />
+                {tournaments.map((t) => (
+                  <Chip
+                    key={t.id}
+                    active={fTournament === t.id}
+                    label={t.name}
+                    onClick={() => setFTournament(t.id)}
+                  />
+                ))}
+              </>
+            )}
+            {filterGroup === "country" && countries.length > 0 && (
+              <>
+                <Chip
+                  active={fCountry === "all"}
+                  label="الكل"
+                  onClick={() => setFCountry("all")}
+                />
+                {countries.map((c) => (
+                  <Chip
+                    key={c}
+                    active={fCountry === c}
+                    label={c}
+                    onClick={() => setFCountry(c)}
+                  />
+                ))}
+              </>
+            )}
+            {filterGroup === "date" &&
+              dateChips.map((c) => (
+                <Chip
+                  key={c.key}
+                  active={fDate === c.key}
+                  label={c.label}
+                  onClick={() => setFDate(c.key)}
                 />
               ))}
-            </ChipRow>
+            {filterGroup === "status" &&
+              STATUS_CHIPS.map((c) => (
+                <Chip
+                  key={c.key}
+                  active={fStatus === c.key}
+                  label={c.label}
+                  onClick={() => setFStatus(c.key)}
+                />
+              ))}
+          </div>
+
+          {/* Active filters summary + clear all (only when a filter is set) */}
+          {(fTournament !== "all" ||
+            fCountry !== "all" ||
+            fDate !== "all" ||
+            fStatus !== "all") && (
+            <button
+              onClick={() => {
+                setFTournament("all");
+                setFCountry("all");
+                setFDate("all");
+                setFStatus("all");
+              }}
+              className="flex items-center gap-1 text-[10px] font-bold text-gold"
+            >
+              <X className="h-3 w-3" />
+              مسح كل الفلاتر
+            </button>
           )}
-
-          <ChipRow title="حسب التاريخ">
-            {dateChips.map((c) => (
-              <Chip
-                key={c.key}
-                active={fDate === c.key}
-                label={c.label}
-                onClick={() => setFDate(c.key)}
-              />
-            ))}
-          </ChipRow>
-
-          <ChipRow title="حسب الحالة">
-            {STATUS_CHIPS.map((c) => (
-              <Chip
-                key={c.key}
-                active={fStatus === c.key}
-                label={c.label}
-                onClick={() => setFStatus(c.key)}
-              />
-            ))}
-          </ChipRow>
         </div>
 
         {/* Content */}
@@ -340,19 +394,32 @@ function Chip({
   );
 }
 
-function ChipRow({
-  title,
-  children,
+function FilterTab({
+  active,
+  label,
+  hasValue,
+  onClick,
 }: {
-  title: string;
-  children: React.ReactNode;
+  active: boolean;
+  label: string;
+  hasValue?: boolean;
+  onClick: () => void;
 }) {
   return (
-    <div className="space-y-1.5">
-      <p className="px-1 text-[11px] font-bold text-muted-foreground">{title}</p>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {children}
-      </div>
-    </div>
+    <button
+      onClick={onClick}
+      className={cn(
+        "relative flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors",
+        active
+          ? "bg-emerald text-white shadow-sm"
+          : "text-muted-foreground hover:text-emerald",
+      )}
+    >
+      {label}
+      {/* Dot indicator when this group has a non-"all" value selected */}
+      {hasValue && !active && (
+        <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+      )}
+    </button>
   );
 }
