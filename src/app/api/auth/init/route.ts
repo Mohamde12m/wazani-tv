@@ -7,6 +7,5 @@ export async function GET() {
   const admin = await getCurrentAdmin();
   return NextResponse.json({
     admin: admin ? { name: admin.name, email: admin.email, role: admin.role } : null,
-    defaultCredentialsHint: "admin@wazani.tv / admin12345",
   });
 }

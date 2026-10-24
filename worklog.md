@@ -772,3 +772,41 @@ Work Log:
 
 Stage Summary:
 - WazaNI TV now has a professional Video.js 8 player as its official viewer. It plays HLS live streams (verified with the demo channel), and also supports DASH, MP4, and YouTube live/VOD. The player has a custom emerald/gold premium skin, native controls (play, seek, volume, PiP, fullscreen, playback rate), ABR quality switching via VHS, muted autoplay, and robust error handling. Admins can now choose from 4 stream types (HLS/DASH/MP4/YouTube) when adding channels. The player is loaded client-side only to avoid SSR issues.
+
+---
+Task ID: 28
+Agent: main (orchestrator) — إزالة بيانات الدخول التجريبية + إصلاح Turso adapter
+Task: إزالة "بيانات الدخول التجريبية: admin@wazani.tv / admin12345" من شاشة تسجيل الدخول، وإصلاح اتصال Turso بعد اكتشاف تلف .env و db.ts.
+
+Work Log:
+- بحثت عن "بيانات الدخول التجريبية" و "admin@wazani.tv / admin12345" في الكود.
+- عثرت عليها في:
+  • src/components/views/admin-view.tsx (سطر 277-281): صندوق منقط ذهبي يعرض البيانات
+  • src/components/views/admin-view.tsx (سطر 188-189): قيم افتراضية معبأة مسبقًا في حقلي البريد/كلمة المرور
+  • src/app/api/auth/init/route.ts (سطر 10): defaultCredentialsHint في استجابة API
+- الإصلاحات:
+  1. admin-view.tsx:
+     - أزلت الصندوق المنقط "بيانات الدخول التجريبية" بالكامل
+     - فرّغت القيم الافتراضية: `useState("")` بدل `useState("admin@wazani.tv")`
+     - غيّرت placeholder إلى "أدخل بريدك الإلكتروني" (عام، لا يكشف البريد)
+  2. api/auth/init/route.ts: أزلت حقل `defaultCredentialsHint` من الاستجابة
+  3. src/lib/auth.ts → ensureDefaultAdmin(): يستخدم الآن `process.env.ADMIN_EMAIL/PASSWORD/NAME` بدل القيم الثابتة
+- أثناء العمل، اكتشفت أن .env تلف (أُستبدل بـ `DATABASE_URL=file:/home/z/my-project/db/custom.db` فقط) و src/lib/db.ts رُجع لإصدار بسيط بدون Turso adapter.
+- الإصلاحات الإضافية:
+  4. .env: أعدت كتابته كاملاً مع TURSO_DATABASE_URL منفصل + DATABASE_URL=file:./db/dummy.db (لتحقق Prisma)
+  5. src/lib/db.ts: أعدت كتابته مع PrismaLibSQL adapter — يقرأ TURSO_DATABASE_URL للاتصال الفعلي، ويتجاوز تحقق Prisma من بروتوكول file:
+  6. scripts/fix-admin.ts: حدّث حساب المسؤول في Turso باستخدام bcrypt (نفس طريقة auth.ts) — mohamdelwazzani@gmail.com / mohamde12345
+  7. أعدت تثبيت @prisma/adapter-libsql@6.19.3
+- Browser-verified (iPhone 14):
+  • شاشة تسجيل الدخول: لا يوجد "بيانات الدخول التجريبية" ✅، الحقول فارغة ✅
+  • تسجيل دخول ناجح بـ mohamdelwazzani@gmail.com / mohamde12345 → لوحة التحكم تفتح مع كل الأقسام ✅
+  • الصفحة الرئيسية: تعرض كل المباريات والقنوات من Turso ✅
+  • لا توجد كلمات "تجريبي" أو "admin12345" أو "admin@wazani" في أي صفحة ✅
+- Lint: 0 errors, 0 warnings. لا أخطاء runtime في dev.log.
+
+Stage Summary:
+- أُزيلت "بيانات الدخول التجريبية: admin@wazani.tv / admin12345" نهائيًا من شاشة تسجيل الدخول. الحقول الآن فارغة بـ placeholder عام.
+- بيانات المسؤول الحقيقية (mohamdelwazzani@gmail.com / mohamde12345) محفوظة في Turso بـ bcrypt hash وتعمل بنجاح.
+- أُصلح اتصال Turso: .env أعيد كتابته، db.ts أعيد مع adapter، Prisma client يعمل بـ TURSO_DATABASE_URL مع تحقق file: وهمي.
+- التطبيق متصل بـ Turso ويعرض كل البيانات للمستخدمين. المسؤول يدخل ببياناته الحقيقية فقط.
+

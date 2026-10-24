@@ -185,8 +185,8 @@ function LoginScreen({ error }: { error?: string }) {
   const login = useAdmin((s) => s.login);
   const back = useNav((s) => s.back);
   const setView = useNav((s) => s.setView);
-  const [email, setEmail] = React.useState("admin@wazani.tv");
-  const [password, setPassword] = React.useState("admin12345");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [localError, setLocalError] = React.useState<string | undefined>(error);
 
@@ -230,7 +230,7 @@ function LoginScreen({ error }: { error?: string }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pr-9 text-left"
-                    placeholder="admin@wazani.tv"
+                    placeholder="أدخل بريدك الإلكتروني"
                     required
                   />
                 </div>
@@ -272,14 +272,6 @@ function LoginScreen({ error }: { error?: string }) {
             </form>
           </CardContent>
         </Card>
-
-        <div className="rounded-xl border border-dashed border-gold/50 bg-gold/5 px-4 py-3 text-center text-xs text-foreground">
-          <span className="font-semibold text-gold">بيانات الدخول التجريبية:</span>
-          <br />
-          <code dir="ltr" className="text-[11px]">
-            admin@wazani.tv / admin12345
-          </code>
-        </div>
 
         <div className="flex justify-center">
           <Button

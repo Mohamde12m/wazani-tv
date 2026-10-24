@@ -104,12 +104,16 @@ export async function requireAdmin() {
 export async function ensureDefaultAdmin() {
   const count = await db.adminUser.count();
   if (count > 0) return null;
-  const passwordHash = await hashPassword("admin12345");
+  // استخدم بيانات المسؤول من متغيرات البيئة (لا تظهر للمستخدم أبدًا)
+  const email = process.env.ADMIN_EMAIL ?? "admin@wazani.tv";
+  const password = process.env.ADMIN_PASSWORD ?? "admin12345";
+  const name = process.env.ADMIN_NAME ?? "مدير WazaNI";
+  const passwordHash = await hashPassword(password);
   const admin = await db.adminUser.create({
     data: {
-      email: "admin@wazani.tv",
+      email,
       passwordHash,
-      name: "مدير WazaNI",
+      name,
       role: "superadmin",
     },
   });
