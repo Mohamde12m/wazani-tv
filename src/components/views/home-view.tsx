@@ -11,7 +11,6 @@ import {
   Globe,
   Radio,
   MapPin,
-  Sparkles,
   ChevronLeft,
   Clock,
   Plus,
@@ -67,7 +66,6 @@ export function HomeView() {
 
   const channels = channelsData?.channels ?? [];
   const matches = matchesData?.matches ?? [];
-  const allDemo = matches.length > 0 && matches.every((m) => m.demo);
 
   // Live + soon-starting matches count → drives the notification badge
   const liveCount = React.useMemo(() => {
@@ -232,14 +230,6 @@ export function HomeView() {
       ) : featuredMatch ? (
         <FeaturedHero match={featuredMatch} />
       ) : null}
-
-      {/* Demo data hint */}
-      {allDemo && (
-        <div className="flex items-center justify-center gap-1.5 rounded-full border border-dashed border-gold/40 bg-gold/5 px-3 py-1.5 text-center text-[11px] text-gold">
-          <Sparkles className="h-3 w-3" />
-          <span>بيانات تجريبية — المباريات والقنوات المعروضة لأغراض العرض فقط</span>
-        </div>
-      )}
 
       {/* 3. Today's important matches */}
       <section>
