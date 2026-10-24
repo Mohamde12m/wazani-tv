@@ -140,15 +140,39 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
 
 function TeamCol({ name, logo }: { name: string; logo?: string | null }) {
   const [err, setErr] = React.useState(false);
+  const [retry, setRetry] = React.useState(0);
+
+  // إعادة تعيين حالة الخطأ عندما يتغير logo
+  React.useEffect(() => {
+    setErr(false);
+    setRetry(0);
+  }, [logo]);
+
+  const resolvedSrc = React.useMemo(() => {
+    if (!logo) return undefined;
+    const base = imgUrl(logo);
+    if (!base) return undefined;
+    if (retry > 0 && base.startsWith("/api/img?url=")) {
+      return `${base}&retry=${retry}`;
+    }
+    return base;
+  }, [logo, retry]);
+
+  const handleError = () => {
+    if (retry < 1) setRetry((r) => r + 1);
+    else setErr(true);
+  };
+
   return (
     <div className="flex flex-1 flex-col items-center gap-1 text-center">
       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-secondary ring-1 ring-border">
         {logo && !err ? (
           <img
-            src={imgUrl(logo)}
+            key={retry}
+            src={resolvedSrc}
             alt={name}
             referrerPolicy="no-referrer"
-            onError={() => setErr(true)}
+            onError={handleError}
             className="h-full w-full object-cover"
           />
         ) : (

@@ -91,14 +91,42 @@ export function PlayerView({ channelId }: { channelId: string }) {
 
   return (
     <div>
-      {/* Full-width official video player (Video.js) */}
-      <VideoJsPlayer
-        src={available ? channel.streamUrl : null}
-        kind={available ? streamKind : "none"}
-        poster={channel.logo}
-        autoplay
-        reloadNonce={0}
-      />
+      {/* Full-width official video player (Video.js) with persistent channel logo */}
+      <div className="relative">
+        <VideoJsPlayer
+          src={available ? channel.streamUrl : null}
+          kind={available ? streamKind : "none"}
+          poster={channel.logo}
+          autoplay
+          reloadNonce={0}
+        />
+        {/* شعار القناة الثابت — يظهر دائمًا فوق المشغل، لا يختفي أبدًا */}
+        <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-2 rounded-xl bg-black/60 px-2.5 py-1.5 backdrop-blur-sm">
+          <ChannelLogo
+            src={channel.logo}
+            name={channel.nameAr ?? channel.name}
+            size={32}
+            className="!ring-0 !rounded-lg"
+          />
+          <span className="text-xs font-bold text-white drop-shadow">
+            {channel.nameAr ?? channel.name}
+          </span>
+        </div>
+        {/* عندما لا يوجد بث، أظهر الشعار كبيرًا في وسط المشغل */}
+        {!available && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-emerald-dark/90">
+            <ChannelLogo
+              src={channel.logo}
+              name={channel.nameAr ?? channel.name}
+              size={96}
+              className="!rounded-2xl shadow-2xl"
+            />
+            <span className="text-sm font-bold text-white/90 drop-shadow">
+              {channel.nameAr ?? channel.name}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Padded content below the player */}
       <div className="space-y-4 px-4 py-4">
