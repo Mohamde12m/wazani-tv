@@ -3,7 +3,9 @@ import { db } from "@/lib/db";
 import { cookies } from "next/headers";
 
 const SESSION_COOKIE = "avt_admin";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+// جلسة قصيرة (4 ساعات) — تنتهي عند إغلاق المتصفح أو بعد 4 ساعات
+// المسؤول يجب أن يسجّل الدخول في كل مرة يفتح فيها المتصفح
+const SESSION_MAX_AGE = 60 * 60 * 4; // 4 hours
 
 // Simple signed token: base64(payload).base64(hmac)
 // We avoid extra deps; this is for admin sessions only.
@@ -58,7 +60,8 @@ export async function setSessionCookie(token: string) {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_MAX_AGE,
+    // لا نضع maxAge → كوكي جلسة يُمسح عند إغلاق المتصفح
+    // (التوكن داخله ينتهي بعد 4 ساعات كحماية إضافية)
     path: "/",
   });
 }
