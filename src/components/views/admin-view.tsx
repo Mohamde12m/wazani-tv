@@ -60,6 +60,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAdmin } from "@/stores/admin";
 import { AppLogo } from "@/components/shared/app-logo";
+import { ImageUploader } from "@/components/shared/image-uploader";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { toast } from "sonner";
@@ -509,7 +510,15 @@ function ChannelDialog({
               placeholder="الجزيرة"
             />
           </Field>
-          <Field label="رابط الشعار (Logo URL)" hint="اتركه فارغًا لتوليد شعار تلقائي">
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="شعار القناة"
+              hint="ارفع صورة الشعار من جهازك (سيُضغط تلقائيًا إلى 256px). أو اتركه فارغًا لتوليد شعار تلقائي."
+              value={form.logo}
+              onChange={(v) => set("logo", v ?? "")}
+            />
+          </div>
+          <Field label="رابط الشعار (اختياري)" hint="أو ضع رابطًا بدلًا من رفع الصورة">
             <Input
               dir="ltr"
               value={form.logo}
@@ -1025,7 +1034,15 @@ function MatchDialog({
               placeholder="الزمالك"
             />
           </Field>
-          <Field label="شعار المضيف (URL)">
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="شعار الفريق المضيف"
+              hint="ارفع شعار الفريق المضيف من جهازك (سيُضغط تلقائيًا إلى 256px)."
+              value={form.homeLogo}
+              onChange={(v) => set("homeLogo", v ?? "")}
+            />
+          </div>
+          <Field label="رابط شعار المضيف (اختياري)">
             <Input
               dir="ltr"
               value={form.homeLogo}
@@ -1033,7 +1050,15 @@ function MatchDialog({
               placeholder="https://..."
             />
           </Field>
-          <Field label="شعار الضيف (URL)">
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="شعار الفريق الضيف"
+              hint="ارفع شعار الفريق الضيف من جهازك (سيُضغط تلقائيًا إلى 256px)."
+              value={form.awayLogo}
+              onChange={(v) => set("awayLogo", v ?? "")}
+            />
+          </div>
+          <Field label="رابط شعار الضيف (اختياري)">
             <Input
               dir="ltr"
               value={form.awayLogo}
@@ -1459,9 +1484,14 @@ function TournamentDialog({
           <Field label="الاسم (عربي)">
             <Input value={form.nameAr} onChange={(e) => set("nameAr", e.target.value)} />
           </Field>
-          <Field label="رابط الشعار">
-            <Input dir="ltr" value={form.logo} onChange={(e) => set("logo", e.target.value)} />
-          </Field>
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="شعار البطولة"
+              hint="ارفع شعار البطولة من جهازك (سيُضغط تلقائيًا إلى 256px)."
+              value={form.logo}
+              onChange={(v) => set("logo", v ?? "")}
+            />
+          </div>
           <Field label="الدولة">
             <Input value={form.country} onChange={(e) => set("country", e.target.value)} />
           </Field>
@@ -1836,9 +1866,14 @@ function TeamsSection() {
             <Field label="الاسم (عربي)">
               <Input value={form.nameAr} onChange={(e) => set("nameAr", e.target.value)} />
             </Field>
-            <Field label="رابط الشعار" hint="اختياري - يولد تلقائيًا">
-              <Input dir="ltr" value={form.logo} onChange={(e) => set("logo", e.target.value)} />
-            </Field>
+            <div className="sm:col-span-2">
+              <ImageUploader
+                label="شعار الفريق"
+                hint="ارفع شعار الفريق من جهازك (سيُضغط تلقائيًا إلى 256px). أو اتركه فارغًا لتوليد شعار تلقائي."
+                value={form.logo}
+                onChange={(v) => set("logo", v ?? "")}
+              />
+            </div>
             <Field label="الدولة">
               <Input value={form.country} onChange={(e) => set("country", e.target.value)} />
             </Field>
