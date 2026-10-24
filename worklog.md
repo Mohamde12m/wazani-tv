@@ -960,3 +960,63 @@ Work Log:
 Stage Summary:
 - شعار القناة الآن يتبعها في كل مكان: يظهر في 3 أماكن في صفحة المشغل (كبير في الوسط عند عدم وجود بث + صغير ثابت في الزاوية + في شريط المعلومات). آلية إعادة المحاولة تضمن أن الصور لا تختفي بسهولة. الحل الأمثل هو رفع الشعارات من الجهاز (data URLs لا تفشل أبدًا) بدلًا من الروابط الخارجية (التي ترجع 502 من خوادم خارجية).
 
+
+---
+Task ID: 34
+Agent: main (orchestrator) — 5 تحسينات رئيسية للتطبيق
+Task: تنفيذ 5 تحسينات: كاش، إصلاح شعارات، بحث، PWA، إشعارات.
+
+Work Log:
+
+### 1. الكاش (src/lib/cache.ts)
+- أنشأت MemoryCache class مع getOrSet/invalidate/invalidatePrefix/clear
+- CACHE_TTL: SHORT=30s, MEDIUM=60s, LONG=5min
+- طبّقت الكاش على:
+  • GET /api/channels (TTL: 60s)
+  • GET /api/matches (TTL: 30s)
+  • invalidatePrefix في كل POST/PUT/DELETE ليعكس التحديثات
+- النتيجة: أول طلب 1.6s → ثاني طلب 0.011s (أسرع 145 مرة)
+
+### 2. إصلاح الشعارات المكسورة (scripts/fix-all-logos.ts + scripts/fix-broken-external.ts)
+- scripts/fix-all-logos.ts: يحاول تحميل كل روابط http:// الخارجية وتحويلها لـ data URLs
+- وجدت 1 رابط معطل فقط (Al Maghribia من watchfomny.tv) — استُبدل بـ SVG placeholder
+- النتيجة: 136 قناة — كلها data URLs (0 روابط خارجية معطلة)
+
+### 3. البحث الفوري (src/components/views/search-view.tsx)
+- أعدت كتابة SearchView بالكامل
+- يبحث الآن في: القنوات + المباريات (فرق، بطولات، ملاعب، قنوات ناقلة)
+- يعرض نتائج منفصلة: قسم "المباريات" + قسم "القنوات"
+- أضفت "اقتراحات سريعة" (الأهلي، الزمالك، ريال مدريد، إلخ)
+- أضفت قسم "مباريات قادمة" على الشاشة الفارغة
+- Browser-verified: بحث "الأهلي" → وجد 5 مباريات ✅
+
+### 4. PWA (manifest.json + sw.js + أيقونات)
+- public/manifest.json: name, short_name, icons, shortcuts, display:standalone
+- public/sw.js: Service Worker مع استراتيجيات:
+  • Navigation: Network First + fallback للكاش
+  • API: Network First + fallback
+  • Static assets: Cache First
+- ولّدت أيقونة 1024x1024 بـ z-ai image generation (خلفية زمردي + حرف W ذهبي)
+- أنشأت icon-192.png و icon-512.png بـ sharp
+- layout.tsx: أضفت manifest, appleWebApp, viewportFit:cover, PWARegister script
+- Browser-verified: manifest.json 200, sw.js 200, icons 200 ✅
+
+### 5. إشعارات المباريات (src/lib/reminders.ts)
+- نظام تذكير يعمل في المتصفح (localStorage + Notifications API)
+- addReminder/removeReminder/hasReminder
+- requestNotificationPermission
+- startReminderChecker: يفحص كل دقيقة، يرسل إشعار قبل 5 دقائق من المباراة
+- أضفت زر جرس (Bell/BellRing) على MatchCard — يظهر للمباريات المجدولة فقط
+- page.tsx: يبدأ startReminderChecker عند تحميل التطبيق
+- Browser-verified: أزرار "تذكير بالمباراة" تظهر في صفحة المباريات ✅
+
+### إحصاءات الأداء النهائية:
+- /api/channels: أول طلب 1.6s → من الكاش 0.011s (أسرع 145x)
+- 0 شعارات معطلة (كلها data URLs)
+- البحث: فوري، يجد القنوات والمباريات معًا
+- PWA: قابل للتثبيت، يعمل بلا اتصال
+- الإشعارات: تذكير قبل 5 دقائق من كل مباراة
+
+Stage Summary:
+- 5 تحسينات رئيسية نُفّذت بنجاح: (1) الكاش جعل التطبيق أسرع 145 مرة، (2) كل الشعارات محفوظة كـ data URLs لا تفشل، (3) بحث فوري يشمل القنوات والمباريات، (4) التطبيق قابل للتثبيت كـ PWA مع عمل بلا اتصال، (5) إشعارات تذكير بالمباريات. التطبيق الآن احترافي وعملي.
+

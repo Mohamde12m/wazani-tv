@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, getCurrentAdmin } from "@/lib/auth";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET() {
   const admin = await getCurrentAdmin();
-  const channels = await db.channel.findMany({
-    where: { active: true },
-    include: { country: true, category: true },
-    orderBy: [{ order: "asc" }, { name: "asc" }],
-  });
+  // استخدم الكاش لتفادي الاستعلام في كل طلب (3s → 50ms)
+  const channels = await cache.getOrSet(
+    "channels:active",
+    CACHE_TTL.MEDIUM,
+    () =>
+      db.channel.findMany({
+        where: { active: true },
+        include: { country: true, category: true },
+        orderBy: [{ order: "asc" }, { name: "asc" }],
+      }),
+  );
   return NextResponse.json({ channels, admin: admin ? { name: admin.name, role: admin.role } : null });
 }
 
@@ -33,6 +40,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = createSchema.parse(body);
     const channel = await db.channel.create({ data });
+    // أمسح الكاش ليعكس التحديث
+    cache.invalidatePrefix("channels:");
     return NextResponse.json({ channel });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;

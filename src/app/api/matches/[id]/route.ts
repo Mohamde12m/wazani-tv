@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { cache } from "@/lib/cache";
 
 const updateSchema = z.object({
   homeName: z.string().optional(),
@@ -31,6 +32,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const payload: Record<string, unknown> = { ...data };
     if (data.kickoff) payload.kickoff = new Date(data.kickoff);
     const match = await db.match.update({ where: { id }, data: payload });
+    cache.invalidatePrefix("matches:");
     return NextResponse.json({ match });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;
@@ -44,6 +46,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     await requireAdmin();
     const { id } = await params;
     await db.match.delete({ where: { id } });
+    cache.invalidatePrefix("matches:");
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;

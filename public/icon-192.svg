@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f9b6e"/>
+      <stop offset="1" stop-color="#0b6e4f"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" fill="url(#bg)" rx="34.56"/>
+  <text x="50%" y="50%" dy=".05em" text-anchor="middle" font-family="Tahoma,Arial,sans-serif" font-weight="900" font-size="80.64" fill="#e3b45a">W</text>
+  <text x="50%" y="144" text-anchor="middle" font-family="Tahoma,Arial,sans-serif" font-weight="700" font-size="24.96" fill="#ffffff" opacity="0.9">WazaNI</text>
+</svg>

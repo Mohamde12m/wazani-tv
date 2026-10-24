@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { cache } from "@/lib/cache";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -24,6 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json();
     const data = updateSchema.parse(body);
     const channel = await db.channel.update({ where: { id }, data });
+    cache.invalidatePrefix("channels:");
     return NextResponse.json({ channel });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;
@@ -37,6 +39,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     await requireAdmin();
     const { id } = await params;
     await db.channel.delete({ where: { id } });
+    cache.invalidatePrefix("channels:");
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;

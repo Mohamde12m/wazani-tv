@@ -14,6 +14,7 @@ import { TournamentsView } from "@/components/views/tournaments-view";
 import { TournamentView } from "@/components/views/tournament-view";
 import { SearchView } from "@/components/views/search-view";
 import { AdminView } from "@/components/views/admin-view";
+import { startReminderChecker } from "@/lib/reminders";
 
 const MAIN_VIEWS = new Set(["home", "channels", "matches", "favorites", "more"]);
 
@@ -29,6 +30,11 @@ export default function Home() {
   const view = useNav((s) => s.view);
   const isMain = MAIN_VIEWS.has(view.name);
   const meta = TITLES[view.name];
+
+  // ابدأ فاحص تذكير المباريات عند تحميل التطبيق
+  React.useEffect(() => {
+    startReminderChecker();
+  }, []);
 
   return (
     <AppShell>

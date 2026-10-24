@@ -1,12 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Star, Radio, MapPin } from "lucide-react";
+import { Star, Radio, MapPin, Bell, BellRing } from "lucide-react";
 import type { Match } from "@/lib/types";
 import { useFavorites } from "@/stores/favorites";
 import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, statusLabel, useCountdown } from "@/lib/datetime";
 import { imgUrl } from "@/lib/img";
+import {
+  addReminder,
+  removeReminder,
+  hasReminder,
+  requestNotificationPermission,
+} from "@/lib/reminders";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -15,9 +21,37 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
   const toggle = useFavorites((s) => s.toggle);
   const setView = useNav((s) => s.setView);
   const fav = has("match", match.id);
+  const [reminder, setReminder] = React.useState(false);
   const live = match.status === "live";
   const finished = match.status === "finished";
   const cd = useCountdown(match.kickoff);
+
+  // حدّث حالة التذكير عند التحميل
+  React.useEffect(() => {
+    setReminder(hasReminder(match.id));
+  }, [match.id]);
+
+  const toggleReminder = async () => {
+    if (reminder) {
+      removeReminder(match.id);
+      setReminder(false);
+      toast.success("تم إلغاء التذكير بالمباراة");
+    } else {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        toast.error("يلزم السماح بالإشعارات لتلقي التذكير");
+        return;
+      }
+      addReminder({
+        id: match.id,
+        homeName: match.homeName,
+        awayName: match.awayName,
+        kickoff: match.kickoff,
+      });
+      setReminder(true);
+      toast.success("سيتم تذكيرك قبل بدء المباراة بـ 5 دقائق");
+    }
+  };
 
   return (
     <div
@@ -108,6 +142,22 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
               className="rounded-lg bg-emerald px-2 py-1 text-[10px] font-bold text-white transition-colors hover:bg-emerald-dark"
             >
               مشاهدة
+            </button>
+          )}
+          {/* زر التذكير — يظهر فقط للمباريات المجدولة (غير المباشرة/المنتهية) */}
+          {!live && !finished && (
+            <button
+              onClick={toggleReminder}
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-lg border transition-colors",
+                reminder
+                  ? "border-emerald bg-emerald text-white"
+                  : "border-border text-muted-foreground hover:text-emerald",
+              )}
+              aria-label={reminder ? "إلغاء التذكير" : "تذكير بالمباراة"}
+              title={reminder ? "سيتم تذكيرك قبل البدء" : "ذكّرني بهذه المباراة"}
+            >
+              {reminder ? <BellRing className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
             </button>
           )}
           <button

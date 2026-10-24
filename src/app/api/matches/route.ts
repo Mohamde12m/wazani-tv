@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, getCurrentAdmin } from "@/lib/auth";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET() {
   const admin = await getCurrentAdmin();
-  const matches = await db.match.findMany({
-    include: { tournament: true, channel: true, homeTeam: true, awayTeam: true },
-    orderBy: { kickoff: "asc" },
-  });
+  // استخدم الكاش (المباريات تتغير بسرعة، لذا TTL أقصر)
+  const matches = await cache.getOrSet(
+    "matches:all",
+    CACHE_TTL.SHORT,
+    () =>
+      db.match.findMany({
+        include: { tournament: true, channel: true, homeTeam: true, awayTeam: true },
+        orderBy: { kickoff: "asc" },
+      }),
+  );
   return NextResponse.json({ matches, admin: admin ? { name: admin.name } : null });
 }
 
@@ -37,6 +44,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = createSchema.parse(body);
     const match = await db.match.create({ data: { ...data, kickoff: new Date(data.kickoff) } });
+    cache.invalidatePrefix("matches:");
     return NextResponse.json({ match });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;
