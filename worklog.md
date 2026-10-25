@@ -1286,3 +1286,54 @@ Stage Summary:
 - المنطق: at kickoff → live تلقائيًا، بعد 100 دقيقة → finished تلقائيًا. "مؤجلة" = تجاوز يدوي محترم.
 - المسؤول يحتاج فقط ضبط موعد المباراة (kickoff) — النظام يتولى الباقي.
 - الملفات المنتجة: src/lib/match-status.ts (جديد)، src/instrumentation.ts (جديد)، src/app/api/matches/route.ts (معدّل)، src/app/api/stats/route.ts (معدّل)، src/components/views/admin-view.tsx (معدّل).
+
+---
+Task ID: 20
+Agent: main (orchestrator)
+Task: نظام إعلانات متكامل — إضافة/إدارة إعلانات حقيقية من شركات مثل Google AdSense و Adsterra من لوحة الإدارة.
+
+Work Log:
+- بحث شامل (Task 20-research): Setting model موجود (key/value) لكن غير مستخدم. لا يوجد API للإعلانات. admin-view له بنية تبويبات (SectionKey + SECTIONS). مواضع الإدراج في home-view واضحة.
+- أضفت نموذج Ad إلى prisma/schema.prisma: id, slot (home_top|home_middle|home_bottom|sticky_bottom|matches_top), label, type (image|code), imageUrl, linkUrl, adCode, active, order, createdAt, updatedAt + index على [slot, active, order].
+- bun run db:push بنجاح — الجدول جاهز.
+- أضفت type Ad + AdSlotName إلى src/lib/types.ts.
+- أنشأت src/app/api/ads/route.ts:
+  * GET عام (?slot=...) — يرجع الإعلانات النشطة فقط (cached LONG).
+  * GET مسؤول (?all=1) — يرجع كل الإعلانات.
+  * POST مسؤول — إنشاء إعلان (Zod validation).
+- أنشأت src/app/api/ads/[id]/route.ts: PUT (تحديث) + DELETE (حذف) للمسؤول.
+- أنشأت src/components/shared/ad-slot.tsx:
+  * AdSlot component: variant "banner" (بين الأقسام) أو "sticky" (لاصق أسفل الشاشة).
+  * يدعم نوعين: image (صورة + رابط) و code (كود جاهز HTML/script من AdSense/Adsterra).
+  * AdCodeRenderer: يحقن كود الإعلان بأمان (يعيد إنشاء script nodes لتفعيل التنفيذ).
+  * إغلاق الإعلان (X) — يُخفى مؤقتًا في الجلسة.
+  * تبديل تلقائي كل 15 ثانية لو في أكثر من إعلان.
+  * لا يأخذ مساحة إذا لم توجد إعلانات نشطة.
+- عدّلت src/components/shared/app-shell.tsx: أضف AdSlot slot="sticky_bottom" variant="sticky" فوق BottomNav + زدت pb-24 → pb-40 لترك مساحة للإعلان اللاصق.
+- عدّلت src/components/views/home-view.tsx: أضفت 3 مواضع إعلانات:
+  * home_top — بعد المباراة المميزة.
+  * home_middle — بين القنوات المغربية والخليجية.
+  * home_bottom — قبل التذييل.
+- أضفت تبويب "الإعلانات" إلى admin-view.tsx:
+  * أضفت "ads" إلى SectionKey + SECTIONS (icon: Megaphone).
+  * أضفت {section === "ads" && <AdsSection />}.
+  * أنشأت AdsSection component كامل:
+    - بطاقة تعليمية عن شركات الإعلانات (AdSense, Adsterra, Media.net).
+    - قائمة الإعلانات مجمّعة حسب الموضع (5 مواضع).
+    - معاينة مصغرة + أزرار تفعيل/تعطيل/تعديل/حذف.
+    - نموذج modal للإضافة/التعديل: اختيار الموضع، نوع الإعلان (image/code)، ImageUploader للصور، textarea لكود الإعلان، ترتيب، تفعيل.
+- اختبار شامل:
+  * أنشأت إعلانين تجريبيين (home_top صورة SVG أخضر + sticky_bottom صورة SVG ذهبي).
+  * VLM أكد: "بانر إعلان أخضر في الوسط، إعلان لاصق ذهبي أسفل الشاشة فوق شريط التنقل، كلمة إعلان في الزاوية، زر إغلاق X، الإعلانات في أماكنها المخصصة دون الخروج على المحتوى".
+  * لقطة شاشة أكدت العرض الصحيح.
+  * لا أخطاء في console.
+  * bun run lint نجح.
+  * تم تنظيف الإعلانات التجريبية.
+
+Stage Summary:
+- نظام إعلانات متكامل: المسؤول يضيف إعلانات من لوحة الإدارة (تبويب "الإعلانات") دون لمس الكود.
+- نوعان مدعومان: صورة + رابط (يرفع من الجهاز) أو كود جاهز (من AdSense/Adsterra — يدعم <script>).
+- 5 مواضع: أعلى الرئيسية، وسطها، أسفلها، لاصق أسفل الشاشة، أعلى المباريات.
+- الإعلانات تظهر في أماكنها المحددة فقط — لا تخرج على المحتوى. لا تأخذ مساحة إذا لم توجد إعلانات.
+- توصية: ابدأ بـ Adsterra (موافقة سريعة)، تقدّم لـ Google AdSense بالتوازي. بدّل الكود من لوحة الإدارة بضغطة زر.
+- الملفات المنتجة: prisma/schema.prisma (نموذج Ad)، src/lib/types.ts (type Ad)، src/app/api/ads/route.ts، src/app/api/ads/[id]/route.ts، src/components/shared/ad-slot.tsx، src/components/shared/app-shell.tsx (معدّل)، src/components/views/home-view.tsx (معدّل)، src/components/views/admin-view.tsx (تبويب الإعلانات + AdsSection).

@@ -142,3 +142,31 @@ model Setting {
   key   String @unique
   value String
 }
+
+/// إعلان لشركة خارجية (Google AdSense, Adsterra, Media.net, إلخ).
+/// يدعم نوعين:
+/// - "image": بانر صورة مع رابط (يرفع المسؤول الصورة من جهازه)
+/// - "code": كود إعلان جاهز (script/HTML) من شركة الإعلانات
+model Ad {
+  id        String   @id @default(cuid())
+  /// الموضع: "home_top" | "home_middle" | "home_bottom" | "sticky_bottom" | "matches_top"
+  slot      String
+  /// العنوان الداخلي للتعريف (يظهر للمسؤول فقط)
+  label     String   @default("")
+  /// نوع الإعلان: "image" (بانر صورة) أو "code" (كود جاهز)
+  type      String   @default("image")
+  /// بالنوع image: رابط الصورة (data URL أو URL خارجي)
+  imageUrl  String?
+  /// بالنوع image: رابط النقر عند الضغط على الإعلان
+  linkUrl   String?
+  /// بالنوع code: كود الإعلان الكامل (HTML/script)
+  adCode    String?
+  /// مفعّل أو معطّل
+  active    Boolean  @default(true)
+  /// ترتيب العرض (الأصغر أولًا)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slot, active, order])
+}

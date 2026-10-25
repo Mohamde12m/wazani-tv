@@ -26,6 +26,10 @@ import {
   KeyRound,
   AlertTriangle,
   ListOrdered,
+  Megaphone,
+  ExternalLink,
+  Code2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +68,7 @@ import { ImageUploader } from "@/components/shared/image-uploader";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { toast } from "sonner";
-import type { Channel, Country, Category, Tournament, Team, Match } from "@/lib/types";
+import type { Channel, Country, Category, Tournament, Team, Match, Ad, AdSlotName } from "@/lib/types";
 import { formatTime, formatDate, statusLabel } from "@/lib/datetime";
 
 /* ============================================================
@@ -2623,6 +2627,420 @@ function EmptyRow({ text }: { text: string }) {
 }
 
 /* ============================================================
+   Ads section — إدارة الإعلانات
+============================================================ */
+const AD_SLOTS: { value: AdSlotName; label: string; desc: string }[] = [
+  { value: "home_top", label: "أعلى الرئيسية", desc: "بانر بعد المباراة المميزة" },
+  { value: "home_middle", label: "وسط الرئيسية", desc: "بانر بين القنوات المغربية والخليجية" },
+  { value: "home_bottom", label: "أسفل الرئيسية", desc: "بانر قبل التذييل" },
+  { value: "sticky_bottom", label: "لاصق أسفل الشاشة", desc: "بانر ثابت فوق شريط التنقل" },
+  { value: "matches_top", label: "أعلى المباريات", desc: "بانر في صفحة المباريات" },
+];
+
+interface AdFormState {
+  slot: AdSlotName;
+  label: string;
+  type: "image" | "code";
+  imageUrl: string;
+  linkUrl: string;
+  adCode: string;
+  active: boolean;
+  order: number;
+}
+
+function emptyAdForm(): AdFormState {
+  return {
+    slot: "home_top",
+    label: "",
+    type: "image",
+    imageUrl: "",
+    linkUrl: "",
+    adCode: "",
+    active: true,
+    order: 0,
+  };
+}
+
+function AdsSection() {
+  const { data, loading, refetch } = useFetch<{ ads: Ad[] }>("/api/ads?all=1");
+  const [editing, setEditing] = React.useState<Ad | null>(null);
+  const [form, setForm] = React.useState<AdFormState>(emptyAdForm);
+  const [showForm, setShowForm] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  const ads = data?.ads ?? [];
+
+  const startCreate = () => {
+    setEditing(null);
+    setForm(emptyAdForm());
+    setShowForm(true);
+  };
+
+  const startEdit = (ad: Ad) => {
+    setEditing(ad);
+    setForm({
+      slot: ad.slot as AdSlotName,
+      label: ad.label,
+      type: ad.type,
+      imageUrl: ad.imageUrl ?? "",
+      linkUrl: ad.linkUrl ?? "",
+      adCode: ad.adCode ?? "",
+      active: ad.active,
+      order: ad.order,
+    });
+    setShowForm(true);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        slot: form.slot,
+        label: form.label,
+        type: form.type,
+        imageUrl: form.type === "image" ? form.imageUrl || null : null,
+        linkUrl: form.type === "image" ? form.linkUrl || null : null,
+        adCode: form.type === "code" ? form.adCode || null : null,
+        active: form.active,
+        order: form.order,
+      };
+      if (editing) {
+        await apiFetch(`/api/ads/${editing.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("تم تحديث الإعلان");
+      } else {
+        await apiFetch("/api/ads", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("تمت إضافة الإعلان");
+      }
+      setShowForm(false);
+      setEditing(null);
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "خطأ في الحفظ");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggle = async (ad: Ad) => {
+    try {
+      await apiFetch(`/api/ads/${ad.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ active: !ad.active }),
+      });
+      refetch();
+      toast.success(ad.active ? "تم تعطيل الإعلان" : "تم تفعيل الإعلان");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "خطأ");
+    }
+  };
+
+  const remove = async (ad: Ad) => {
+    if (!confirm(`حذف الإعلان "${ad.label || ad.slot}"؟`)) return;
+    try {
+      await apiFetch(`/api/ads/${ad.id}`, { method: "DELETE" });
+      refetch();
+      toast.success("تم حذف الإعلان");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "خطأ");
+    }
+  };
+
+  if (loading) return <SectionLoading />;
+
+  // جمّع الإعلانات حسب الموضع
+  const bySlot: Record<string, Ad[]> = {};
+  for (const ad of ads) {
+    (bySlot[ad.slot] ??= []).push(ad);
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionTitle
+        title="إدارة الإعلانات"
+        icon={<Megaphone className="h-5 w-5" />}
+        action={
+          <Button size="sm" onClick={startCreate} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            إعلان جديد
+          </Button>
+        }
+      />
+
+      {/* بطاقة تعليمية عن شركات الإعلانات */}
+      <Card className="border-gold/30 bg-gold/5">
+        <CardContent className="space-y-2 p-4 text-xs leading-relaxed text-foreground">
+          <div className="flex items-center gap-1.5 font-bold text-gold">
+            <Megaphone className="h-4 w-4" />
+            شركات الإعلانات الموصى بها
+          </div>
+          <p>
+            <strong>1. Google AdSense</strong> — الأكثر موثوقية ودفعات مضمونة. يحتاج
+            موافقة (محتوى جيد + سياسة خصوصية). انسخ كود الوحدة في خانة «كود
+            الإعلان».
+          </p>
+          <p>
+            <strong>2. Adsterra</strong> — موافقة سهلة للمواقع الجديدة، ممتاز
+            للترفيه والرياضة. يدعم العربية + «Social Bar» أسفل الصفحة.
+          </p>
+          <p>
+            <strong>3. Media.net</strong> — شبكة Yahoo/Bing، إعلانات سياقية تدعم
+            العربية.
+          </p>
+          <p className="text-muted-foreground">
+            نصيحة: ابدأ بـ Adsterra (موافقة سريعة)، وتقدّم لـ AdSense بالتوازي.
+            يمكنك لصق كود أي شركة في خانة «كود الإعلان» وسيعمل فورًا.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* قائمة الإعلانات حسب الموضع */}
+      {AD_SLOTS.map((slotInfo) => {
+        const slotAds = bySlot[slotInfo.value] ?? [];
+        return (
+          <Card key={slotInfo.value}>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <Megaphone className="h-4 w-4 text-emerald" />
+                  {slotInfo.label}
+                </span>
+                <Badge variant="outline" className="text-[10px]">
+                  {slotAds.length} إعلان
+                </Badge>
+              </CardTitle>
+              <p className="text-[11px] text-muted-foreground">{slotInfo.desc}</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {slotAds.length === 0 ? (
+                <p className="py-3 text-center text-xs text-muted-foreground">
+                  لا توجد إعلانات في هذا الموضع
+                </p>
+              ) : (
+                slotAds.map((ad) => (
+                  <div
+                    key={ad.id}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5"
+                  >
+                    {/* معاينة مصغرة */}
+                    <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
+                      {ad.type === "image" && ad.imageUrl ? (
+                        <img
+                          src={ad.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : ad.type === "code" ? (
+                        <Code2 className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    {/* تفاصيل */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate text-xs font-semibold">
+                          {ad.label || (ad.type === "code" ? "كود إعلان" : "بانر صورة")}
+                        </span>
+                        {!ad.active && (
+                          <Badge variant="secondary" className="text-[9px]">
+                            معطّل
+                          </Badge>
+                        )}
+                      </div>
+                      {ad.linkUrl && (
+                        <a
+                          href={ad.linkUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 truncate text-[10px] text-emerald hover:underline"
+                        >
+                          <ExternalLink className="h-2.5 w-2.5" />
+                          {ad.linkUrl}
+                        </a>
+                      )}
+                    </div>
+                    {/* أزرار */}
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        onClick={() => toggle(ad)}
+                        className={`rounded-md px-2 py-1 text-[10px] font-semibold transition ${
+                          ad.active
+                            ? "bg-emerald/10 text-emerald hover:bg-emerald/20"
+                            : "bg-muted text-muted-foreground hover:bg-muted/70"
+                        }`}
+                      >
+                        {ad.active ? "مفعّل" : "معطّل"}
+                      </button>
+                      <button
+                        onClick={() => startEdit(ad)}
+                        className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        aria-label="تعديل"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => remove(ad)}
+                        className="rounded-md p-1.5 text-destructive hover:bg-destructive/10"
+                        aria-label="حذف"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {/* نموذج الإضافة/التعديل */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center">
+          <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Megaphone className="h-5 w-5 text-emerald" />
+                {editing ? "تعديل الإعلان" : "إعلان جديد"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Field label="عنوان تعريفي (اختياري)" required>
+                <Input
+                  value={form.label}
+                  onChange={(e) => setForm({ ...form, label: e.target.value })}
+                  placeholder="مثال: Adsterra بانر رئيسي"
+                />
+              </Field>
+
+              <Field label="الموضع" required>
+                <Select
+                  value={form.slot}
+                  onValueChange={(v) => setForm({ ...form, slot: v as AdSlotName })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AD_SLOTS.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field label="نوع الإعلان" required>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, type: "image" })}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-semibold transition ${
+                      form.type === "image"
+                        ? "border-emerald bg-emerald/10 text-emerald"
+                        : "border-border bg-card text-muted-foreground"
+                    }`}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    صورة + رابط
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, type: "code" })}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-semibold transition ${
+                      form.type === "code"
+                        ? "border-emerald bg-emerald/10 text-emerald"
+                        : "border-border bg-card text-muted-foreground"
+                    }`}
+                  >
+                    <Code2 className="h-4 w-4" />
+                    كود جاهز
+                  </button>
+                </div>
+              </Field>
+
+              {form.type === "image" ? (
+                <>
+                  <Field label="صورة الإعلان" required hint="ارفع صورة من جهازك (تُضغط تلقائيًا)">
+                    <ImageUploader
+                      value={form.imageUrl}
+                      onChange={(url) => setForm({ ...form, imageUrl: url })}
+                      label="صورة الإعلان"
+                    />
+                  </Field>
+                  <Field label="رابط النقر" hint="الصفحة التي تُفتح عند الضغط على الإعلان">
+                    <Input
+                      value={form.linkUrl}
+                      onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
+                      placeholder="https://example.com"
+                      dir="ltr"
+                    />
+                  </Field>
+                </>
+              ) : (
+                <Field
+                  label="كود الإعلان"
+                  required
+                  hint="الصق كود الإعلان الكامل من Google AdSense أو Adsterra (يدعم <script>)"
+                >
+                  <textarea
+                    value={form.adCode}
+                    onChange={(e) => setForm({ ...form, adCode: e.target.value })}
+                    placeholder={'<script src="https://..."></script>\nأو\n<ins class="adsbygoogle" ...></ins>\n<script>(adsbygoogle = window.adsbygoogle || []).push({})</script>'}
+                    dir="ltr"
+                    rows={6}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono"
+                  />
+                </Field>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="الترتيب">
+                  <Input
+                    type="number"
+                    value={form.order}
+                    onChange={(e) => setForm({ ...form, order: parseInt(e.target.value) || 0 })}
+                    min={0}
+                  />
+                </Field>
+                <SwitchField
+                  label="مفعّل"
+                  checked={form.active}
+                  onChange={(v) => setForm({ ...form, active: v })}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={save} disabled={saving} className="flex-1 gap-1.5">
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {editing ? "حفظ التعديلات" : "إضافة الإعلان"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditing(null);
+                  }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
    Section navigation
 ============================================================ */
 type SectionKey =
@@ -2633,6 +3051,7 @@ type SectionKey =
   | "teams"
   | "countries"
   | "categories"
+  | "ads"
   | "reseed";
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -2643,6 +3062,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "teams", label: "الفرق", icon: Users },
   { key: "countries", label: "الدول", icon: Globe },
   { key: "categories", label: "التصنيفات", icon: Tags },
+  { key: "ads", label: "الإعلانات", icon: Megaphone },
   { key: "reseed", label: "إعادة البيانات", icon: RefreshCw },
 ];
 
@@ -2727,6 +3147,7 @@ function Dashboard() {
           {section === "teams" && <TeamsSection />}
           {section === "countries" && <CountriesSection />}
           {section === "categories" && <CategoriesSection />}
+          {section === "ads" && <AdsSection />}
           {section === "reseed" && <ReseedSection />}
         </main>
 

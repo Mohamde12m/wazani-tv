@@ -78,3 +78,23 @@ export interface Match {
   featured: boolean;
   demo: boolean;
 }
+
+/** مواضع الإعلانات المدعومة في التطبيق. */
+export type AdSlotName =
+  | "home_top"
+  | "home_middle"
+  | "home_bottom"
+  | "sticky_bottom"
+  | "matches_top";
+
+export interface Ad {
+  id: string;
+  slot: string;
+  label: string;
+  type: "image" | "code";
+  imageUrl?: string | null;
+  linkUrl?: string | null;
+  adCode?: string | null;
+  active: boolean;
+  order: number;
+}

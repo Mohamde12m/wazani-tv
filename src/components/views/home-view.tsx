@@ -36,6 +36,7 @@ import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
+import { AdSlot } from "@/components/shared/ad-slot";
 import type { Channel, Match } from "@/lib/types";
 
 // Channel with optional createdAt for sorting recent additions
@@ -231,6 +232,9 @@ export function HomeView() {
         <FeaturedHero match={featuredMatch} />
       ) : null}
 
+      {/* إعلان أعلى الصفحة — بعد المباراة المميزة */}
+      <AdSlot slot="home_top" />
+
       {/* 3. Today's important matches */}
       <section>
         <SectionHeader
@@ -310,6 +314,9 @@ export function HomeView() {
         />
       )}
 
+      {/* إعلان منتصف الصفحة — بين المغربية والخليجية */}
+      <AdSlot slot="home_middle" />
+
       {/* 8. Gulf channels */}
       {(channelsLoading || gulf.length > 0) && (
         <ChannelSection
@@ -375,6 +382,9 @@ export function HomeView() {
           onAll={() => setView({ name: "channels" })}
         />
       )}
+
+      {/* إعلان أسفل الصفحة — قبل التذييل */}
+      <AdSlot slot="home_bottom" />
 
       {/* Footer spacing for bottom nav */}
       <div className="h-2" />
