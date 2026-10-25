@@ -1171,3 +1171,29 @@ Stage Summary:
 - زر تشغيل مركزي كبير مع توهج نابض، مؤشر تحميل أنيق، إخفاء تلقائي للأزرار، ودعم لوحة المفاتيح.
 - كل المتطلبات الأربعة السابقة مؤكدة: لا شعار/اسم في الأعلى، لا تالي/سابق، تدوير تلقائي عند ملء الشاشة، لا كلمة LIVE.
 - الملف المنتج: src/components/shared/stream-player.tsx (مُعاد كتابته بالكامل).
+
+---
+Task ID: 16
+Agent: main (orchestrator)
+Task: إصلاح خطأ "Application error: a client-side exception has occurred" في لوحة المعاينة.
+
+Work Log:
+- تشخيص المشكلة: اكتشفت أن service worker قديم (wazani-v1) مسجّل في المتصفح يستخدم استراتيجية "Cache First" لأصول _next/static، مما يجعله يقدّم chunks قديمة من Video.js بدلاً من الكود الجديد بـ hls.js → client-side exception.
+- إعادة كتابة public/sw.js بالكامل:
+  * رفع نسخة الكاش من v1 إلى v3 (لإجبار مسح كل الكاش القديم v1/v2 عند التفعيل).
+  * تغيير استراتيجية _next/static chunks من "Cache First" إلى "Network First دائمًا" — لا تخزن chunks أبدًا، احضرها دائمًا من الشبكة لضمان نسخة طازجة أثناء التطوير.
+  * إضافة رسالة postMessage({type:'SW_UPDATED'}) لكل العملاء عند التفعيل.
+  * إزالة "/" من STATIC_ASSETS لتجنب كاش HTML قديم.
+  * إضافة معالجة رسالة SKIP_WAITING لتفعيل فوري.
+- في جلسة Agent Browser: ألغيت تسجيل الـ SW القديم + مسحت كل caches (unregistered:1, cachesCleared:1).
+- تحقق بعد الإصلاح:
+  * reload الصفحة → لا أخطاء في console.
+  * لا page errors.
+  * صفحة القناة تعمل: الفيديو يعمل (paused:false, currentTime:5s, videoH:720, hasSrc:true).
+  * VLM أكد: "لا توجد أي رسالة خطأ ظاهرة... المشغل يعمل بشكل صحيح".
+- ملاحظة للمستخدم: قد يحتاج المستخدم إلى تحديث صعب (Ctrl+Shift+R) أو مسح ذاكرة التخزين المؤقت في متصفحه لأن SW القديم قد يظل نشطًا حتى يتم تحديث الصفحة مرتين (microsoft-edge: SW يحتاج دورتين update للتفعيل الكامل).
+
+Stage Summary:
+- المشكلة الجذرية: service worker قديم يقدّم JS chunks قديمة (Cache First) → تعارض مع كود hls.js الجديد → client-side exception.
+- الحل: sw.js v3 بـ Network First لأ chunks + مسح تلقائي للكاش القديم + رسالة تحديث للعملاء.
+- التحقق: console نظيف، الفيديو يعمل، VLM يؤكد لا أخطاء.
