@@ -66,12 +66,7 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
         <span className="truncate text-[10px] font-bold text-emerald">
           {match.tournamentName ?? match.tournament?.nameAr ?? "بطولة"}
         </span>
-        {live ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald px-1.5 py-0.5 text-[9px] font-bold text-white">
-            <span className="h-1 w-1 rounded-full bg-white live-dot" />
-            {statusLabel(match.status)}
-          </span>
-        ) : (
+        {!live && (
           <span
             className={cn(
               "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold",

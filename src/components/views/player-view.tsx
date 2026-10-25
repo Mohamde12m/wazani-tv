@@ -4,12 +4,9 @@ import * as React from "react";
 import dynamic from "next/dynamic";
 import {
   Star,
-  ChevronRight,
-  ChevronLeft,
   MonitorOff,
   Tv,
   Radio,
-  RotateCcw,
 } from "lucide-react";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
@@ -27,8 +24,8 @@ import { toast } from "sonner";
 // استخدم dynamic import مع ssr:false لأن hls.js يحتاج window/document
 const StreamPlayer = dynamic(
   () =>
-    import("@/components/shared/videojs-player").then((m) => ({
-      default: m.VideoJsPlayer,
+    import("@/components/shared/stream-player").then((m) => ({
+      default: m.StreamPlayer,
     })),
   { ssr: false, loading: () => <div className="aspect-video w-full bg-emerald-dark" /> },
 );
@@ -50,13 +47,6 @@ export function PlayerView({ channelId }: { channelId: string }) {
     () => channels.find((c) => c.id === channelId) ?? null,
     [channels, channelId],
   );
-
-  const index = React.useMemo(
-    () => channels.findIndex((c) => c.id === channelId),
-    [channels, channelId],
-  );
-  const prevChannel = index > 0 ? channels[index - 1] : null;
-  const nextChannel = index >= 0 && index < channels.length - 1 ? channels[index + 1] : null;
 
   const fav = channel ? has("channel", channel.id) : false;
 
@@ -168,58 +158,6 @@ export function PlayerView({ channelId }: { channelId: string }) {
             </p>
           </div>
         )}
-
-        {/* Previous / Next navigation */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            disabled={!prevChannel}
-            onClick={() =>
-              prevChannel && setView({ name: "player", channelId: prevChannel.id })
-            }
-            className={cn(
-              "flex items-center gap-2 rounded-2xl border border-border bg-card p-3 text-right shadow-sm transition-all",
-              prevChannel
-                ? "hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
-                : "cursor-not-allowed opacity-40",
-            )}
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-emerald">
-              <ChevronRight className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] font-bold text-muted-foreground">
-                السابقة
-              </span>
-              <span className="block truncate text-sm font-bold text-foreground">
-                {prevChannel ? prevChannel.nameAr ?? prevChannel.name : "—"}
-              </span>
-            </span>
-          </button>
-          <button
-            disabled={!nextChannel}
-            onClick={() =>
-              nextChannel && setView({ name: "player", channelId: nextChannel.id })
-            }
-            className={cn(
-              "flex items-center gap-2 rounded-2xl border border-border bg-card p-3 text-left shadow-sm transition-all",
-              nextChannel
-                ? "hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
-                : "cursor-not-allowed opacity-40",
-            )}
-          >
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] font-bold text-muted-foreground">
-                التالية
-              </span>
-              <span className="block truncate text-sm font-bold text-foreground">
-                {nextChannel ? nextChannel.nameAr ?? nextChannel.name : "—"}
-              </span>
-            </span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-emerald">
-              <ChevronLeft className="h-5 w-5" />
-            </span>
-          </button>
-        </div>
 
         {/* Suggestions — same category */}
         <div>

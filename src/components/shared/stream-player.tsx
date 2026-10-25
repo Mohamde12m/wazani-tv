@@ -19,15 +19,11 @@ interface VideoJsPlayerProps {
 /**
  * WazaNI TV — مشغل فيديو بسيط وموثوق باستخدام hls.js.
  *
- * استبدلنا Video.js بـ hls.js مباشرة لأن Video.js كان يسبب مشاكل
- * في عرض الفيديو (height:0 يختفي الفيديو). hls.js أبسط وأكثر موثوقية.
- *
  * المميزات:
- * - يدعم HLS (.m3u8) عبر hls.js
- * - يدعم MP4 مباشرة
- * - شعار القناة كخلفية عند التوقف/PiP
- * - ملء الشاشة، PiP، تحكم بالصوت
- * - تصميم نظيف بدون تعقيد
+ * - يدعم HLS (.m3u8) عبر hls.js و MP4 مباشرة
+ * - ملء الشاشة مع تدوير تلقائي للهاتف (landscape)
+ * - PiP، تحكم بالصوت، شعار القناة كخلفية عند التوقف
+ * - بدون شعار/اسم قناة فوق الفيديو — نظيف تمامًا
  */
 export function StreamPlayer({
   src,
@@ -40,6 +36,7 @@ export function StreamPlayer({
   className,
 }: VideoJsPlayerProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const hlsRef = React.useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [isPip, setIsPip] = React.useState(false);
@@ -51,7 +48,6 @@ export function StreamPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-
     setIsPlaying(false);
     setHasStarted(false);
 
@@ -60,7 +56,6 @@ export function StreamPlayer({
       return;
     }
 
-    // نظّف أي hls سابق
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
@@ -82,7 +77,6 @@ export function StreamPlayer({
     video.addEventListener("error", handleError);
 
     if (kind === "hls") {
-      // استخدم hls.js لبث HLS
       if (Hls.isSupported()) {
         const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
         hlsRef.current = hls;
@@ -92,14 +86,13 @@ export function StreamPlayer({
           onReady?.();
           if (autoplay) {
             video.muted = true;
-            video.play().catch(() => { /* autoplay blocked */ });
+            video.play().catch(() => {});
           }
         });
         hls.on(Hls.Events.ERROR, (_event, data) => {
           if (data.fatal) onError?.();
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        // Safari يدعم HLS أصلاً
         video.src = src;
         onReady?.();
         if (autoplay) {
@@ -115,7 +108,6 @@ export function StreamPlayer({
         video.play().catch(() => {});
       }
     } else if (kind === "youtube") {
-      // YouTube غير مدعوم في هذا المشغل البسيط
       onError?.();
     }
 
@@ -139,11 +131,8 @@ export function StreamPlayer({
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
-    if (video.paused) {
-      video.play().catch(() => {});
-    } else {
-      video.pause();
-    }
+    if (video.paused) video.play().catch(() => {});
+    else video.pause();
   };
 
   const toggleMute = () => {
@@ -152,15 +141,45 @@ export function StreamPlayer({
     video.muted = !video.muted;
   };
 
-  const toggleFullscreen = () => {
-    const container = videoRef.current?.parentElement;
+  // ملء الشاشة مع تدوير تلقائي للهاتف (landscape)
+  const toggleFullscreen = async () => {
+    const container = containerRef.current;
     if (!container) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    } else {
-      container.requestFullscreen().catch(() => {});
-    }
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await container.requestFullscreen();
+        // تدوير تلقائي للهاتف عند ملء الشاشة
+        const orientation = screen.orientation as ScreenOrientation & {
+          lock?: (o: "landscape" | "portrait") => Promise<void>;
+        };
+        if (orientation?.lock) {
+          try {
+            await orientation.lock("landscape");
+          } catch { /* browsers may block orientation lock */ }
+        }
+      }
+    } catch { /* noop */ }
   };
+
+  // عند الخروج من ملء الشاشة، أعد الاتجاه للعمودي
+  React.useEffect(() => {
+    const handleFsChange = async () => {
+      if (!document.fullscreenElement) {
+        try {
+          const orientation = screen.orientation as ScreenOrientation & {
+            unlock?: () => void;
+          };
+          orientation?.unlock?.();
+        } catch { /* noop */ }
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFsChange);
+    };
+  }, []);
 
   const togglePip = async () => {
     const video = videoRef.current;
@@ -176,12 +195,13 @@ export function StreamPlayer({
 
   return (
     <div
+      ref={containerRef}
       className={className}
       style={{ position: "relative", backgroundColor: "#0b2820", width: "100%", aspectRatio: "16 / 9", overflow: "hidden" }}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      {/* طبقة خلفية: شعار القناة */}
+      {/* طبقة خلفية: شعار القناة — يظهر فقط عندما لا يوجد بث أو الفيديو متوقف */}
       {showBackground && poster && (
         <div
           style={{
@@ -227,7 +247,7 @@ export function StreamPlayer({
         onClick={togglePlay}
       />
 
-      {/* أزرار التحكم — تظهر عند التحويم */}
+      {/* أزرار التحكم */}
       {src && kind !== "none" && (
         <div
           style={{

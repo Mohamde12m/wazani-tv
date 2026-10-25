@@ -1117,3 +1117,30 @@ Stage Summary:
   • يعرض شعار القناة كخلفية عند التوقف/PiP
 - المراجعة الشاملة أكدت أن كل الأقسام تعمل: الصفحة الرئيسية، المشغل، البحث، المباريات.
 
+
+---
+Task ID: 38
+Agent: main (orchestrator) — تنظيف المشغل + تدوير تلقائي
+Task: إزالة شعار/اسم القناة من الزاوية العلوية + إزالة أزرار السابق/التالي + تدوير تلقائي عند ملء الشاشة + إزالة "مباشر" (live).
+
+Work Log:
+- فحصت صفحة المشغل بـ VLM لتحديد ما يظهر في الزاوية العلوية.
+- الإصلاحات في src/components/shared/stream-player.tsx:
+  1. أضفت containerRef للـ container (لملء الشاشة)
+  2. toggleFullscreen: يضيف screen.orientation.lock("landscape") عند ملء الشاشة (تدوير تلقائي)
+  3. أضفت fullscreenchange listener لإعادة الاتجاه portrait عند الخروج
+- الإصلاحات في src/components/views/player-view.tsx:
+  1. أزلت قسم "Previous / Next navigation" بالكامل (أزرار السابق/التالي)
+  2. أزلت المتغيرات غير المستخدمة (prevChannel, nextChannel, ChevronLeft, ChevronRight)
+  3. صححت الاستيراد من videojs-player → stream-player
+- الإصلاحات في src/components/shared/match-card.tsx:
+  1. أزلت البادج "مباشر" (live badge) من بطاقات المباريات — يبقى فقط "انتهت" و"مجدولة"
+- Lint: 0 errors.
+- Browser-verified (iPhone 14):
+  • الفيديو يعمل: height=219px, videoWidth=1920 ✅
+  • VLM أكد: لا شعار في الزاوية ✅، لا أزرار السابق/التالي ✅، لا كلمة live/مباشر ✅
+  • ملء الشاشة: orientation تغيّر إلى landscape-primary ✅
+
+Stage Summary:
+- المشغل الآن نظيف تمامًا: لا شعار/اسم قناة في الزاوية، لا أزرار سابق/تالي، لا كلمة live/مباشر. عند ملء الشاشة على الهاتف، يتدور تلقائيًا إلى landscape، وعند الخروج يعود إلى portrait.
+
