@@ -7,13 +7,11 @@ import {
   Pause,
   Volume2,
   VolumeX,
-  Volume1,
   Maximize,
   Minimize2,
   PictureInPicture2,
   Loader2,
   RotateCcw,
-  Maximize2,
   Minimize,
 } from "lucide-react";
 
@@ -64,12 +62,12 @@ export function StreamPlayer({
   const [isBuffering, setIsBuffering] = React.useState(true);
   const [hasStarted, setHasStarted] = React.useState(false);
   const [showControls, setShowControls] = React.useState(true);
-  // وضع التدوير القسري (force-landscape): يُفعّل عند الضغط على زر التدوير أو ملء الشاشة
-  // على الأجهزة التي لا تدعم screen.orientation.lock (iOS Safari)
+  // وضع التدوير القسري (force-landscape): يُفعّل تلقائيًا عند الضغط على ملء الشاشة
+  // إذا كانت الشاشة عمودية، ليُظهر الفيديو أفقيًا فورًا دون ضغط زر إضافي.
+  // على الأجهزة التي لا تدعم screen.orientation.lock (iOS Safari)، هذا هو
+  // الأسلوب الوحيد للتدوير. إذا نجح orientation.lock على Android، يُلغى هذا
+  // الوضع تلقائيًا عبر مستمع orientationchange.
   const [forceLandscape, setForceLandscape] = React.useState(false);
-
-  // كشف اتجاه الشاشة الحالي
-  const portrait = useIsPortrait();
 
   // تهيئة المشغل
   React.useEffect(() => {
@@ -199,21 +197,25 @@ export function StreamPlayer({
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
 
-  // كشف تدوير الهاتف الفعلي (orientationchange) — عند الدخول لملء الشاشة + تدوير الجهاز، فعّل force-landscape
+  // كشف التدوير النظامي للهاتف: إذا أصبحت الشاشة أفقية فعليًا (عبر
+  // screen.orientation.lock أو تدوير المستخدم للجهاز)، أوقف التدوير القسري
+  // (force-landscape) لتجنب التدوير المزدوج. هذا يضمن عرضًا أفقيًا نظيفًا.
   React.useEffect(() => {
     const handleOrient = () => {
-      // إذا كان المستخدم في ملء الشاشة ولا تزال الشاشة عمودية، فعّل التدوير القسري
-      if (document.fullscreenElement && portrait) {
-        setForceLandscape(true);
+      const isLandscape = window.innerWidth > window.innerHeight;
+      if (isLandscape && forceLandscape) {
+        setForceLandscape(false);
       }
     };
-    window.addEventListener("orientationchange", handleOrient);
-    window.addEventListener("resize", handleOrient);
+    // تأخير بسيط ليكتشف التغيير بعد اكتمال الانتقال
+    const debounced = () => setTimeout(handleOrient, 150);
+    window.addEventListener("orientationchange", debounced);
+    window.addEventListener("resize", debounced);
     return () => {
-      window.removeEventListener("orientationchange", handleOrient);
-      window.removeEventListener("resize", handleOrient);
+      window.removeEventListener("orientationchange", debounced);
+      window.removeEventListener("resize", debounced);
     };
-  }, [portrait]);
+  }, [forceLandscape]);
 
   // إخفاء تلقائي للأزرار بعد 3 ثوانٍ من الخمول أثناء التشغيل
   const scheduleHide = React.useCallback(() => {
@@ -254,9 +256,14 @@ export function StreamPlayer({
     if (!video.muted && video.volume === 0) video.volume = 0.7;
   };
 
-  // ملء الشاشة مع تدوير تلقائي للهاتف (landscape)
-  // استراتيجية: 1) requestFullscreen → 2) screen.orientation.lock('landscape') (Android) →
-  // 3) إذا فشل/fشاشة عمودية، فعّل force-landscape (CSS rotation) لملء الشاشة بالعرض
+  // ملء الشاشة مع تدوير تلقائي فوري للهاتف (landscape)
+  // الاستراتيجية:
+  // 1) فعّل force-landscape فورًا إذا الشاشة عمودية → المستخدم يرى الفيديو أفقيًا
+  //    مباشرة دون ضغط زر إضافي (هذا يعمل حتى لو فشل requestFullscreen على iOS Safari)
+  // 2) حاول requestFullscreen() (يعمل على Android Chrome / Desktop)
+  // 3) حاول screen.orientation.lock('landscape') بالتوازي (Android Chrome)
+  //    إذا نجح ودوّر الجهاز فعليًا، الـ effect أعلاه سيكتشف ذلك ويُلغي force-landscape
+  //    تلقائيًا لتجنب التدوير المزدوج.
   const toggleFullscreen = async () => {
     const container = containerRef.current;
     if (!container) return;
@@ -265,30 +272,27 @@ export function StreamPlayer({
         await document.exitFullscreen();
         // الخروج يُعالَج في handleFsChange (يعيد forceLandscape=false)
       } else {
-        await container.requestFullscreen();
-        // حاول قفل الاتجاه أفقيًا (يعمل على Android Chrome)
-        let locked = false;
+        // سجّل الحالة قبل الدخول لملء الشاشة
+        const wasPortrait = window.innerHeight > window.innerWidth;
+        // فعّل التدوير القسري فورًا إذا كانت الشاشة عمودية — هذا يضمن
+        // أن المستخدم يرى الفيديو أفقيًا مباشرة دون ضغط زر إضافي.
+        // نفعّله قبل requestFullscreen حتى لو فشلت (iOS Safari)، يبقى التدوير يعمل.
+        if (wasPortrait) {
+          setForceLandscape(true);
+        }
+        // حاول ملء الشاشة (Android Chrome / Desktop) — لا تُعرقل العملية إذا فشلت
+        try {
+          await container.requestFullscreen();
+        } catch { /* iOS Safari قد لا يدعم requestFullscreen على عناصر غير video */ }
+        // حاول قفل الاتجاه أفقيًا (Android Chrome) — بالتوازي، دون انتظار
         const orientation = screen.orientation as ScreenOrientation & {
           lock?: (o: "landscape" | "portrait") => Promise<void>;
         };
         if (orientation?.lock) {
-          try {
-            await orientation.lock("landscape");
-            locked = true;
-          } catch { /* iOS Safari لا يدعم هذا، أو يتطلب HTTPS + user gesture */ }
-        }
-        // إذا لم يُقفل الاتجاه ولا تزال الشاشة عمودية، فعّل التدوير القسري بالـ CSS
-        if (!locked) {
-          // تحقق بعد لحظة قصيرة: قد يكون المتصفح قد دوّر الشاشة فعليًا
-          setTimeout(() => {
-            const stillPortrait =
-              (typeof window !== "undefined" &&
-                (window.matchMedia?.("(orientation: portrait)").matches ??
-                  window.innerHeight > window.innerWidth));
-            if (stillPortrait) {
-              setForceLandscape(true);
-            }
-          }, 100);
+          orientation.lock("landscape").catch(() => {
+            /* iOS Safari لا يدعم، أو يتطلب HTTPS + user gesture —
+               لا مشكلة: force-landscape مُفعّل بالفول */
+          });
         }
       }
     } catch { /* noop */ }
@@ -667,24 +671,6 @@ export function StreamPlayer({
       </div>
     </div>
   );
-}
-
-/** كشف ما إذا كانت الشاشة عمودية (portrait) */
-function useIsPortrait() {
-  const [portrait, setPortrait] = React.useState(true);
-  React.useEffect(() => {
-    const check = () => {
-      setPortrait(window.innerHeight > window.innerWidth);
-    };
-    check();
-    window.addEventListener("resize", check);
-    window.addEventListener("orientationchange", check);
-    return () => {
-      window.removeEventListener("resize", check);
-      window.removeEventListener("orientationchange", check);
-    };
-  }, []);
-  return portrait;
 }
 
 /** أيقونة تدوير عقارب الساعة (Lucide لا يصدر RotateCw مباشرة، نستخدم ماكرو) */

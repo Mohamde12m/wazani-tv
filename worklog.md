@@ -1221,3 +1221,34 @@ Stage Summary:
 - ملء الشاشة الكامل: objectFit:cover في وضع ملء الشاشة/force-landscape — لا جوانب سوداء ولا خضراء.
 - زر تدوير مستقل للتحكم اليدوي.
 - تحقق: bun run lint نجح. لا أخطاء في console/dev.log. VLM أكد الوضع العادي سليم (لا جوانب سوداء، فيديو يملأ العرض).
+
+---
+Task ID: 18
+Agent: main (orchestrator)
+Task: جعل التدوير تلقائيًا فورًا عند الضغط على ملء الشاشة (دون الحاجة لضغط زر التدوير يدويًا).
+
+Work Log:
+- المشكلة السابقة: toggleFullscreen يعتمد على screen.orientation.lock('landscape') أولاً. إذا "نجح" ظاهريًا (locked=true) لا يُفعّل forceLandscape، لكن على بعض أجهزة Android الـ API ينجح دون تدوير فعلي → المستخدم يضطر لضغط زر التدوير يدويًا.
+- إعادة كتابة toggleFullscreen في src/components/shared/stream-player.tsx:
+  * فعّل forceLandscape فورًا (قبل requestFullscreen) إذا كانت الشاشة عمودية → المستخدم يرى الفيديو أفقيًا مباشرة دون ضغط زر إضافي.
+  * نفعّله قبل requestFullscreen حتى لو فشلت (iOS Safari لا يدعم requestFullscreen على عناصر غير video)، يبقى التدوير يعمل.
+  * requestFullscreen في try/catch منفصل (لا يُعرقل العملية إذا فشلت).
+  * orientation.lock('landscape') بالتوازي (دون await) — إذا نجح ودوّر الجهاز فعليًا، الـ effect يكتشف ذلك.
+- إعادة كتابة مستمع orientationchange/resize:
+  * إذا أصبحت الشاشة أفقية فعليًا (innerWidth > innerHeight) و forceLandscape مُفعّل → ألغِ forceLandscape تلقائيًا لتجنب التدوير المزدوج.
+  * debounce 150ms ليكتشف التغيير بعد اكتمال انتقال الاتجاه.
+- تنظيف: إزالة useIsPortrait hook (لم يعد ضروريًا)، إزالة imports غير مستخدمة (Volume1, Maximize2).
+- تحقق Agent Browser (viewport 414×896 عمودي):
+  * بعد الضغط على ملء الشاشة: container position:fixed, width:414(100vw), height:896(100vh), backgroundColor:#000 ✓
+  * innerWrapper: transform matrix(0,1,-1,0,...) = rotate 90° ✓, width:896(100vh), height:414(100vw) ✓
+  * video getBoundingClientRect: rectW:414, rectH:896, rectLeft:0, rectTop:0 → يملأ الشاشة بالكامل ✓
+  * objectFit: "cover" → لا جوانب سوداء/خضراء ✓
+  * isPaused:false, currentTime:134s → الفيديو يعمل ✓
+  * لا أخطاء في console/dev.log.
+- ملاحظة: على هاتف حقيقي Android، orientation.lock سينجح ويدور الجهاز أفقيًا، و forceLandscape يُلغى تلقائيًا. على iOS Safari، orientation.lock يفشل لكن forceLandscape يُبقي الفيديو مدور 90° (المستخدم يدير هاتفه).
+
+Stage Summary:
+- عند الضغط على زر ملء الشاشة، الفيديو يدور تلقائيًا أفقيًا فورًا — لا حاجة لضغط زر التدوير يدويًا.
+- ملء الشاشة بالكامل بـ objectFit:cover — لا جوانب سوداء ولا خضراء.
+- التدوير النظامي (orientation.lock) يُلغي التدوير CSS تلقائيًا لتجنب التدوير المزدوج.
+- زر التدوير المستقل لا يزال متاحًا للتدوير اليدوي دون ملء الشاشة.
