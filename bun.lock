@@ -43,7 +43,6 @@
         "@reactuses/core": "^6.0.5",
         "@tanstack/react-query": "^5.82.0",
         "@tanstack/react-table": "^8.21.3",
-        "@videojs/http-streaming": "^3.17.5",
         "bcryptjs": "^3.0.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -73,9 +72,7 @@
         "tailwindcss-animate": "^1.0.7",
         "uuid": "^11.1.0",
         "vaul": "^1.1.2",
-        "video.js": "8",
         "videojs-landscape-fullscreen": "^12.3.0",
-        "videojs-youtube": "^3.0.1",
         "z-ai-web-dev-sdk": "^0.0.18",
         "zod": "^4.0.2",
         "zustand": "^5.0.6",
@@ -1910,8 +1907,6 @@
     "videojs-landscape-fullscreen": ["videojs-landscape-fullscreen@12.3.0", "", { "dependencies": { "global": "^4.4.0" }, "peerDependencies": { "video.js": "5.x || 6.x || 7.x || 8.x" } }, "sha512-4cGcsHvmYVVoELZoY4R80UJHJrMPEvrDqc28FHCMOYNVQV9gFYtb+i1tB8EzsinHTuO09fNU7CwzHsyKqV5LAA=="],
 
     "videojs-vtt.js": ["videojs-vtt.js@0.15.5", "", { "dependencies": { "global": "^4.3.1" } }, "sha512-yZbBxvA7QMYn15Lr/ZfhhLPrNpI/RmCSCqgIff57GC2gIrV5YfyzLfLyZMj0NnZSAz8syB4N0nHXpZg9MyrMOQ=="],
-
-    "videojs-youtube": ["videojs-youtube@3.0.1", "", { "dependencies": { "video.js": "5.x || 6.x || 7.x || 8.x" } }, "sha512-0gKgag7Zno/dDwIdk+h48ODKDulR4IW62RxGE81PrMwi0OX/wUcKO6m1j+DFYI+7qjtWMZTKnbtQoHGxvUrFQg=="],
 
     "w3c-keyname": ["w3c-keyname@2.2.8", "https://registry.npmjs.com/w3c-keyname/-/w3c-keyname-2.2.8.tgz", {}, "sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ=="],
 

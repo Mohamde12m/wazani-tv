@@ -24,9 +24,8 @@ import type { Channel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Video.js must be loaded client-side only (it touches `window`/`screen` at
-// import time). Dynamic import with ssr:false keeps it out of the server bundle.
-const VideoJsPlayer = dynamic(
+// استخدم dynamic import مع ssr:false لأن hls.js يحتاج window/document
+const StreamPlayer = dynamic(
   () =>
     import("@/components/shared/videojs-player").then((m) => ({
       default: m.VideoJsPlayer,
@@ -91,9 +90,10 @@ export function PlayerView({ channelId }: { channelId: string }) {
 
   return (
     <div>
-      {/* Full-width official video player (Video.js) */}
+      {/* Full-width video player (hls.js) */}
       <div className="relative">
-        <VideoJsPlayer
+        <StreamPlayer
+          key={`player-${channel.id}`}
           src={available ? channel.streamUrl : null}
           kind={available ? streamKind : "none"}
           poster={channel.logo}

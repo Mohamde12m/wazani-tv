@@ -1,47 +1,33 @@
 "use client";
 
 import * as React from "react";
-import videojs, { type Player } from "video.js";
-import "video.js/dist/video-js.css";
-import "@/lib/videojs-theme.css";
-
-// Side-effect plugin registrations.
-// - @videojs/http-streaming: HLS (.m3u8) + DASH (.mpd) support via VHS.
-// - videojs-youtube: YouTube live/VOD tech (loaded lazily, only when a
-//   youtube source is used, to avoid pulling the iframe API eagerly).
-import "@videojs/http-streaming";
+import Hls from "hls.js";
 
 export type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "none";
 
 interface VideoJsPlayerProps {
-  /** The stream URL (m3u8, mpd, mp4, or youtube watch/embed URL). */
   src: string | null;
-  /** Stream kind — decides the MIME type / YouTube tech. */
   kind: StreamKind;
-  /** Poster image (channel logo) shown before play. */
   poster?: string | null;
-  /** Whether to autoplay on load (muted by default to satisfy browsers). */
   autoplay?: boolean;
-  /** Called when the player reports an unrecoverable error. */
   onError?: () => void;
-  /** Called once when the player is ready to play. */
   onReady?: () => void;
-  /** A nonce that, when changed, forces a full reload of the source. */
   reloadNonce?: number;
   className?: string;
 }
 
 /**
- * WazaNI TV — official video player (Video.js 8).
+ * WazaNI TV — مشغل فيديو بسيط وموثوق باستخدام hls.js.
  *
- * Supports HLS (.m3u8), DASH (.mpd), MP4, and YouTube live/VOD streams with
- * a premium emerald/gold themed UI, native controls, fullscreen, ABR
- * quality switching (via VHS), and robust error handling with retry.
+ * استبدلنا Video.js بـ hls.js مباشرة لأن Video.js كان يسبب مشاكل
+ * في عرض الفيديو (height:0 يختفي الفيديو). hls.js أبسط وأكثر موثوقية.
  *
- * ✨ تحسين: خلفية المشغل تعرض شعار القناة بدلًا من الأسود عندما:
- *   - الفيديو في وضع PiP (Picture-in-Picture)
- *   - الفيديو متوقف أو لم يبدأ بعد
- *   - لا يوجد بث متاح
+ * المميزات:
+ * - يدعم HLS (.m3u8) عبر hls.js
+ * - يدعم MP4 مباشرة
+ * - شعار القناة كخلفية عند التوقف/PiP
+ * - ملء الشاشة، PiP، تحكم بالصوت
+ * - تصميم نظيف بدون تعقيد
  */
 export function VideoJsPlayer({
   src,
@@ -53,171 +39,149 @@ export function VideoJsPlayer({
   reloadNonce = 0,
   className,
 }: VideoJsPlayerProps) {
-  const containerRef = React.useRef<HTMLVideoElement>(null);
-  const playerRef = React.useRef<Player | null>(null);
-  const erroredRef = React.useRef(false);
-
-  // حالة المشغل — لتحديد متى تظهر خلفية الشعار
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const hlsRef = React.useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [isPip, setIsPip] = React.useState(false);
   const [hasStarted, setHasStarted] = React.useState(false);
+  const [showControls, setShowControls] = React.useState(false);
 
-  // Resolve the Video.js source object from our `kind` + `src`.
-  const source = React.useMemo(() => {
-    if (!src || kind === "none") return null;
-    if (kind === "youtube") {
-      return { src, type: "video/youtube" };
-    }
-    if (kind === "hls") {
-      return { src, type: "application/x-mpegURL" };
-    }
-    if (kind === "dash") {
-      return { src, type: "application/dash+xml" };
-    }
-    return { src, type: "video/mp4" };
-  }, [src, kind]);
-
-  // Initialise the player once on mount.
+  // تهيئة المشغل
   React.useEffect(() => {
-    if (!containerRef.current) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-    const isYoutube = kind === "youtube";
 
-    const player = videojs(containerRef.current, {
-      controls: true,
-      autoplay: false,
-      preload: "auto",
-      fluid: true,
-      responsive: true,
-      poster: poster ?? undefined,
-      playbackRates: [0.5, 1, 1.25, 1.5, 2],
-      controlBar: {
-        pictureInPictureToggle: true,
-        volumePanel: { inline: true },
-      },
-      techOrder: isYoutube ? ["youtube", "html5"] : ["html5"],
-      youtube: isYoutube
-        ? { ytControls: false, rel: 0, modestbranding: true, iv_load_policy: 3 }
-        : undefined,
-    });
-
-    playerRef.current = player;
-
-    player.on("ready", () => {
-      player.addClass("vjs-wazani");
-      onReady?.();
-    });
-    player.on("error", () => {
-      if (erroredRef.current) return;
-      erroredRef.current = true;
-      onError?.();
-    });
-
-    // تتبع حالة التشغيل — لعرض/إخفاء خلفية الشعار
-    player.on("play", () => {
-      setIsPlaying(true);
-      setHasStarted(true);
-    });
-    player.on("playing", () => {
-      setIsPlaying(true);
-      setHasStarted(true);
-    });
-    player.on("pause", () => setIsPlaying(false));
-    player.on("ended", () => setIsPlaying(false));
-    player.on("enterpictureinpicture", () => setIsPip(true));
-    player.on("leavepictureinpicture", () => setIsPip(false));
-
-    // تتبع PiP عبر document.pictureInPictureElement أيضًا
-    const handlePipChange = () => {
-      setIsPip(!!document.pictureInPictureElement);
-    };
-    document.addEventListener("enterpictureinpicture", handlePipChange);
-    document.addEventListener("leavepictureinpicture", handlePipChange);
-
-    // Lazy-load the YouTube tech only when actually needed.
-    if (isYoutube) {
-      import("videojs-youtube")
-        .then(() => {
-          /* plugin self-registers on videojs global */
-        })
-        .catch(() => {
-          /* non-fatal: falls back to html5 */
-        });
-    }
-
-    return () => {
-      try {
-        player.dispose();
-      } catch {
-        /* noop */
-      }
-      playerRef.current = null;
-      erroredRef.current = false;
-      document.removeEventListener("enterpictureinpicture", handlePipChange);
-      document.removeEventListener("leavepictureinpicture", handlePipChange);
-    };
-  }, []);
-
-  // Load / reload the source when `source` or `reloadNonce` changes.
-  React.useEffect(() => {
-    const player = playerRef.current;
-    if (!player) return;
-    erroredRef.current = false;
-    setHasStarted(false);
     setIsPlaying(false);
+    setHasStarted(false);
 
-    if (!source) {
-      try {
-        player.reset();
-      } catch {
-        /* noop */
-      }
+    if (!src || kind === "none") {
+      onReady?.();
       return;
     }
 
-    const applySource = () => {
-      try {
-        player.src(source);
-        // Only attempt autoplay after the source has loaded (canplay) to
-        // avoid "Illegal invocation" errors from calling play() too early.
+    // نظّف أي hls سابق
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    const handlePlay = () => { setIsPlaying(true); setHasStarted(true); };
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => setIsPlaying(false);
+    const handleEnterPip = () => setIsPip(true);
+    const handleLeavePip = () => setIsPip(false);
+    const handleError = () => onError?.();
+
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("playing", handlePlay);
+    video.addEventListener("pause", handlePause);
+    video.addEventListener("ended", handleEnded);
+    video.addEventListener("enterpictureinpicture", handleEnterPip);
+    video.addEventListener("leavepictureinpicture", handleLeavePip);
+    video.addEventListener("error", handleError);
+
+    if (kind === "hls") {
+      // استخدم hls.js لبث HLS
+      if (Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        hlsRef.current = hls;
+        hls.loadSource(src);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          onReady?.();
+          if (autoplay) {
+            video.muted = true;
+            video.play().catch(() => { /* autoplay blocked */ });
+          }
+        });
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal) onError?.();
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // Safari يدعم HLS أصلاً
+        video.src = src;
+        onReady?.();
         if (autoplay) {
-          // Mute first so browsers allow autoplay, then play after the
-          // source has loaded (canplay) to avoid "Illegal invocation".
-          player.muted(true);
-          const startPlay = () => {
-            try {
-              const p = player.play();
-              if (p && typeof (p as Promise<void>).catch === "function") {
-                (p as Promise<void>).catch(() => {
-                  /* autoplay can be blocked until user gesture */
-                });
-              }
-            } catch {
-              /* noop */
-            }
-          };
-          player.one("canplay", startPlay);
+          video.muted = true;
+          video.play().catch(() => {});
         }
-      } catch {
-        onError?.();
+      }
+    } else if (kind === "mp4" || kind === "dash") {
+      video.src = src;
+      onReady?.();
+      if (autoplay) {
+        video.muted = true;
+        video.play().catch(() => {});
+      }
+    } else if (kind === "youtube") {
+      // YouTube غير مدعوم في هذا المشغل البسيط
+      onError?.();
+    }
+
+    return () => {
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("playing", handlePlay);
+      video.removeEventListener("pause", handlePause);
+      video.removeEventListener("ended", handleEnded);
+      video.removeEventListener("enterpictureinpicture", handleEnterPip);
+      video.removeEventListener("leavepictureinpicture", handleLeavePip);
+      video.removeEventListener("error", handleError);
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
     };
+  }, [src, kind, autoplay, onError, onReady, reloadNonce]);
 
-    // If the player isn't ready yet, wait for the ready event.
-    if (player.isReady_) {
-      applySource();
+  const showBackground = !src || kind === "none" || isPip || (!isPlaying && !hasStarted) || (!isPlaying && hasStarted);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
     } else {
-      player.one("ready", applySource);
+      video.pause();
     }
-  }, [source, reloadNonce, autoplay, onError]);
+  };
 
-  // هل تظهر خلفية الشعار؟
-  // نعم عندما: لا يوجد بث، أو الفيديو في PiP، أو الفيديو متوقف ولم يبدأ، أو متوقف
-  const showBackground = !source || isPip || (!isPlaying && !hasStarted) || (!isPlaying && hasStarted);
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+  };
+
+  const toggleFullscreen = () => {
+    const container = videoRef.current?.parentElement;
+    if (!container) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      container.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const togglePip = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await video.requestPictureInPicture();
+      }
+    } catch { /* noop */ }
+  };
 
   return (
-    <div data-vjs-player className={className} style={{ position: "relative", backgroundColor: "#0b2820" }}>
-      {/* طبقة خلفية: شعار القناة — تظهر بدلًا من الأسود */}
+    <div
+      className={className}
+      style={{ position: "relative", backgroundColor: "#0b2820", width: "100%", aspectRatio: "16 / 9", overflow: "hidden" }}
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
+      {/* طبقة خلفية: شعار القناة */}
       {showBackground && poster && (
         <div
           style={{
@@ -233,7 +197,7 @@ export function VideoJsPlayer({
         >
           <img
             src={poster}
-            alt="شعار القناة"
+            alt=""
             style={{
               maxWidth: "60%",
               maxHeight: "60%",
@@ -244,13 +208,72 @@ export function VideoJsPlayer({
           />
         </div>
       )}
+
+      {/* عنصر video — يملأ الـ container بالكامل */}
       <video
-        ref={containerRef}
-        className="video-js vjs-big-play-centered vjs-fluid"
-        style={{ position: "relative", zIndex: 1 }}
+        ref={videoRef}
+        poster={poster ?? undefined}
         playsInline
         controls={false}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          zIndex: 1,
+        }}
+        onClick={togglePlay}
       />
+
+      {/* أزرار التحكم — تظهر عند التحويم */}
+      {src && kind !== "none" && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+            display: showControls || !isPlaying ? "flex" : "none",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 12px",
+            background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)",
+            color: "white",
+            direction: "ltr",
+          }}
+        >
+          <button onClick={togglePlay} style={btnStyle} aria-label="تشغيل/إيقاف">
+            {isPlaying ? "⏸" : "▶"}
+          </button>
+          <button onClick={toggleMute} style={btnStyle} aria-label="كتم">
+            🔊
+          </button>
+          <div style={{ flex: 1 }} />
+          <button onClick={togglePip} style={btnStyle} aria-label="PiP">
+            ⧉
+          </button>
+          <button onClick={toggleFullscreen} style={btnStyle} aria-label="ملء الشاشة">
+            ⛶
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
+const btnStyle: React.CSSProperties = {
+  background: "rgba(0,0,0,0.5)",
+  border: "none",
+  color: "white",
+  fontSize: "18px",
+  width: "36px",
+  height: "36px",
+  borderRadius: "50%",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};

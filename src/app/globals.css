@@ -320,3 +320,34 @@
   animation: wazani-tagline-fade 2.8s ease-in-out infinite;
 }
 
+/* ============================================================
+   ✨ إصلاح Video.js — إجبار الفيديو على الظهور
+   Video.js يضع position:relative على video.vjs-tech مما يجعل
+   height:0 ويختفي الفيديو. هذه القواعد تحل المشكلة بقوة.
+   ============================================================ */
+.video-js {
+  width: 100% !important;
+  height: 100% !important;
+}
+.video-js .vjs-tech {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.video-js .vjs-poster {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+[data-vjs-player] {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+

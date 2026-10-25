@@ -3,6 +3,28 @@
    Overrides the default Video.js skin to match the app brand.
    ============================================================ */
 
+/* ✨ إصلاح مهم: إجبار المشغل على ملء الـ container بالكامل */
+/* Video.js مع fill: true يجب أن يملأ الـ container، لكن أحيانًا */
+/* يفشل. هذه القواعد تضمن أن المشغل يظهر بالحجم الصحيح. */
+.video-js {
+  width: 100% !important;
+  height: 100% !important;
+}
+.video-js .vjs-tech {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.video-js .vjs-poster {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .video-js.vjs-wazani {
   font-family: inherit;
   background-color: #084d37;
