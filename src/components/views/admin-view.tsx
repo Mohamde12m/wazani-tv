@@ -1087,16 +1087,19 @@ function MatchDialog({
               onChange={(e) => set("kickoff", e.target.value)}
             />
           </Field>
-          <Field label="الحالة">
+          <Field
+            label="الحالة"
+            hint="تُحدَّد تلقائيًا من الموعد: مباشر عند البداية، انتهت بعد 100 دقيقة. استخدم «مؤجلة» للتجاوز اليدوي فقط."
+          >
             <Select value={form.status} onValueChange={(v) => set("status", v)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="scheduled">مجدولة</SelectItem>
-                <SelectItem value="live">مباشر</SelectItem>
-                <SelectItem value="finished">انتهت</SelectItem>
-                <SelectItem value="postponed">مؤجلة</SelectItem>
+                <SelectItem value="scheduled">مجدولة (تلقائي)</SelectItem>
+                <SelectItem value="live">مباشر (تلقائي)</SelectItem>
+                <SelectItem value="finished">انتهت (تلقائي)</SelectItem>
+                <SelectItem value="postponed">مؤجلة (يدوي)</SelectItem>
               </SelectContent>
             </Select>
           </Field>

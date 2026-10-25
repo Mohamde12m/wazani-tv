@@ -3,11 +3,12 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, getCurrentAdmin } from "@/lib/auth";
 import { cache, CACHE_TTL } from "@/lib/cache";
+import { applyComputedStatus } from "@/lib/match-status";
 
 export async function GET() {
   const admin = await getCurrentAdmin();
   // استخدم الكاش (المباريات تتغير بسرعة، لذا TTL أقصر)
-  const matches = await cache.getOrSet(
+  const rawMatches = await cache.getOrSet(
     "matches:all",
     CACHE_TTL.SHORT,
     () =>
@@ -16,6 +17,9 @@ export async function GET() {
         orderBy: { kickoff: "asc" },
       }),
   );
+  // طبّق الحالة المحسوبة تلقائيًا (scheduled → live → finished بعد 100 دقيقة)
+  // هذا يضمن أن الزوار يرون الحالة الصحيحة فورًا دون انتظار المهمة الخلفية
+  const matches = applyComputedStatus(rawMatches);
   return NextResponse.json({ matches, admin: admin ? { name: admin.name } : null });
 }
 

@@ -1252,3 +1252,37 @@ Stage Summary:
 - ملء الشاشة بالكامل بـ objectFit:cover — لا جوانب سوداء ولا خضراء.
 - التدوير النظامي (orientation.lock) يُلغي التدوير CSS تلقائيًا لتجنب التدوير المزدوج.
 - زر التدوير المستقل لا يزال متاحًا للتدوير اليدوي دون ملء الشاشة.
+
+---
+Task ID: 19
+Agent: main (orchestrator)
+Task: تحويل تلقائي لحالة المباريات: scheduled → live عند البداية، live → finished بعد 100 دقيقة.
+
+Work Log:
+- بحث شامل (Task 19-research): أكد أن status مخزنة كـ String في DB (scheduled/live/finished/postponed)، لا يوجد endTime، لا يوجد cron/scheduling، GET /api/matches يرجع كل المباريات بـ cache 30s.
+- أنشأت src/lib/match-status.ts:
+  * MATCH_DURATION_MS = 100 * 60 * 1000 (100 دقيقة، قابل للتعديل).
+  * computeMatchStatus(kickoff, storedStatus, now): يحسب الحالة الفعلية — "postponed" محترم دائمًا (تجاوز يدوي)، وإلا: now < kickoff → scheduled، kickoff ≤ now < kickoff+100min → live، now ≥ kickoff+100min → finished.
+  * applyComputedStatus(matches): يطبّق الحالة المحسوبة على قائمة مباريات (للاستخدام في API).
+  * syncMatchStatuses(): يزامن DB — يجد المباريات (غير المؤجلة) التي تحتاج انتقالًا، يحدّثها، يبطل الكاش.
+- عدّلت src/app/api/matches/route.ts (GET): بعد جلب المباريات من الكاش، يطبّق applyComputedStatus → الزوار يرون الحالة الصحيحة فورًا دون انتظار المهمة الخلفية.
+- عدّلت src/app/api/stats/route.ts (GET): احسب liveMatches فعليًا بـ computeMatchStatus بدلًا من قراءة status المخزنة.
+- أنشأت src/instrumentation.ts: register() يبدأ setInterval كل 60 ثانية يستدعي syncMatchStatuses() + تشغيل فوري عند بدء الخادم. متغير عالمي يمنع تكرار الفواصل في hot reload. تجاهل أثناء next build.
+- عدّلت src/components/views/admin-view.tsx: أضفت hint لحقل الحالة: "تُحدَّد تلقائيًا من الموعد: مباشر عند البداية، انتهت بعد 100 دقيقة. استخدم «مؤجلة» للتجاوز اليدوي فقط." + غيرت تسميات الخيارات لتشمل "(تلقائي)" و"(يدوي)".
+- اختبار شامل (test-match-sync.ts): أنشأ 5 مباريات اختبارية:
+  1. تبدأ الآن (scheduled) → live ✓
+  2. تبدأ بعد ساعة (scheduled) → scheduled ✓
+  3. بدأت قبل 120 دقيقة (live مخزنة) → finished ✓
+  4. بدأت قبل 50 دقيقة (scheduled مخزنة) → live ✓
+  5. مؤجلة (postponed، بدأت قبل 200 دقيقة) → postponed ✓ (محترم)
+  syncMatchStatuses() حدّث 3 مباريات في DB بنجاح. تم تنظيف المباريات الاختبارية.
+- تحقق Agent Browser: dev server يعيد التشغيل، instrumentation تسجّل "[match-sync] بدأت مهمة تزامن حالة المباريات (كل 60 ثانية)". API يرجع حالات صحيحة (25 finished + 6 scheduled — كل seed data قديمة). لا أخطاء في console/dev.log.
+
+Stage Summary:
+- النظام يعمل بثلاث طبقات:
+  1. حساب فوري في GET /api/matches (الزوار يرون الحالة الصحيحة فورًا).
+  2. حساب فوري في GET /api/stats (عدد المباريات المباشرة صحيح).
+  3. مهمة خلفية كل 60 ثانية في instrumentation.ts تُحدّث DB فعليًا.
+- المنطق: at kickoff → live تلقائيًا، بعد 100 دقيقة → finished تلقائيًا. "مؤجلة" = تجاوز يدوي محترم.
+- المسؤول يحتاج فقط ضبط موعد المباراة (kickoff) — النظام يتولى الباقي.
+- الملفات المنتجة: src/lib/match-status.ts (جديد)، src/instrumentation.ts (جديد)، src/app/api/matches/route.ts (معدّل)، src/app/api/stats/route.ts (معدّل)، src/components/views/admin-view.tsx (معدّل).
