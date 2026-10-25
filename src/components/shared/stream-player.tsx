@@ -13,6 +13,8 @@ import {
   PictureInPicture2,
   Loader2,
   RotateCcw,
+  Maximize2,
+  Minimize,
 } from "lucide-react";
 
 export type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "none";
@@ -62,6 +64,12 @@ export function StreamPlayer({
   const [isBuffering, setIsBuffering] = React.useState(true);
   const [hasStarted, setHasStarted] = React.useState(false);
   const [showControls, setShowControls] = React.useState(true);
+  // وضع التدوير القسري (force-landscape): يُفعّل عند الضغط على زر التدوير أو ملء الشاشة
+  // على الأجهزة التي لا تدعم screen.orientation.lock (iOS Safari)
+  const [forceLandscape, setForceLandscape] = React.useState(false);
+
+  // كشف اتجاه الشاشة الحالي
+  const portrait = useIsPortrait();
 
   // تهيئة المشغل
   React.useEffect(() => {
@@ -171,13 +179,14 @@ export function StreamPlayer({
     };
   }, [src, kind, autoplay, onError, onReady, reloadNonce]);
 
-  // تتبع حالة ملء الشاشة
+  // تتبع حالة ملء الشاشة + تفعيل force-landscape تلقائيًا عند الدخول لملء الشاشة
   React.useEffect(() => {
     const handleFsChange = () => {
       const fs = !!document.fullscreenElement;
       setIsFullscreen(fs);
       if (!fs) {
-        // عند الخروج من ملء الشاشة، أعد الاتجاه للعمودي
+        // عند الخروج من ملء الشاشة، أعد الاتجاه للعمودي + أوقف التدوير القسري
+        setForceLandscape(false);
         try {
           const orientation = screen.orientation as ScreenOrientation & {
             unlock?: () => void;
@@ -189,6 +198,22 @@ export function StreamPlayer({
     document.addEventListener("fullscreenchange", handleFsChange);
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
+
+  // كشف تدوير الهاتف الفعلي (orientationchange) — عند الدخول لملء الشاشة + تدوير الجهاز، فعّل force-landscape
+  React.useEffect(() => {
+    const handleOrient = () => {
+      // إذا كان المستخدم في ملء الشاشة ولا تزال الشاشة عمودية، فعّل التدوير القسري
+      if (document.fullscreenElement && portrait) {
+        setForceLandscape(true);
+      }
+    };
+    window.addEventListener("orientationchange", handleOrient);
+    window.addEventListener("resize", handleOrient);
+    return () => {
+      window.removeEventListener("orientationchange", handleOrient);
+      window.removeEventListener("resize", handleOrient);
+    };
+  }, [portrait]);
 
   // إخفاء تلقائي للأزرار بعد 3 ثوانٍ من الخمول أثناء التشغيل
   const scheduleHide = React.useCallback(() => {
@@ -230,25 +255,48 @@ export function StreamPlayer({
   };
 
   // ملء الشاشة مع تدوير تلقائي للهاتف (landscape)
+  // استراتيجية: 1) requestFullscreen → 2) screen.orientation.lock('landscape') (Android) →
+  // 3) إذا فشل/fشاشة عمودية، فعّل force-landscape (CSS rotation) لملء الشاشة بالعرض
   const toggleFullscreen = async () => {
     const container = containerRef.current;
     if (!container) return;
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
+        // الخروج يُعالَج في handleFsChange (يعيد forceLandscape=false)
       } else {
         await container.requestFullscreen();
-        // تدوير تلقائي للهاتف عند ملء الشاشة
+        // حاول قفل الاتجاه أفقيًا (يعمل على Android Chrome)
+        let locked = false;
         const orientation = screen.orientation as ScreenOrientation & {
           lock?: (o: "landscape" | "portrait") => Promise<void>;
         };
         if (orientation?.lock) {
           try {
             await orientation.lock("landscape");
-          } catch { /* browsers may block orientation lock */ }
+            locked = true;
+          } catch { /* iOS Safari لا يدعم هذا، أو يتطلب HTTPS + user gesture */ }
+        }
+        // إذا لم يُقفل الاتجاه ولا تزال الشاشة عمودية، فعّل التدوير القسري بالـ CSS
+        if (!locked) {
+          // تحقق بعد لحظة قصيرة: قد يكون المتصفح قد دوّر الشاشة فعليًا
+          setTimeout(() => {
+            const stillPortrait =
+              (typeof window !== "undefined" &&
+                (window.matchMedia?.("(orientation: portrait)").matches ??
+                  window.innerHeight > window.innerWidth));
+            if (stillPortrait) {
+              setForceLandscape(true);
+            }
+          }, 100);
         }
       }
     } catch { /* noop */ }
+  };
+
+  // زر تدوير مستقل (للأجهزة التي تريد التدوير دون ملء الشاشة)
+  const toggleRotate = () => {
+    setForceLandscape((v) => !v);
   };
 
   const togglePip = async () => {
@@ -299,24 +347,65 @@ export function StreamPlayer({
   const showCenterPlay = src && kind !== "none" && !isPlaying && !isBuffering && !isPip;
   const controlsVisible = src && kind !== "none" && (showControls || !isPlaying);
 
-  return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{
+  // في وضع force-landscape، objectFit=cover لملء الشاشة بالكامل دون جوانب سوداء
+  // في الوضع العادي، objectFit=contain لإظهار كامل الإطار دون قص
+  const useCover = isFullscreen || forceLandscape;
+
+  // عند force-landscape، الحاوية الداخلية تدور 90° وتُصبح بحجم الشاشة العمودية
+  // الـ container الخارجي يبقى بحجمه العادي، لكن نضع خلفية سوداء كاملة
+  const containerStyle: React.CSSProperties = forceLandscape
+    ? {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        maxHeight: "100dvh",
+        aspectRatio: "auto",
+        backgroundColor: "#000",
+        overflow: "hidden",
+        zIndex: 9999,
+        cursor: controlsVisible ? "default" : "none",
+      }
+    : {
         position: "relative",
         backgroundColor: "#0b2820",
         width: "100%",
         aspectRatio: "16 / 9",
         overflow: "hidden",
         cursor: controlsVisible ? "default" : "none",
-      }}
+      };
+
+  // الغلاف الداخلي الذي يحتوي الفيديو: في وضع force-landscape، ندوره 90° ونجعله يملأ الشاشة
+  const innerWrapperStyle: React.CSSProperties = forceLandscape
+    ? {
+        position: "absolute",
+        // ندور حول المركز، ثم نوسّط
+        top: "50%",
+        left: "50%",
+        width: "100vh",
+        height: "100vw",
+        transform: "translate(-50%, -50%) rotate(90deg)",
+        transformOrigin: "center center",
+      }
+    : {
+        position: "absolute",
+        inset: 0,
+      };
+
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={containerStyle}
       onMouseMove={revealControls}
       onMouseLeave={() => { if (isPlaying) setShowControls(false); }}
       onTouchStart={revealControls}
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
+      {/* الغلاف الداخلي — يدير المحتوى في وضع force-landscape */}
+      <div style={innerWrapperStyle}>
       {/* طبقة خلفية: شعار القناة — يظهر فقط عندما لا يوجد بث أو الفيديو متوقف */}
       {showBackground && poster && (
         <div
@@ -327,7 +416,7 @@ export function StreamPlayer({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(135deg, #0b2820 0%, #0b6e4f 100%)",
+            background: useCover ? "#000" : "linear-gradient(135deg, #0b2820 0%, #0b6e4f 100%)",
             pointerEvents: "none",
           }}
         >
@@ -345,7 +434,10 @@ export function StreamPlayer({
         </div>
       )}
 
-      {/* عنصر video — يملأ الـ container بالكامل */}
+      {/* عنصر video — يملأ الـ container بالكامل.
+          في وضع ملء الشاشة/force-landscape، نستخدم objectFit=cover لملء الشاشة
+          بالكامل دون جوانب سوداء (مع قص طفيف للإطار). في الوضع العادي نستخدم
+          contain لإظهار كامل الإطار دون قص. */}
       <video
         ref={videoRef}
         poster={poster ?? undefined}
@@ -357,7 +449,7 @@ export function StreamPlayer({
           left: 0,
           width: "100%",
           height: "100%",
-          objectFit: "contain",
+          objectFit: useCover ? "cover" : "contain",
           zIndex: 1,
         }}
         onClick={togglePlay}
@@ -398,6 +490,25 @@ export function StreamPlayer({
             />
           </div>
         </div>
+      )}
+
+      {/* زر الخروج من وضع التدوير القسري — يظهر فقط في وضع force-landscape */}
+      {forceLandscape && !isFullscreen && (
+        <button
+          onClick={() => setForceLandscape(false)}
+          aria-label="إنهاء التدوير"
+          className="cp-btn"
+          style={{
+            position: "absolute",
+            top: "max(12px, env(safe-area-inset-top))",
+            right: "max(12px, env(safe-area-inset-right))",
+            zIndex: 5,
+            width: 40,
+            height: 40,
+          }}
+        >
+          <Minimize strokeWidth={2.2} className="cp-icon" />
+        </button>
       )}
 
       {/* زر التشغيل الكبير في المنتصف — احترافي مع توهج نابض */}
@@ -495,6 +606,11 @@ export function StreamPlayer({
 
           <div style={{ flex: 1 }} />
 
+          {/* زر التدوير (يُظهر/يُخفي وضع force-landscape يدويًا) */}
+          <ControlButton onClick={toggleRotate} label="تدوير الشاشة" active={forceLandscape}>
+            <RotateCwIcon className="cp-icon" strokeWidth={2} />
+          </ControlButton>
+
           {/* زر PiP */}
           <ControlButton onClick={togglePip} label="نافذة عائمة" active={isPip}>
             <PictureInPicture2 className="cp-icon" strokeWidth={2} />
@@ -547,7 +663,47 @@ export function StreamPlayer({
           border-color: rgba(201,150,46,0.6);
         }
       `}</style>
+      {/* إغلاق الغلاف الداخلي (force-landscape wrapper) */}
+      </div>
     </div>
+  );
+}
+
+/** كشف ما إذا كانت الشاشة عمودية (portrait) */
+function useIsPortrait() {
+  const [portrait, setPortrait] = React.useState(true);
+  React.useEffect(() => {
+    const check = () => {
+      setPortrait(window.innerHeight > window.innerWidth);
+    };
+    check();
+    window.addEventListener("resize", check);
+    window.addEventListener("orientationchange", check);
+    return () => {
+      window.removeEventListener("resize", check);
+      window.removeEventListener("orientationchange", check);
+    };
+  }, []);
+  return portrait;
+}
+
+/** أيقونة تدوير عقارب الساعة (Lucide لا يصدر RotateCw مباشرة، نستخدم ماكرو) */
+function RotateCwIcon({ className, strokeWidth }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth ?? 2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width="20"
+      height="20"
+    >
+      <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+    </svg>
   );
 }
 

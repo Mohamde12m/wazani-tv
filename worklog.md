@@ -1197,3 +1197,27 @@ Stage Summary:
 - المشكلة الجذرية: service worker قديم يقدّم JS chunks قديمة (Cache First) → تعارض مع كود hls.js الجديد → client-side exception.
 - الحل: sw.js v3 بـ Network First لأ chunks + مسح تلقائي للكاش القديم + رسالة تحديث للعملاء.
 - التحقق: console نظيف، الفيديو يعمل، VLM يؤكد لا أخطاء.
+
+---
+Task ID: 17
+Agent: main (orchestrator)
+Task: تدوير تلقائي للفيديو عند تدوير الهاتف/ملء الشاشة + ملء الشاشة بالكامل دون جوانب سوداء/خضراء.
+
+Work Log:
+- أضفت وضع "force-landscape" (forceLandscape state) في src/components/shared/stream-player.tsx — يُفعّل تلقائيًا عند:
+  * الضغط على زر ملء الشاشة (إذا فشل screen.orientation.lock، مثل iOS Safari)
+  * تدوير الجهاز الفعلي أثناء ملء الشاشة (orientationchange/resize listeners)
+  * الضغط على زر التدوير المستقل (يدويًا)
+- في وضع force-landscape: الحاوية الخارجية تصبح position:fixed تغطي 100vw×100vh (خلفية سوداء)، والغلاف الداخلي يدور 90° عبر CSS transform (translate(-50%,-50%) rotate(90deg)) بأبعاد 100vh×100vw.
+- تغيير objectFit من "contain" إلى "cover" في وضع ملء الشاشة/force-landscape — يملأ الشاشة بالكامل دون أي جوانب سوداء أو خضراء (مع قص طفيف للإطار).
+- أضفت زر تدوير مستقل (RotateCwIcon) في شريط التحكم — يفعّل/يوقف force-landscape يدويًا.
+- أضفت زر خروج (Minimize) في وضع force-landscape فقط — يظهر في أعلى اليمين مع safe-area-inset.
+- أضفت hook useIsPortrait() لكشف اتجاه الشاشة (innerHeight > innerWidth).
+- عند الخروج من ملء الشاشة: screen.orientation.unlock() + setForceLandscape(false) تلقائيًا.
+- الحفاظ على objectFit:contain في الوضع العادي (إظهار كامل الإطار دون قص).
+
+Stage Summary:
+- تدوير تلقائي للفيديو: عند الضغط على ملء الشاشة، يُحاول screen.orientation.lock('landscape') (Android Chrome)، وإذا فشل يُفعّل تدوير CSS قسري (iOS Safari fallback).
+- ملء الشاشة الكامل: objectFit:cover في وضع ملء الشاشة/force-landscape — لا جوانب سوداء ولا خضراء.
+- زر تدوير مستقل للتحكم اليدوي.
+- تحقق: bun run lint نجح. لا أخطاء في console/dev.log. VLM أكد الوضع العادي سليم (لا جوانب سوداء، فيديو يملأ العرض).
