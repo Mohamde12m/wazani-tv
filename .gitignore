@@ -52,3 +52,14 @@ prompt
 server.log
 # Skills directory
 /skills/
+# مجلد الرفع (لقطات شاشة شخصية)
+/upload/
+# مجلد قاعدة البيانات المحلية
+/db/
+# ملفات الاختبار المؤقتة
+test-*.ts
+test-*.js
+verify-*.ts
+cleanup-*.ts
+check-*.ts
+fix-*.ts
