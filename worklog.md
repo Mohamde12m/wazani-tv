@@ -1395,3 +1395,22 @@ Stage Summary:
 - متغيرات البيئة المطلوبة لـ Vercel: TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, DATABASE_URL=file:./db/dummy.db, ADMIN_EMAIL/PASSWORD/NAME, NEXTAUTH_SECRET/URL, NODE_ENV=production.
 - خطوات النشر: 1) إنشاء مستودع GitHub فارغ، 2) رفع الكود، 3) ربط Vercel بالمستودع، 4) إضافة متغيرات البيئة، 5) Deploy.
 - ملاحظة للمستخدم: .env لا يُرفع إلى GitHub (مستثنى في .gitignore) — يجب إضافة متغيراته يدويًا في Vercel.
+
+---
+Task ID: 22
+Agent: main (orchestrator)
+Task: رفع المشروع إلى GitHub مستودع Mohamde12m/wazani-tv.
+
+Work Log:
+- أضاف remote مع PAT: https://Mohamde12m:TOKEN@github.com/Mohamde12m/wazani-tv.git
+- اكتشف أن .env متتبع في git (مشكلة أمنية) — أنشأ orphan branch نظيف بدون .env.
+- أزال .env و screenshots/ و upload/ من التتبع + أضافهم لـ .gitignore.
+- تحقق نهائي: 0 ملفات حساسة، 187 ملف جاهز.
+- git push -u origin clean-main:main نجح (commit c28c229).
+- أزال التوكن من remote URL للأمان (git remote set-url).
+- تحقق: HTTP 200 على https://github.com/Mohamde12m/wazani-tv (عام ومتاح).
+
+Stage Summary:
+- المشروع مرفوع على GitHub: https://github.com/Mohamde12m/wazani-tv
+- 187 ملف، تاريخ نظيف (commit واحد)، بدون بيانات حساسة.
+- الخطوة التالية: نشر على Vercel + إضافة متغيرات البيئة.
