@@ -444,27 +444,22 @@ export function StreamPlayer({
         </div>
       )}
 
-      {/* عنصر video — يملأ الـ container بالكامل.
+      {/* عنصر video أو iframe حسب نوع البث.
+          - hls/dash/mp4: يُستخدم <video> مع hls.js
+          - iframe: يُستخدم <iframe> مع صفحة HTML مُولّدة تحمل السكريبت/الرابط
+            (لأن الرابط قد يكون سكريبت JS وليس صفحة HTML كاملة)
           في وضع ملء الشاشة/force-landscape، نستخدم objectFit=cover لملء الشاشة
           بالكامل دون جوانب سوداء (مع قص طفيف للإطار). في الوضع العادي نستخدم
           contain لإظهار كامل الإطار دون قص. */}
       {kind === "iframe" && src ? (
-        <iframe
+        <IframePlayer
           src={src}
-          title="بث مباشر"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-          allowFullScreen
-          referrerPolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            border: "none",
-            zIndex: 1,
-            backgroundColor: "#000",
+          poster={poster}
+          onReady={() => {
+            setHasStarted(true);
+            setIsPlaying(true);
+            setIsBuffering(false);
+            onReady?.();
           }}
         />
       ) : (
@@ -742,5 +737,144 @@ function ControlButton({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * مشغل iframe ذكي — يكتشف نوع الرابط ويعرضه بشكل صحيح:
+ * - إذا كان الرابط سكريبت JS (.js أو content-type: application/javascript):
+ *   ينشئ صفحة HTML مُولّدة تحمل السكريبت داخل container
+ * - إذا كان الرابط صفحة HTML كاملة: يعرضه في iframe مباشرة
+ * - إذا كان رابط YouTube embed: يعرضه مباشرة
+ * - يدعم ملء الشاشة، PiP، التشغيل التلقائي
+ */
+function IframePlayer({
+  src,
+  poster,
+  onReady,
+}: {
+  src: string;
+  poster?: string | null;
+  onReady?: () => void;
+}) {
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [iframeSrc, setIframeSrc] = React.useState<string>("");
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    setLoading(true);
+
+    // اكتشف نوع الرابط
+    const isJavascriptUrl =
+      src.endsWith(".js") ||
+      src.includes(".js?") ||
+      src.includes("script");
+
+    const isHtmlPage =
+      src.includes("/embed/") ||
+      src.includes("/player") ||
+      src.includes("youtube.com/embed") ||
+      src.includes("youtu.be") ||
+      src.includes("dailymotion.com/embed") ||
+      src.includes("twitch.tv/embed") ||
+      src.includes("vimeo.com");
+
+    let finalSrc = src;
+
+    if (isJavascriptUrl && !isHtmlPage) {
+      // الرابط سكريبت JS — أنشئ صفحة HTML تحمل السكريبت
+      const html = `<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    #player { width: 100%; height: 100%; }
+    #player > * { width: 100% !important; height: 100% !important; }
+    #player video { width: 100% !important; height: 100% !important; object-fit: contain; }
+    #player iframe { width: 100% !important; height: 100% !important; border: none; }
+    #player div { width: 100% !important; height: 100% !important; }
+  </style>
+</head>
+<body>
+  <div id="player"></div>
+  <script>
+    // حاوية لتثبيت المشغل
+    window.player = document.getElementById('player');
+  </script>
+  <script src="${src}"></script>
+  <script>
+    // أبلغ الحاوية أن السكريبت تم تحميله
+    window.parent.postMessage({ type: 'iframe-ready' }, '*');
+  </script>
+</body>
+</html>`;
+      finalSrc = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+    }
+
+    setIframeSrc(finalSrc);
+    // أبلغ عن الجاهزية بعد فترة قصيرة
+    const t = setTimeout(() => {
+      setLoading(false);
+      onReady?.();
+    }, 800);
+    return () => clearTimeout(t);
+  }, [src, onReady]);
+
+  // استمع لرسائل من الـ iframe
+  React.useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "iframe-ready") {
+        setLoading(false);
+        onReady?.();
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [onReady]);
+
+  return (
+    <>
+      {loading && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 3,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#000",
+          }}
+        >
+          <Loader2
+            className="animate-spin"
+            style={{ width: 36, height: 36, color: "#c9962e" }}
+            strokeWidth={2.5}
+          />
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={iframeSrc}
+        title="بث مباشر"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media; camera; microphone"
+        allowFullScreen
+        referrerPolicy="no-referrer"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          border: "none",
+          zIndex: 1,
+          backgroundColor: "#000",
+        }}
+      />
+    </>
   );
 }
