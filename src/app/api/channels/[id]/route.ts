@@ -11,7 +11,7 @@ const updateSchema = z.object({
   countryId: z.string().nullable().optional(),
   categoryId: z.string().nullable().optional(),
   streamUrl: z.string().nullable().optional(),
-  streamType: z.enum(["hls", "mp4", "youtube", "none"]).optional(),
+  streamType: z.enum(["hls", "mp4", "youtube", "iframe", "none"]).optional(),
   active: z.boolean().optional(),
   featured: z.boolean().optional(),
   verified: z.boolean().optional(),

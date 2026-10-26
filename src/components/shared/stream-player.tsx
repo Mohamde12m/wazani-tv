@@ -15,7 +15,7 @@ import {
   Minimize,
 } from "lucide-react";
 
-export type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "none";
+export type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "iframe" | "none";
 
 interface StreamPlayerProps {
   src: string | null;
@@ -157,6 +157,12 @@ export function StreamPlayer({
     } else if (kind === "youtube") {
       setIsBuffering(false);
       onError?.();
+    } else if (kind === "iframe") {
+      // iframe يعمل بشكل مستقل — لا نحتاج hls.js أو video element
+      setIsBuffering(false);
+      setHasStarted(true);
+      setIsPlaying(true);
+      onReady?.();
     }
 
     return () => {
@@ -442,22 +448,43 @@ export function StreamPlayer({
           في وضع ملء الشاشة/force-landscape، نستخدم objectFit=cover لملء الشاشة
           بالكامل دون جوانب سوداء (مع قص طفيف للإطار). في الوضع العادي نستخدم
           contain لإظهار كامل الإطار دون قص. */}
-      <video
-        ref={videoRef}
-        poster={poster ?? undefined}
-        playsInline
-        controls={false}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: useCover ? "cover" : "contain",
-          zIndex: 1,
-        }}
-        onClick={togglePlay}
-      />
+      {kind === "iframe" && src ? (
+        <iframe
+          src={src}
+          title="بث مباشر"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+          allowFullScreen
+          referrerPolicy="no-referrer"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            border: "none",
+            zIndex: 1,
+            backgroundColor: "#000",
+          }}
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          poster={poster ?? undefined}
+          playsInline
+          controls={false}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: useCover ? "cover" : "contain",
+            zIndex: 1,
+          }}
+          onClick={togglePlay}
+        />
+      )}
 
       {/* مؤشر التحميل — أنيق ومركز */}
       {isBuffering && src && kind !== "none" && !isPip && (

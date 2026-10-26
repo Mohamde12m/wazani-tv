@@ -30,7 +30,7 @@ const StreamPlayer = dynamic(
   { ssr: false, loading: () => <div className="aspect-video w-full bg-emerald-dark" /> },
 );
 
-type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "none";
+type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "iframe" | "none";
 
 interface ChannelsResponse {
   channels: Channel[];

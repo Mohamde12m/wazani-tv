@@ -569,12 +569,13 @@ function ChannelDialog({
                 <SelectItem value="hls">HLS (بث مباشر m3u8)</SelectItem>
                 <SelectItem value="dash">DASH (بث مباشر mpd)</SelectItem>
                 <SelectItem value="mp4">MP4 (فيديو)</SelectItem>
+                <SelectItem value="iframe">iframe (بث مضمّن)</SelectItem>
                 <SelectItem value="youtube">YouTube (بث/فيديو)</SelectItem>
               </SelectContent>
             </Select>
           </Field>
           <div className="sm:col-span-2">
-            <Field label="رابط البث (Stream URL)" hint="اتركه فارغًا إذا لم يتوفر بث">
+            <Field label="رابط البث (Stream URL)" hint="اتركه فارغًا إذا لم يتوفر بث. للـ iframe: ضع رابط الصفحة المضمّنة (https://...)">
               <Input
                 dir="ltr"
                 value={form.streamUrl}
@@ -852,6 +853,7 @@ function StreamTypeBadge({ type }: { type: string }) {
     hls: { label: "HLS", cls: "bg-emerald/10 text-emerald" },
     dash: { label: "DASH", cls: "bg-emerald-light/15 text-emerald-light" },
     mp4: { label: "MP4", cls: "bg-emerald-light/15 text-emerald-light" },
+    iframe: { label: "iframe", cls: "bg-gold/15 text-gold" },
     youtube: { label: "YouTube", cls: "bg-red-500/10 text-red-600" },
     none: { label: "غير متاح", cls: "bg-muted text-muted-foreground" },
   };

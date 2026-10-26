@@ -27,7 +27,7 @@ const createSchema = z.object({
   countryId: z.string().nullable().optional(),
   categoryId: z.string().nullable().optional(),
   streamUrl: z.string().nullable().optional(),
-  streamType: z.enum(["hls", "mp4", "youtube", "none"]).default("none"),
+  streamType: z.enum(["hls", "mp4", "youtube", "iframe", "none"]).default("none"),
   active: z.boolean().default(true),
   featured: z.boolean().default(false),
   verified: z.boolean().default(false),
