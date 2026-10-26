@@ -1372,3 +1372,26 @@ Stage Summary:
 - إجمالي المواضع الآن: 11 موضع إعلاني في كل أنحاء الموقع.
 - المسؤول يرى كل المواضع في لوحة الإدارة (تبويب "الإعلانات") ويمكنه إضافة/تعطيل إعلان لكل موضع.
 - لا توجد مساحات فارغة إذا لم توجد إعلانات — AdSlot لا يرجع أي DOM.
+
+---
+Task ID: 21
+Agent: main (orchestrator)
+Task: تجهيز المشروع للنشر على GitHub + Vercel (رابط حقيقي ودائم).
+
+Work Log:
+- أعدت كتابة .env كاملاً (كان تالفًا): TURSO_DATABASE_URL + TURSO_AUTH_TOKEN + DATABASE_URL=file:./db/dummy.db + ADMIN_EMAIL/PASSWORD/NAME + NEXTAUTH_SECRET/URL.
+- أنشأت جدول Ad في Turso مباشرة عبر @libsql/client (DATABASE_URL في shell يلغي .env، لذا db:push يذهب لـ dummy.db المحلية بدلًا من Turso).
+- عدّلت .gitignore: أضفت /upload/, /db/, test-*.ts, verify-*.ts, cleanup-*.ts, check-*.ts, fix-*.ts.
+- أنشأت vercel.json: framework=nextjs, buildCommand=next build, installCommand=bun install, regions=fra1.
+- اختبرت بناء الإنتاج: bun run build نجح في 12.8s بدون أخطاء (✓ Compiled successfully).
+- git config user.name="Mohamde12m" + user.email="mohamdelwazzani@gmail.com".
+- git commit: "إضافة نظام الإعلانات + تحويل تلقائي لحالة المباريات + إصلاحات المشغل + إعدادات النشر على Vercel".
+- أنشأت ملف ZIP للمشروع (26MB, 285 ملف) بدون node_modules/.next/.env/db/upload/skills.
+- أنشأت ملف تعليمات شامل /tmp/GITHUB-INSTRUCTIONS.txt بطريقتي الرفع (متصفح + git).
+- تحقق: API ads يعمل (200 OK) مع Turso بعد إنشاء جدول Ad.
+
+Stage Summary:
+- المشروع جاهز للنشر: build ينجح، vercel.json موجود، .gitignore مستثني للمفاتيح.
+- متغيرات البيئة المطلوبة لـ Vercel: TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, DATABASE_URL=file:./db/dummy.db, ADMIN_EMAIL/PASSWORD/NAME, NEXTAUTH_SECRET/URL, NODE_ENV=production.
+- خطوات النشر: 1) إنشاء مستودع GitHub فارغ، 2) رفع الكود، 3) ربط Vercel بالمستودع، 4) إضافة متغيرات البيئة، 5) Deploy.
+- ملاحظة للمستخدم: .env لا يُرفع إلى GitHub (مستثنى في .gitignore) — يجب إضافة متغيراته يدويًا في Vercel.

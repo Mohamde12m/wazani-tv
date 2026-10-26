@@ -63,3 +63,5 @@ verify-*.ts
 cleanup-*.ts
 check-*.ts
 fix-*.ts
+# لقطات شاشة اختبارية
+/screenshots/
