@@ -361,6 +361,28 @@ export function StreamPlayer({
   // في الوضع العادي، objectFit=contain لإظهار كامل الإطار دون قص
   const useCover = isFullscreen || forceLandscape;
 
+  // ⚠️ وضع iframe: نتجاهل كل المشغل الأصلي (video, controls, background, poster)
+  // ونعرض فقط الـ iframe. هذا لأن الـ iframe يأتي عادةً بمشغله الخاص
+  // (مثل مشغل YouTube المضمن)، فلا حاجة لأزرار تحكم أو خلفية منا.
+  // الـ iframe يملأ نفس المساحة (16:9) لكن بدون أي إعداداتنا.
+  if (kind === "iframe" && src) {
+    return (
+      <div
+        ref={containerRef}
+        className={className}
+        style={{
+          position: "relative",
+          backgroundColor: "#000",
+          width: "100%",
+          aspectRatio: "16 / 9",
+          overflow: "hidden",
+        }}
+      >
+        <IframePlayer src={src} poster={poster} />
+      </div>
+    );
+  }
+
   // عند force-landscape، الحاوية الداخلية تدور 90° وتُصبح بحجم الشاشة العمودية
   // الـ container الخارجي يبقى بحجمه العادي، لكن نضع خلفية سوداء كاملة
   const containerStyle: React.CSSProperties = forceLandscape
