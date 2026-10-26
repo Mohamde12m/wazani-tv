@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { BottomNav } from "./bottom-nav";
+import { StickyAd } from "./simple-ad";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
 
@@ -20,10 +21,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="bg-app flex min-h-screen flex-col">
-      <main className={showNav ? "mx-auto w-full max-w-3xl flex-1 pb-24" : "mx-auto w-full max-w-3xl flex-1"}>
+      <main className={showNav ? "mx-auto w-full max-w-3xl flex-1 pb-40" : "mx-auto w-full max-w-3xl flex-1"}>
         {children}
       </main>
-      {showNav && <BottomNav />}
+      {showNav && (
+        <>
+          <StickyAd slot="sticky_bottom" />
+          <BottomNav />
+        </>
+      )}
     </div>
   );
 }
