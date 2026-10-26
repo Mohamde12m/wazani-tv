@@ -2633,8 +2633,14 @@ const AD_SLOTS: { value: AdSlotName; label: string; desc: string }[] = [
   { value: "home_top", label: "أعلى الرئيسية", desc: "بانر بعد المباراة المميزة" },
   { value: "home_middle", label: "وسط الرئيسية", desc: "بانر بين القنوات المغربية والخليجية" },
   { value: "home_bottom", label: "أسفل الرئيسية", desc: "بانر قبل التذييل" },
-  { value: "sticky_bottom", label: "لاصق أسفل الشاشة", desc: "بانر ثابت فوق شريط التنقل" },
-  { value: "matches_top", label: "أعلى المباريات", desc: "بانر في صفحة المباريات" },
+  { value: "sticky_bottom", label: "لاصق أسفل الشاشة", desc: "بانر ثابت فوق شريط التنقل في كل الصفحات" },
+  { value: "matches_top", label: "أعلى المباريات", desc: "بانر بعد الفلاتر في صفحة المباريات" },
+  { value: "matches_middle", label: "وسط المباريات", desc: "بانر بين المباريات المميزة وبقية المباريات" },
+  { value: "channels_top", label: "أعلى القنوات", desc: "بانر بعد الفلاتر في صفحة القنوات" },
+  { value: "channels_middle", label: "وسط القنوات", desc: "بانر في منتصف شبكة القنوات" },
+  { value: "favorites_top", label: "أعلى المفضلة", desc: "بانر في صفحة المفضلة" },
+  { value: "player_top", label: "أسفل المشغل", desc: "بانر تحت معلومات القناة في صفحة المشغل" },
+  { value: "more_top", label: "أعلى المزيد", desc: "بانر في صفحة المزيد" },
 ];
 
 interface AdFormState {

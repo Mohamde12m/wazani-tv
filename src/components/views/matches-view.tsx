@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchCard } from "@/components/shared/match-card";
 import { EmptyState, LoadingGrid } from "@/components/shared/section";
+import { AdSlot } from "@/components/shared/ad-slot";
 import { useFetch } from "@/hooks/use-fetch";
 import { useFavorites } from "@/stores/favorites";
 import { isToday, isTomorrow, isSameDay } from "@/lib/datetime";
@@ -338,6 +339,9 @@ export function MatchesView({ tab }: { tab?: string }) {
 
         {/* Content */}
         <div className="mt-1">
+          {/* إعلان أعى المباريات — بعد الفلاتر */}
+          <AdSlot slot="matches_top" />
+
           {loading ? (
             <LoadingGrid count={4} />
           ) : filtered.length === 0 ? (
@@ -355,6 +359,8 @@ export function MatchesView({ tab }: { tab?: string }) {
                   ))}
                 </div>
               )}
+              {/* إعلان وسط المباريات — بين المميزة وبقية المباريات */}
+              {featuredList.length > 0 && restList.length > 0 && <AdSlot slot="matches_middle" />}
               {restList.length > 0 && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {restList.map((m) => (

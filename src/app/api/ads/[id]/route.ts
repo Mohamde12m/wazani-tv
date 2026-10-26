@@ -5,7 +5,19 @@ import { requireAdmin } from "@/lib/auth";
 import { cache } from "@/lib/cache";
 
 const updateSchema = z.object({
-  slot: z.enum(["home_top", "home_middle", "home_bottom", "sticky_bottom", "matches_top"]).optional(),
+  slot: z.enum([
+    "home_top",
+    "home_middle",
+    "home_bottom",
+    "sticky_bottom",
+    "matches_top",
+    "matches_middle",
+    "channels_top",
+    "channels_middle",
+    "favorites_top",
+    "player_top",
+    "more_top",
+  ]).optional(),
   label: z.string().optional(),
   type: z.enum(["image", "code"]).optional(),
   imageUrl: z.string().nullable().optional(),

@@ -85,7 +85,13 @@ export type AdSlotName =
   | "home_middle"
   | "home_bottom"
   | "sticky_bottom"
-  | "matches_top";
+  | "matches_top"
+  | "matches_middle"
+  | "channels_top"
+  | "channels_middle"
+  | "favorites_top"
+  | "player_top"
+  | "more_top";
 
 export interface Ad {
   id: string;

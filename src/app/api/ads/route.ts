@@ -37,7 +37,19 @@ export async function GET(req: NextRequest) {
 }
 
 const createSchema = z.object({
-  slot: z.enum(["home_top", "home_middle", "home_bottom", "sticky_bottom", "matches_top"]),
+  slot: z.enum([
+    "home_top",
+    "home_middle",
+    "home_bottom",
+    "sticky_bottom",
+    "matches_top",
+    "matches_middle",
+    "channels_top",
+    "channels_middle",
+    "favorites_top",
+    "player_top",
+    "more_top",
+  ]),
   label: z.string().default(""),
   type: z.enum(["image", "code"]).default("image"),
   imageUrl: z.string().nullable().optional(),

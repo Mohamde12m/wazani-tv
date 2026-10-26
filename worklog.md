@@ -1337,3 +1337,38 @@ Stage Summary:
 - الإعلانات تظهر في أماكنها المحددة فقط — لا تخرج على المحتوى. لا تأخذ مساحة إذا لم توجد إعلانات.
 - توصية: ابدأ بـ Adsterra (موافقة سريعة)، تقدّم لـ Google AdSense بالتوازي. بدّل الكود من لوحة الإدارة بضغطة زر.
 - الملفات المنتجة: prisma/schema.prisma (نموذج Ad)، src/lib/types.ts (type Ad)، src/app/api/ads/route.ts، src/app/api/ads/[id]/route.ts، src/components/shared/ad-slot.tsx، src/components/shared/app-shell.tsx (معدّل)، src/components/views/home-view.tsx (معدّل)، src/components/views/admin-view.tsx (تبويب الإعلانات + AdsSection).
+
+---
+Task ID: 21
+Agent: main (orchestrator)
+Task: البحث عن الأماكن الفارغة في الموقع وإضافة مواضع إعلانية فيها.
+
+Work Log:
+- فحص كل صفحات الموقع: home, channels, matches, favorites, more, player. وجدت أن الإعلانات موجودة فقط في home (3 مواضع) + sticky_bottom (في الصفحات الرئيسية). باقي الصفحات فارغة تمامًا.
+- أضفت 6 مواضع إعلانية جديدة إلى AdSlotName في src/lib/types.ts:
+  * matches_top, matches_middle
+  * channels_top, channels_middle
+  * favorites_top
+  * player_top
+  * more_top
+- حدّثت Zod schema في src/app/api/ads/route.ts و src/app/api/ads/[id]/route.ts لإضافة المواضع الجديدة.
+- حدّثت AD_SLOTS array في admin-view.tsx لعرض المواضع الجديدة مع أوصافها.
+- أضفت AdSlot في كل صفحة فارغة:
+  * matches-view.tsx: matches_top (بعد الفلاتر) + matches_middle (بين المباريات المميزة وبقية المباريات).
+  * channels-view.tsx: channels_top (بعد الفلاتر) + channels_middle (كل 8 قنوات في الشبكة).
+  * favorites-view.tsx: favorites_top (بعد التبويبات).
+  * player-view.tsx: player_top (بعد معلومات القناة، قبل القنوات المقترحة).
+  * more-view.tsx: more_top (بعد قائمة التنقل، قبل الإعدادات).
+- اختبار: أنشأت 7 إعلانات تجريبية (SVG ملوّن لكل موضع). VLM أكد ظهور إعلان "أعلى المباريات" في صفحة المباريات. API يرجع الإعلانات correctly (matches_top: 1 إعلان). تم تنظيف الإعلانات التجريبية.
+- bun run lint نجح. لا أخطاء.
+
+Stage Summary:
+- أضفت 6 مواضع إعلانية جديدة في كل الصفحات الفارغة:
+  - صفحة المباريات: أعلى + وسط
+  - صفحة القنوات: أعلى + وسط (كل 8 قنوات)
+  - صفحة المفضلة: أعلى
+  - صفحة المشغل: أسفل المشغل
+  - صفحة المزيد: أعلى
+- إجمالي المواضع الآن: 11 موضع إعلاني في كل أنحاء الموقع.
+- المسؤول يرى كل المواضع في لوحة الإدارة (تبويب "الإعلانات") ويمكنه إضافة/تعطيل إعلان لكل موضع.
+- لا توجد مساحات فارغة إذا لم توجد إعلانات — AdSlot لا يرجع أي DOM.
