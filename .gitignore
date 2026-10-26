@@ -65,3 +65,9 @@ check-*.ts
 fix-*.ts
 # لقطات شاشة اختبارية
 /screenshots/
+
+# ملفات مؤقتة
+/.zscripts/
+/tool-results/
+/prisma/db/
+/tool-results/

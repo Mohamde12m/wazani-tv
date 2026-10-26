@@ -31,7 +31,7 @@ export function AdSlot({
 }) {
   const { data } = useFetch<AdsResponse>(`/api/ads?slot=${slot}`);
   const ads = data?.ads ?? [];
-  const [dismissed, setDismissed] = React.useState<Set<string>>(React.useMemo(() => new Set(), []));
+  const [dismissed, setDismissed] = React.useState<Set<string>>(() => new Set());
   const [adIndex, setAdIndex] = React.useState(0);
 
   // فلترة الإعلانات غير المغلقة

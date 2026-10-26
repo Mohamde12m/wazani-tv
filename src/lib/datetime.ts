@@ -79,11 +79,18 @@ export function useCountdown(target: string): {
   seconds: number;
   done: boolean;
 } {
-  const [now, setNow] = React.useState(() => Date.now());
+  // استخدم 0 كقيمة ابتدائية لتجنب hydration mismatch في الإنتاج
+  // (Date.now() على الخادم يختلف عن العميل)
+  const [now, setNow] = React.useState(0);
   React.useEffect(() => {
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  // عند now=0 (قبل الـ mount)، أرجع قيمًا محايدة لتجنب الـ mismatch
+  if (now === 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, done: false };
+  }
   const diff = new Date(target).getTime() - now;
   if (diff <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, done: true };

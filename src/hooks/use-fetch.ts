@@ -7,6 +7,7 @@ export function useFetch<T>(url: string, deps: unknown[] = []): {
   loading: boolean;
   error: string | null;
   reload: () => void;
+  refetch: () => void;
 } {
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -39,5 +40,5 @@ export function useFetch<T>(url: string, deps: unknown[] = []): {
      
   }, [url, nonce, ...deps]);
 
-  return { data, loading, error, reload: () => setNonce((n) => n + 1) };
+  return { data, loading, error, reload: () => setNonce((n) => n + 1), refetch: () => setNonce((n) => n + 1) };
 }
