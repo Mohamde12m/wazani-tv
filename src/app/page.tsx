@@ -1,17 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { AppShell } from "@/components/shared/app-shell";
 
 /**
- * نسخة مبسطة جدًا من الصفحة لتحديد سبب React Error #130.
- * إذا عملت هذه النسخة، فالمشكلة في أحد المكونات المستوردة.
- * إذا فشلت أيضًا، فالمشكلة في layout.tsx أو المكتبات.
+ * اختبار 2: إضافة AppShell فقط — لمعرفة إذا كان السبب في AppShell أو AdSlot
  */
 export default function Home() {
   return (
-    <div style={{ padding: 20, fontFamily: "sans-serif", direction: "rtl" }}>
-      <h1 style={{ color: "#0b6e4f" }}>WazaNI TV</h1>
-      <p>الصفحة تعمل! المشكلة في أحد المكونات.</p>
-    </div>
+    <AppShell>
+      <div style={{ padding: 20, fontFamily: "sans-serif", direction: "rtl" }}>
+        <h1 style={{ color: "#0b6e4f" }}>WazaNI TV</h1>
+        <p>اختبار AppShell — إذا ظهرت هذه الصفحة، فالمشكلة في HomeView.</p>
+      </div>
+    </AppShell>
   );
 }
