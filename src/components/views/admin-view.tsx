@@ -2668,13 +2668,29 @@ function emptyAdForm(): AdFormState {
 }
 
 function AdsSection() {
-  const { data, loading, refetch } = useFetch<{ ads: Ad[] }>("/api/ads?all=1");
-  const [editing, setEditing] = React.useState<Ad | null>(null);
-  const [form, setForm] = React.useState<AdFormState>(emptyAdForm);
+  const [ads, setAds] = React.useState<Ad[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [showForm, setShowForm] = React.useState(false);
+  const [editing, setEditing] = React.useState<Ad | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [form, setForm] = React.useState<AdFormState>(emptyAdForm());
 
-  const ads = data?.ads ?? [];
+  const loadAds = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/ads?all=1");
+      const d = await res.json();
+      setAds(d.ads || []);
+    } catch (e) {
+      console.error("فشل تحميل الإعلانات:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadAds();
+  }, [loadAds]);
 
   const startCreate = () => {
     setEditing(null);
@@ -2725,7 +2741,7 @@ function AdsSection() {
       }
       setShowForm(false);
       setEditing(null);
-      refetch();
+      loadAds();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "خطأ في الحفظ");
     } finally {
@@ -2739,7 +2755,7 @@ function AdsSection() {
         method: "PUT",
         body: JSON.stringify({ active: !ad.active }),
       });
-      refetch();
+      loadAds();
       toast.success(ad.active ? "تم تعطيل الإعلان" : "تم تفعيل الإعلان");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "خطأ");
@@ -2750,14 +2766,12 @@ function AdsSection() {
     if (!confirm(`حذف الإعلان "${ad.label || ad.slot}"؟`)) return;
     try {
       await apiFetch(`/api/ads/${ad.id}`, { method: "DELETE" });
-      refetch();
+      loadAds();
       toast.success("تم حذف الإعلان");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "خطأ");
     }
   };
-
-  if (loading) return <SectionLoading />;
 
   // جمّع الإعلانات حسب الموضع
   const bySlot: Record<string, Ad[]> = {};
@@ -2778,133 +2792,97 @@ function AdsSection() {
         }
       />
 
-      {/* بطاقة تعليمية عن شركات الإعلانات */}
+      {/* بطاقة تعليمية */}
       <Card className="border-gold/30 bg-gold/5">
         <CardContent className="space-y-2 p-4 text-xs leading-relaxed text-foreground">
           <div className="flex items-center gap-1.5 font-bold text-gold">
             <Megaphone className="h-4 w-4" />
             شركات الإعلانات الموصى بها
           </div>
-          <p>
-            <strong>1. Google AdSense</strong> — الأكثر موثوقية ودفعات مضمونة. يحتاج
-            موافقة (محتوى جيد + سياسة خصوصية). انسخ كود الوحدة في خانة «كود
-            الإعلان».
-          </p>
-          <p>
-            <strong>2. Adsterra</strong> — موافقة سهلة للمواقع الجديدة، ممتاز
-            للترفيه والرياضة. يدعم العربية + «Social Bar» أسفل الصفحة.
-          </p>
-          <p>
-            <strong>3. Media.net</strong> — شبكة Yahoo/Bing، إعلانات سياقية تدعم
-            العربية.
-          </p>
-          <p className="text-muted-foreground">
-            نصيحة: ابدأ بـ Adsterra (موافقة سريعة)، وتقدّم لـ AdSense بالتوازي.
-            يمكنك لصق كود أي شركة في خانة «كود الإعلان» وسيعمل فورًا.
-          </p>
+          <p><strong>1. Google AdSense</strong> — الأكثر موثوقية. انسخ كود الوحدة في «كود الإعلان».</p>
+          <p><strong>2. Adsterra</strong> — موافقة سهلة للمواقع الجديدة + «Social Bar» أسفل الصفحة.</p>
+          <p><strong>3. Media.net</strong> — شبكة Yahoo/Bing، إعلانات سياقية.</p>
+          <p className="text-muted-foreground">نصيحة: ابدأ بـ Adsterra، لصق الكود في «كود الإعلان» وسيعمل فورًا.</p>
         </CardContent>
       </Card>
 
       {/* قائمة الإعلانات حسب الموضع */}
-      {AD_SLOTS.map((slotInfo) => {
-        const slotAds = bySlot[slotInfo.value] ?? [];
-        return (
-          <Card key={slotInfo.value}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2">
-                  <Megaphone className="h-4 w-4 text-emerald" />
-                  {slotInfo.label}
-                </span>
-                <Badge variant="outline" className="text-[10px]">
-                  {slotAds.length} إعلان
-                </Badge>
-              </CardTitle>
-              <p className="text-[11px] text-muted-foreground">{slotInfo.desc}</p>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {slotAds.length === 0 ? (
-                <p className="py-3 text-center text-xs text-muted-foreground">
-                  لا توجد إعلانات في هذا الموضع
-                </p>
-              ) : (
-                slotAds.map((ad) => (
-                  <div
-                    key={ad.id}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5"
-                  >
-                    {/* معاينة مصغرة */}
-                    <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
-                      {ad.type === "image" && ad.imageUrl ? (
-                        <img
-                          src={ad.imageUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : ad.type === "code" ? (
-                        <Code2 className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                    {/* تفاصيل */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate text-xs font-semibold">
-                          {ad.label || (ad.type === "code" ? "كود إعلان" : "بانر صورة")}
-                        </span>
-                        {!ad.active && (
-                          <Badge variant="secondary" className="text-[9px]">
-                            معطّل
-                          </Badge>
+      {loading ? (
+        <SectionLoading />
+      ) : (
+        AD_SLOTS.map((slotInfo) => {
+          const slotAds = bySlot[slotInfo.value] ?? [];
+          return (
+            <Card key={slotInfo.value}>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <Megaphone className="h-4 w-4 text-emerald" />
+                    {slotInfo.label}
+                  </span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {slotAds.length}
+                  </Badge>
+                </CardTitle>
+                <p className="text-[11px] text-muted-foreground">{slotInfo.desc}</p>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {slotAds.length === 0 ? (
+                  <p className="py-3 text-center text-xs text-muted-foreground">
+                    لا توجد إعلانات في هذا الموضع
+                  </p>
+                ) : (
+                  slotAds.map((ad) => (
+                    <div key={ad.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5">
+                      <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
+                        {ad.type === "image" && ad.imageUrl ? (
+                          <img src={ad.imageUrl} alt="" className="h-full w-full object-cover" />
+                        ) : ad.type === "code" ? (
+                          <Code2 className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
                         )}
                       </div>
-                      {ad.linkUrl && (
-                        <a
-                          href={ad.linkUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 truncate text-[10px] text-emerald hover:underline"
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-xs font-semibold">
+                            {ad.label || (ad.type === "code" ? "كود إعلان" : "بانر صورة")}
+                          </span>
+                          {!ad.active && (
+                            <Badge variant="secondary" className="text-[9px]">معطّل</Badge>
+                          )}
+                        </div>
+                        {ad.linkUrl && (
+                          <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 truncate text-[10px] text-emerald hover:underline">
+                            <ExternalLink className="h-2.5 w-2.5" />
+                            {ad.linkUrl}
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          onClick={() => toggle(ad)}
+                          className={`rounded-md px-2 py-1 text-[10px] font-semibold transition ${
+                            ad.active ? "bg-emerald/10 text-emerald hover:bg-emerald/20" : "bg-muted text-muted-foreground hover:bg-muted/70"
+                          }`}
                         >
-                          <ExternalLink className="h-2.5 w-2.5" />
-                          {ad.linkUrl}
-                        </a>
-                      )}
+                          {ad.active ? "مفعّل" : "معطّل"}
+                        </button>
+                        <button onClick={() => startEdit(ad)} className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="تعديل">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => remove(ad)} className="rounded-md p-1.5 text-destructive hover:bg-destructive/10" aria-label="حذف">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    {/* أزرار */}
-                    <div className="flex shrink-0 items-center gap-1">
-                      <button
-                        onClick={() => toggle(ad)}
-                        className={`rounded-md px-2 py-1 text-[10px] font-semibold transition ${
-                          ad.active
-                            ? "bg-emerald/10 text-emerald hover:bg-emerald/20"
-                            : "bg-muted text-muted-foreground hover:bg-muted/70"
-                        }`}
-                      >
-                        {ad.active ? "مفعّل" : "معطّل"}
-                      </button>
-                      <button
-                        onClick={() => startEdit(ad)}
-                        className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        aria-label="تعديل"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => remove(ad)}
-                        className="rounded-md p-1.5 text-destructive hover:bg-destructive/10"
-                        aria-label="حذف"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          );
+        })
+      )}
 
       {/* نموذج الإضافة/التعديل */}
       {showForm && (
@@ -2926,10 +2904,7 @@ function AdsSection() {
               </Field>
 
               <Field label="الموضع" required>
-                <Select
-                  value={form.slot}
-                  onValueChange={(v) => setForm({ ...form, slot: v as AdSlotName })}
-                >
+                <Select value={form.slot} onValueChange={(v) => setForm({ ...form, slot: v as AdSlotName })}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -2949,9 +2924,7 @@ function AdsSection() {
                     type="button"
                     onClick={() => setForm({ ...form, type: "image" })}
                     className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-semibold transition ${
-                      form.type === "image"
-                        ? "border-emerald bg-emerald/10 text-emerald"
-                        : "border-border bg-card text-muted-foreground"
+                      form.type === "image" ? "border-emerald bg-emerald/10 text-emerald" : "border-border bg-card text-muted-foreground"
                     }`}
                   >
                     <ImageIcon className="h-4 w-4" />
@@ -2961,9 +2934,7 @@ function AdsSection() {
                     type="button"
                     onClick={() => setForm({ ...form, type: "code" })}
                     className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-semibold transition ${
-                      form.type === "code"
-                        ? "border-emerald bg-emerald/10 text-emerald"
-                        : "border-border bg-card text-muted-foreground"
+                      form.type === "code" ? "border-emerald bg-emerald/10 text-emerald" : "border-border bg-card text-muted-foreground"
                     }`}
                   >
                     <Code2 className="h-4 w-4" />
@@ -2991,11 +2962,7 @@ function AdsSection() {
                   </Field>
                 </>
               ) : (
-                <Field
-                  label="كود الإعلان"
-                  required
-                  hint="الصق كود الإعلان الكامل من Google AdSense أو Adsterra (يدعم <script>)"
-                >
+                <Field label="كود الإعلان" required hint="الصق كود الإعلان الكامل من Google AdSense أو Adsterra (يدعم <script>)">
                   <textarea
                     value={form.adCode}
                     onChange={(e) => setForm({ ...form, adCode: e.target.value })}
@@ -3045,7 +3012,6 @@ function AdsSection() {
     </div>
   );
 }
-
 /* ============================================================
    Section navigation
 ============================================================ */
