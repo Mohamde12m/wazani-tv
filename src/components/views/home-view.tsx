@@ -36,7 +36,6 @@ import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
-import { AdBanner } from "@/components/shared/simple-ad";
 import type { Channel, Match } from "@/lib/types";
 
 // Channel with optional createdAt for sorting recent additions
@@ -235,9 +234,6 @@ export function HomeView() {
         </div>
       )}
 
-      {/* إعلان أعلى الصفحة */}
-      <AdBanner slot="home_top" />
-
       {/* 3. Today's important matches */}
       <section>
         <SectionHeader
@@ -316,9 +312,6 @@ export function HomeView() {
           onAll={() => setView({ name: "channels", country: "MA" })}
         />
       )}
-
-      {/* إعلان منتصف الصفحة */}
-      <AdBanner slot="home_middle" />
 
       {/* 8. Gulf channels */}
       {(channelsLoading || gulf.length > 0) && (

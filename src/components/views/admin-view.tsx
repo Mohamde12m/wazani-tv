@@ -3023,7 +3023,6 @@ type SectionKey =
   | "teams"
   | "countries"
   | "categories"
-  | "ads"
   | "reseed";
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -3034,7 +3033,6 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "teams", label: "الفرق", icon: Users },
   { key: "countries", label: "الدول", icon: Globe },
   { key: "categories", label: "التصنيفات", icon: Tags },
-  { key: "ads", label: "الإعلانات", icon: Megaphone },
   { key: "reseed", label: "إعادة البيانات", icon: RefreshCw },
 ];
 
@@ -3119,7 +3117,6 @@ function Dashboard() {
           {section === "teams" && <TeamsSection />}
           {section === "countries" && <CountriesSection />}
           {section === "categories" && <CategoriesSection />}
-          {section === "ads" && <AdsSection />}
           {section === "reseed" && <ReseedSection />}
         </main>
 
