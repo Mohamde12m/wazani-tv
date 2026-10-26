@@ -17,7 +17,6 @@ import {
   SectionHeader,
   EmptyState,
 } from "@/components/shared/section";
-import { AdSlot } from "@/components/shared/ad-slot";
 import type { Channel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -147,9 +146,6 @@ export function PlayerView({ channelId }: { channelId: string }) {
             <Star className="h-5 w-5" fill={fav ? "currentColor" : "none"} />
           </button>
         </div>
-
-        {/* إعلان أسفل المشغل — بعد معلومات القناة */}
-        <AdSlot slot="player_top" />
 
         {/* Unavailable notice */}
         {!available && (
