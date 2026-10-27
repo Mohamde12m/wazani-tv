@@ -101,7 +101,7 @@ export default function DownloadPage() {
             <Zap className="h-6 w-6 shrink-0 text-gold" />
             <div>
               <p className="font-bold">سريع</p>
-              <p className="text-xs text-white/70">يفتح فورًا بدون متصفح</p>
+              <p className="text-xs text-white/70">يفتح مباشرة من شاشتك</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-white/10 p-4 text-white backdrop-blur">

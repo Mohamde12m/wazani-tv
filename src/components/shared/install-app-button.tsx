@@ -243,7 +243,7 @@ export function InstallAppButton() {
 
             <div className="mt-4 flex items-center gap-2 rounded-lg bg-emerald/10 p-3 text-xs text-emerald">
               <Smartphone className="h-4 w-4 shrink-0" />
-              <p>التطبيق سيعمل كأنه تطبيق أصلي — يفتح بسرعة بدون متصفح</p>
+              <p>التطبيق يفتح مباشرة من شاشتك الرئيسية</p>
             </div>
 
             <a

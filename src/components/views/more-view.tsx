@@ -11,7 +11,6 @@ import {
   ShieldAlert,
   Settings,
   Download,
-  Smartphone,
   type LucideIcon,
 } from "lucide-react";
 import { useNav } from "@/stores/nav";
@@ -105,10 +104,6 @@ export function MoreView() {
               </p>
             </div>
             <InstallAppButton />
-          </div>
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald/10 p-2.5 text-[11px] text-emerald">
-            <Smartphone className="h-3.5 w-3.5 shrink-0" />
-            <p>التطبيق يعمل كأنه أصلي — يفتح بدون متصفح + إشعارات المباريات</p>
           </div>
         </div>
       </section>
