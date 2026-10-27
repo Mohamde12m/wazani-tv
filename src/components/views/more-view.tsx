@@ -16,7 +16,6 @@ import { useNav } from "@/stores/nav";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { AppLogo } from "@/components/shared/app-logo";
-import { AdSlot } from "@/components/shared/ad-slot";
 import { toast } from "sonner";
 
 export function MoreView() {
@@ -87,9 +86,6 @@ export function MoreView() {
           onClick={() => setView({ name: "matches" })}
         />
       </section>
-
-      {/* إعلان أعلى المزيد — بعد قائمة التنقل */}
-      <AdSlot slot="more_top" />
 
       {/* Settings */}
       <section className="space-y-3">

@@ -11,6 +11,7 @@ import {
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
+import { useWatchHistory } from "@/stores/watch-history";
 import { ChannelLogo } from "@/components/shared/channel-logo";
 import { ChannelCard } from "@/components/shared/channel-card";
 import {
@@ -40,6 +41,7 @@ export function PlayerView({ channelId }: { channelId: string }) {
   const setView = useNav((s) => s.setView);
   const has = useFavorites((s) => s.has);
   const toggle = useFavorites((s) => s.toggle);
+  const addToHistory = useWatchHistory((s) => s.add);
   const { data, loading } = useFetch<ChannelsResponse>("/api/channels");
 
   const channels = data?.channels ?? [];
@@ -47,6 +49,13 @@ export function PlayerView({ channelId }: { channelId: string }) {
     () => channels.find((c) => c.id === channelId) ?? null,
     [channels, channelId],
   );
+
+  // سجّل القناة في سجل المشاهدة عند فتحها
+  React.useEffect(() => {
+    if (channel) {
+      addToHistory(channel);
+    }
+  }, [channel, addToHistory]);
 
   const fav = channel ? has("channel", channel.id) : false;
 

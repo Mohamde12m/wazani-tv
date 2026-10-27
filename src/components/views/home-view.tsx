@@ -36,6 +36,9 @@ import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
+import { useWatchHistory } from "@/stores/watch-history";
+import { History, X } from "lucide-react";
+import { toast } from "sonner";
 import type { Channel, Match } from "@/lib/types";
 
 // Channel with optional createdAt for sorting recent additions
@@ -58,11 +61,19 @@ const ENTERTAINMENT_SLUGS = new Set(["entertainment", "documentary", "movies"]);
 
 export function HomeView() {
   const setView = useNav((s) => s.setView);
+  const watchHistory = useWatchHistory((s) => s.items);
+  const loadHistory = useWatchHistory((s) => s.load);
+  const clearHistory = useWatchHistory((s) => s.clear);
 
   const { data: channelsData, loading: channelsLoading } =
     useFetch<ChannelsResponse>("/api/channels");
   const { data: matchesData, loading: matchesLoading } =
     useFetch<MatchesResponse>("/api/matches");
+
+  // حمّل سجل المشاهدة عند بدء التطبيق
+  React.useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const channels = channelsData?.channels ?? [];
   const matches = matchesData?.matches ?? [];
@@ -223,6 +234,65 @@ export function HomeView() {
           بحث
         </span>
       </button>
+
+      {/* 1.5. سجل المشاهدة — آخر القنوات التي شاهدتها */}
+      {watchHistory.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-gold">
+                <History className="h-5 w-5" />
+              </span>
+              <h2 className="text-base font-extrabold text-foreground sm:text-lg">
+                تابع المشاهدة
+              </h2>
+            </div>
+            <button
+              onClick={() => {
+                if (confirm("مسح سجل المشاهدة؟")) {
+                  clearHistory();
+                  toast.success("تم مسح السجل");
+                }
+              }}
+              className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+              aria-label="مسح السجل"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+            {watchHistory.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setView({ name: "player", channelId: item.id })}
+                className="group relative w-[140px] shrink-0 overflow-hidden rounded-2xl border border-border bg-card text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+              >
+                <div className="flex h-20 items-center justify-center bg-gradient-to-br from-emerald-dark to-emerald">
+                  {item.logo ? (
+                    <img
+                      src={item.logo.startsWith("http") ? `/api/img?url=${encodeURIComponent(item.logo)}` : item.logo}
+                      alt={item.nameAr || item.name}
+                      className="h-12 w-12 rounded-xl object-cover shadow-md"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-white">
+                      {(item.nameAr || item.name).charAt(0)}
+                    </span>
+                  )}
+                </div>
+                <div className="p-2">
+                  <div className="truncate text-xs font-bold text-foreground">
+                    {item.nameAr || item.name}
+                  </div>
+                  <div className="truncate text-[10px] text-muted-foreground">
+                    {item.country?.name || "عربية"} · {item.category?.name || "عامة"}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 2. Featured match hero — معطل مؤقتًا للتشخيص */}
       {featuredMatch && (
