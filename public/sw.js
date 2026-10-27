@@ -1,17 +1,17 @@
-// WazaNI TV Service Worker
+// WazaNI TV Service Worker — نسخة احترافية للتطبيق
 // يجعل التطبيق PWA: قابل للتثبيت + يعمل بلا اتصال (آخر بيانات)
-//
-// استراتيجية ذكية:
-// - HTML (navigation): Network First + fallback للكاش
-// - Next.js chunks (_next/static): Network First دائمًا (لتجنب كاش قديم)
-// - API: Network First + fallback للكاش
-// - أصول ثابتة (أيقونات/manifest): Cache First
 
-const CACHE_NAME = "wazani-v3";
+const CACHE_NAME = "wazani-tv-v1";
+const STATIC_ASSETS = [
+  "/",
+  "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-1024.png",
+  "/wazani-logo.png",
+];
 
-const STATIC_ASSETS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
-
-// تثبيت: خزّن الأصول الثابتة فقط (لا نخزن "/" لتجنب كاش HTML قديم)
+// تثبيت: خزّن الأصول الثابتة
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
@@ -21,7 +21,7 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// تفعيل: امسح كل الكاش القديم فورًا (v1, v2, وأي كاش سابق)
+// تفعيل: امسح كل الكاش القديم فورًا
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
@@ -33,7 +33,6 @@ self.addEventListener("activate", (event) => {
       )
       .then(() => self.clients.claim())
       .then(() =>
-        // أبلغ كل العملاء بضرورة إعادة التحميل لالتقاط SW الجديد
         self.clients.matchAll({ type: "window" }).then((clients) =>
           clients.forEach((client) =>
             client.postMessage({ type: "SW_UPDATED" })
@@ -47,11 +46,11 @@ self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") self.skipWaiting();
 });
 
-// استراتيجية:
+// استراتيجية ذكية:
 // - navigation (HTML): Network First مع fallback للكاش
-// - _next/static chunks: Network First دائمًا (لتجنب كاش قديم أثناء التطوير)
+// - _next/static chunks: Network First دائمًا
 // - API requests: Network First مع fallback للكاش
-// - أصول ثابتة (أيقونات): Cache First
+// - أصول ثابتة (أيقونات): Cache First مع تحديث خلفي
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
@@ -59,7 +58,7 @@ self.addEventListener("fetch", (event) => {
   // تجاهل الطلبات غير GET
   if (req.method !== "GET") return;
 
-  // تجاهل طلبات streaming/proxy (تتطلب اتصال حي)
+  // تجاهل طلبات streaming/proxy
   if (
     url.pathname.startsWith("/api/stream") ||
     url.pathname.startsWith("/api/img")
@@ -86,13 +85,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Next.js chunks و HMR — Network First دائمًا (لا تخزن كاش قديم)
+  // Next.js chunks و HMR — Network First
   if (
     url.pathname.startsWith("/_next/") ||
     url.pathname.includes("/__nextjs")
   ) {
     event.respondWith(
-      fetch(req).catch(() => caches.match(req).then((c) => c || Response.error()))
+      fetch(req).catch(() =>
+        caches.match(req).then((c) => c || Response.error())
+      )
     );
     return;
   }
@@ -114,7 +115,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // الأصول الثابتة (أيقونات/manifest) — Cache First مع تحديث خلفي
+  // الأصول الثابتة — Cache First مع تحديث خلفي
   event.respondWith(
     caches.match(req).then((cached) => {
       const fetchPromise = fetch(req)
@@ -130,6 +131,19 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
       return cached || fetchPromise;
+    })
+  );
+});
+
+// دعم الإشعارات المحلية (Local Notifications)
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clients) => {
+      if (clients.length > 0) {
+        return clients[0].focus();
+      }
+      return self.clients.openWindow("/");
     })
   );
 });

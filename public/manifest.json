@@ -7,10 +7,12 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#faf8f1",
+  "background_color": "#0b6e4f",
   "theme_color": "#0b6e4f",
   "categories": ["entertainment", "sports", "news"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",
@@ -35,6 +37,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -42,13 +50,41 @@
       "name": "القنوات",
       "short_name": "قنوات",
       "description": "تصفّح كل القنوات",
-      "url": "/?view=channels"
+      "url": "/?view=channels",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "المباريات",
       "short_name": "مباريات",
       "description": "جدول المباريات",
-      "url": "/?view=matches"
+      "url": "/?view=matches",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "المفضلة",
+      "short_name": "مفضلة",
+      "description": "قنواتك ومبارياتك المفضلة",
+      "url": "/?view=favorites",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
-  ]
+  ],
+  "screenshots": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
