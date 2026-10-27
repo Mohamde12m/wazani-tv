@@ -17,6 +17,7 @@ const updateSchema = z.object({
     "favorites_top",
     "player_top",
     "more_top",
+    "interstitial",
   ]).optional(),
   label: z.string().optional(),
   type: z.enum(["image", "code"]).optional(),

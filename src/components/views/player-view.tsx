@@ -12,6 +12,7 @@ import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
 import { useWatchHistory } from "@/stores/watch-history";
+import { AdContainer } from "@/components/shared/ad-container";
 import { ChannelLogo } from "@/components/shared/channel-logo";
 import { ChannelCard } from "@/components/shared/channel-card";
 import {
@@ -155,6 +156,9 @@ export function PlayerView({ channelId }: { channelId: string }) {
             <Star className="h-5 w-5" fill={fav ? "currentColor" : "none"} />
           </button>
         </div>
+
+        {/* إعلان HilltopAds — أسفل المشغل */}
+        <AdContainer slot="player_top" />
 
         {/* Unavailable notice */}
         {!available && (
