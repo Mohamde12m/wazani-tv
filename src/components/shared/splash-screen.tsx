@@ -16,6 +16,28 @@ import * as React from "react";
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const [progress, setProgress] = React.useState(0);
   const [fadeOut, setFadeOut] = React.useState(false);
+  const [particles, setParticles] = React.useState<Array<{
+    width: string;
+    height: string;
+    left: string;
+    top: string;
+    animation: string;
+    animationDelay: string;
+  }>>([]);
+
+  // أنشئ الجسيمات في useEffect (بعد mount) لتجنب hydration mismatch
+  React.useEffect(() => {
+    setParticles(
+      Array.from({ length: 20 }).map(() => ({
+        width: `${Math.random() * 6 + 2}px`,
+        height: `${Math.random() * 6 + 2}px`,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
+        animationDelay: `${Math.random() * 2}s`,
+      }))
+    );
+  }, []);
 
   React.useEffect(() => {
     // تحديث شريط التحميل
@@ -45,20 +67,13 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         background: "linear-gradient(135deg, #06140f 0%, #0b2820 50%, #06140f 100%)",
       }}
     >
-      {/* ===== جسيمات متحركة (Particles) ===== */}
+      {/* ===== جسيمات متحركة (Particles) — تُنشأ بعد mount لتجنب hydration mismatch ===== */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {particles.map((p, i) => (
           <div
             key={i}
             className="absolute rounded-full bg-emerald-400/30"
-            style={{
-              width: `${Math.random() * 6 + 2}px`,
-              height: `${Math.random() * 6 + 2}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
+            style={p}
           />
         ))}
       </div>
