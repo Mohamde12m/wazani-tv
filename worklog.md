@@ -1414,3 +1414,21 @@ Stage Summary:
 - المشروع مرفوع على GitHub: https://github.com/Mohamde12m/wazani-tv
 - 187 ملف، تاريخ نظيف (commit واحد)، بدون بيانات حساسة.
 - الخطوة التالية: نشر على Vercel + إضافة متغيرات البيئة.
+
+---
+Task ID: hilltopads-verify
+Agent: main
+Task: إعداد ملف التحقق من HilltopAds + وسم meta referrer
+
+Work Log:
+- تحليل لقطة الشاشة من لوحة تحكم HilltopAds: يطلب الموقع ملف تحقق باسم 32215b1b74a1f0711564.txt في جذر النطاق + وسم meta referrer
+- إنشاء ملف التحقق public/32215b1b74a1f0711564.txt يحتوي على التوكن 32215b1b74a1f0711564
+- إضافة وسم <meta name="referrer" content="no-referrer-when-downgrade" /> إلى src/app/layout.tsx في <head>
+- التحقق: curl http://localhost:3000/32215b1b74a1f0711564.txt → HTTP 200, text/plain, 21 bytes
+- التحقق: curl http://localhost:3000/ → يحتوي على وسم meta referrer
+- bun run lint: نظيف بدون أخطاء
+
+Stage Summary:
+- ملف التحقق أصبح يُخدم من جذر النطاق عبر مجلد public/ (يعمل على Vercel تلقائيًا)
+- وسم meta referrer مضاف لتحسين تتبع الإحالات من HilltopAds
+- يحتاج المستخدم: git push → redeploy على Vercel → الضغط على زر التحقق في لوحة HilltopAds

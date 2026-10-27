@@ -55,6 +55,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="WazaNI TV" />
+        <meta name="referrer" content="no-referrer-when-downgrade" />
       </head>
       <body
         className={`${cairo.variable} font-sans antialiased bg-background text-foreground`}
