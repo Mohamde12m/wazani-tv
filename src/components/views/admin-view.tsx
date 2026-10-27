@@ -3047,10 +3047,7 @@ function NotifySection() {
 
   return (
     <div className="space-y-4">
-      <SectionTitle
-        title="إرسال إشعار فوري"
-        icon={<Megaphone className="h-5 w-5" />}
-      />
+      <h2 className="text-lg font-bold text-foreground">إرسال إشعار فوري</h2>
 
       <Card>
         <CardHeader>
@@ -3075,22 +3072,11 @@ function NotifySection() {
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             />
           </Field>
-          <div className="flex items-center gap-2 rounded-lg bg-emerald/10 p-3 text-xs text-emerald">
-            <Megaphone className="h-4 w-4 shrink-0" />
-            <p>الإشعار يصل لكل المشتركين حتى لو التطبيق مغلق — عبر OneSignal</p>
+          <div className="rounded-lg bg-emerald/10 p-3 text-xs text-emerald">
+            الإشعار يصل لكل المشتركين حتى لو التطبيق مغلق — عبر OneSignal
           </div>
-          <Button onClick={send} disabled={sending} className="w-full gap-2">
-            {sending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                جاري الإرسال...
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                إرسال الإشعار
-              </>
-            )}
+          <Button onClick={send} disabled={sending} className="w-full">
+            {sending ? "جاري الإرسال..." : "إرسال الإشعار"}
           </Button>
         </CardContent>
       </Card>
