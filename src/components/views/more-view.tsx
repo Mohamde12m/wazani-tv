@@ -10,12 +10,15 @@ import {
   Moon,
   ShieldAlert,
   Settings,
+  Download,
+  Smartphone,
   type LucideIcon,
 } from "lucide-react";
 import { useNav } from "@/stores/nav";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { AppLogo } from "@/components/shared/app-logo";
+import { InstallAppButton } from "@/components/shared/install-app-button";
 import { toast } from "sonner";
 
 export function MoreView() {
@@ -85,6 +88,29 @@ export function MoreView() {
           subtitle="مباريات اليوم والأسبوع القادم"
           onClick={() => setView({ name: "matches" })}
         />
+      </section>
+
+      {/* App install section — زر تثبيت التطبيق */}
+      <section className="space-y-3">
+        <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">التطبيق</h2>
+        <div className="rounded-2xl border border-emerald/30 bg-gradient-to-br from-emerald/5 to-gold/5 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald to-emerald-dark text-white shadow-md">
+              <Download className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground">تثبيت التطبيق</p>
+              <p className="text-[11px] text-muted-foreground">
+                ثبّت WazaNI TV على شاشتك الرئيسية
+              </p>
+            </div>
+            <InstallAppButton />
+          </div>
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald/10 p-2.5 text-[11px] text-emerald">
+            <Smartphone className="h-3.5 w-3.5 shrink-0" />
+            <p>التطبيق يعمل كأنه أصلي — يفتح بدون متصفح + إشعارات المباريات</p>
+          </div>
+        </div>
       </section>
 
       {/* Settings */}

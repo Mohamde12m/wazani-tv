@@ -37,7 +37,6 @@ import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
 import { useWatchHistory } from "@/stores/watch-history";
-import { InstallAppButton } from "@/components/shared/install-app-button";
 import { History, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Channel, Match } from "@/lib/types";
@@ -193,9 +192,6 @@ export function HomeView() {
 
           {/* Spacer */}
           <div className="flex-1" />
-
-          {/* زر تثبيت التطبيق — يظهر تلقائيًا على الأندرويد و iOS */}
-          <InstallAppButton />
 
           {/* Search button (left side) */}
           <button
