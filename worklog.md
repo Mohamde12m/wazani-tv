@@ -1432,3 +1432,21 @@ Stage Summary:
 - ملف التحقق أصبح يُخدم من جذر النطاق عبر مجلد public/ (يعمل على Vercel تلقائيًا)
 - وسم meta referrer مضاف لتحسين تتبع الإحالات من HilltopAds
 - يحتاج المستخدم: git push → redeploy على Vercel → الضغط على زر التحقق في لوحة HilltopAds
+
+---
+Task ID: hilltopads-deploy
+Agent: main
+Task: نشر كود HilltopAds Video Slider على موقع WazaNI TV
+
+Work Log:
+- تأكد من تحميل الكود في DB عبر API (sticky_bottom slot)
+- إصلاح خطأين حرجين: AdContainer و InterstitialAd كانا يقرآن `ad.code` بدلاً من `ad.adCode`
+- نشر الإصلاحات على Vercel (3 deploys: b0ae0ba, d740a10, f4e363e)
+- اختبار في المتصفح: السكربت يُحمّل على الصفحة ✅
+- لكن URL السكربت يرجع HTTP 404 من peacefulbicycle.com
+- السبب: المنطقة (Zone) جديدة جدًا، HilltopAds يحتاج 10-30 دقيقة لنشرها على CDN
+
+Stage Summary:
+- الكود مخزّن صحيح في DB
+- السكربت يُحمّل في الصفحة لكن المحتوى 404 (المنطقة جديدة)
+- يحتاج المستخدم: انتظار 10-30 دقيقة + إنشاء منطقة Popunder إضافية
