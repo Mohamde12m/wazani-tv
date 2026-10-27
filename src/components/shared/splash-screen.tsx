@@ -16,28 +16,6 @@ import * as React from "react";
 export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const [progress, setProgress] = React.useState(0);
   const [fadeOut, setFadeOut] = React.useState(false);
-  const [particles, setParticles] = React.useState<Array<{
-    width: string;
-    height: string;
-    left: string;
-    top: string;
-    animation: string;
-    animationDelay: string;
-  }>>([]);
-
-  // أنشئ الجسيمات في useEffect (بعد mount) لتجنب hydration mismatch
-  React.useEffect(() => {
-    setParticles(
-      Array.from({ length: 20 }).map(() => ({
-        width: `${Math.random() * 6 + 2}px`,
-        height: `${Math.random() * 6 + 2}px`,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
-        animationDelay: `${Math.random() * 2}s`,
-      }))
-    );
-  }, []);
 
   React.useEffect(() => {
     // تحديث شريط التحميل
@@ -67,15 +45,16 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         background: "linear-gradient(135deg, #06140f 0%, #0b2820 50%, #06140f 100%)",
       }}
     >
-      {/* ===== جسيمات متحركة (Particles) — تُنشأ بعد mount لتجنب hydration mismatch ===== */}
+      {/* ===== جسيمات متحركة (Particles) — CSS فقط (لا Math.random) لتجنب hydration mismatch ===== */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {particles.map((p, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-emerald-400/30"
-            style={p}
-          />
-        ))}
+        <div className="splash-particle splash-particle-1" />
+        <div className="splash-particle splash-particle-2" />
+        <div className="splash-particle splash-particle-3" />
+        <div className="splash-particle splash-particle-4" />
+        <div className="splash-particle splash-particle-5" />
+        <div className="splash-particle splash-particle-6" />
+        <div className="splash-particle splash-particle-7" />
+        <div className="splash-particle splash-particle-8" />
       </div>
 
       {/* ===== تدرج خلفي متحرك ===== */}
@@ -167,6 +146,21 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           0% { transform: translateY(20px); opacity: 0; }
           100% { transform: translateY(0); opacity: 1; }
         }
+        /* جسيمات CSS ثابتة (لا Math.random) لتجنب hydration mismatch */
+        .splash-particle {
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(16, 185, 129, 0.3);
+          animation: float 4s ease-in-out infinite;
+        }
+        .splash-particle-1 { width: 4px; height: 4px; left: 10%; top: 20%; animation-delay: 0s; }
+        .splash-particle-2 { width: 6px; height: 6px; left: 80%; top: 30%; animation-delay: 0.5s; }
+        .splash-particle-3 { width: 3px; height: 3px; left: 30%; top: 70%; animation-delay: 1s; }
+        .splash-particle-4 { width: 5px; height: 5px; left: 60%; top: 80%; animation-delay: 1.5s; }
+        .splash-particle-5 { width: 4px; height: 4px; left: 90%; top: 60%; animation-delay: 0.3s; }
+        .splash-particle-6 { width: 6px; height: 6px; left: 20%; top: 50%; animation-delay: 0.8s; }
+        .splash-particle-7 { width: 3px; height: 3px; left: 50%; top: 15%; animation-delay: 1.2s; }
+        .splash-particle-8 { width: 5px; height: 5px; left: 70%; top: 90%; animation-delay: 1.8s; }
       `}</style>
     </div>
   );

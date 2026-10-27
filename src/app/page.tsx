@@ -37,8 +37,11 @@ export default function Home() {
     startReminderChecker();
   }, []);
 
-  // أظهر شاشة البداية فقط عند فتح التطبيق (وليس عند التنقل)
+  // أظهر شاشة البداية فقط في المتصفح (وليس في SSR) لتجنب hydration mismatch
+  // + فقط عند فتح التطبيق (وليس عند التنقل)
+  const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
+    setMounted(true);
     // تحقق إذا تم عرض شاشة البداية في هذه الجلسة
     const splashShown = sessionStorage.getItem("splash_shown");
     if (splashShown === "true") {
@@ -48,9 +51,12 @@ export default function Home() {
     }
   }, []);
 
+  // لا تعرض SplashScreen في SSR (mounted=false) — فقط بعد mount في المتصفح
+  const shouldShowSplash = mounted && showSplash;
+
   return (
     <>
-      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      {shouldShowSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       <AppShell>
         {!isMain && <TopHeader title={meta?.title} subtitle={meta?.subtitle} showBack />}
         {view.name === "home" && <HomeView />}
