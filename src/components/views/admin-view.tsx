@@ -2788,8 +2788,7 @@ function AdsSection() {
       <SectionTitle
         title="إدارة الإعلانات"
         action={
-          <Button size="sm" onClick={startCreate} className="gap-1.5">
-            <Plus className="h-4 w-4" />
+          <Button size="sm" onClick={startCreate}>
             إعلان جديد
           </Button>
         }
@@ -2925,21 +2924,19 @@ function AdsSection() {
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, type: "image" })}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-semibold transition ${
+                    className={`rounded-lg border p-2.5 text-xs font-semibold transition ${
                       form.type === "image" ? "border-emerald bg-emerald/10 text-emerald" : "border-border bg-card text-muted-foreground"
                     }`}
                   >
-                    <ImageIcon className="h-4 w-4" />
                     صورة + رابط
                   </button>
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, type: "code" })}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-xs font-semibold transition ${
+                    className={`rounded-lg border p-2.5 text-xs font-semibold transition ${
                       form.type === "code" ? "border-emerald bg-emerald/10 text-emerald" : "border-border bg-card text-muted-foreground"
                     }`}
                   >
-                    <Code2 className="h-4 w-4" />
                     كود جاهز
                   </button>
                 </div>
