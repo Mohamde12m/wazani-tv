@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, getCurrentAdmin } from "@/lib/auth";
 import { cache, CACHE_TTL } from "@/lib/cache";
+import { notifyNewChannel } from "@/lib/onesignal";
 
 export async function GET() {
   const admin = await getCurrentAdmin();
@@ -42,6 +43,10 @@ export async function POST(req: NextRequest) {
     const channel = await db.channel.create({ data });
     // أمسح الكاش ليعكس التحديث
     cache.invalidatePrefix("channels:");
+    // أرسل إشعارًا فوريًا لكل المشتركين
+    notifyNewChannel(channel.nameAr || channel.name).catch(() => {
+      // تجاهل أخطاء الإشعارات — لا تعرقل إنشاء القناة
+    });
     return NextResponse.json({ channel });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;

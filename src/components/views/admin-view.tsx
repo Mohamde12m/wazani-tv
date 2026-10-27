@@ -30,6 +30,8 @@ import {
   ExternalLink,
   Code2,
   Image as ImageIcon,
+  Bell,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -3015,6 +3017,109 @@ function AdsSection() {
   );
 }
 /* ============================================================
+   Notify section — إرسال إشعارات فورية للمستخدمين
+============================================================ */
+function NotifySection() {
+  const [title, setTitle] = React.useState("");
+  const [message, setMessage] = React.useState("");
+  const [sending, setSending] = React.useState(false);
+
+  const send = async () => {
+    if (!title.trim() || !message.trim()) {
+      toast.error("اكتب العنوان والرسالة");
+      return;
+    }
+    setSending(true);
+    try {
+      await apiFetch("/api/notify", {
+        method: "POST",
+        body: JSON.stringify({ title, message }),
+      });
+      toast.success("تم إرسال الإشعار لكل المشتركين");
+      setTitle("");
+      setMessage("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "خطأ في الإرسال");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <SectionTitle
+        title="إرسال إشعار فوري"
+        icon={<Bell className="h-5 w-5" />}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Send className="h-5 w-5 text-emerald" />
+            إشعار جديد
+          </CardTitle>
+          <CardDescription>
+            سيصل الإشعار فورًا لكل المستخدمين المشتركين في الإشعارات
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Field label="عنوان الإشعار" required>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="مثال: مباراة جديدة على WazaNI TV"
+              maxLength={50}
+            />
+          </Field>
+          <Field label="نص الإشعار" required>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="مثال: لا تفوّت مباراة المغرب ضد الجزائر اليوم على الساعة 20:00"
+              rows={4}
+              maxLength={200}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+          </Field>
+          <div className="flex items-center gap-2 rounded-lg bg-emerald/10 p-3 text-xs text-emerald">
+            <Bell className="h-4 w-4 shrink-0" />
+            <p>الإشعار يصل لكل المشتركين حتى لو التطبيق مغلق — عبر OneSignal</p>
+          </div>
+          <Button onClick={send} disabled={sending} className="w-full gap-2">
+            {sending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                جاري الإرسال...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                إرسال الإشعار
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="border-gold/30 bg-gold/5">
+        <CardContent className="p-4 text-xs leading-relaxed text-foreground">
+          <div className="mb-2 flex items-center gap-1.5 font-bold text-gold">
+            <Bell className="h-4 w-4" />
+            ملاحظات
+          </div>
+          <ul className="list-disc space-y-1 pr-4 text-muted-foreground">
+            <li>الإشعارات التلقائية تُرسل عند إضافة قناة أو مباراة جديدة</li>
+            <li>المستخدمون يجب أن يوافقوا على الإشعارات أولًا</li>
+            <li>يصل الإشعار حتى لو التطبيق مغلق (Web Push)</li>
+            <li>الإشعار يحتوي على رابط يفتح الموقع عند النقر</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
    Section navigation
 ============================================================ */
 type SectionKey =
@@ -3025,6 +3130,7 @@ type SectionKey =
   | "teams"
   | "countries"
   | "categories"
+  | "notify"
   | "reseed";
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -3035,6 +3141,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "teams", label: "الفرق", icon: Users },
   { key: "countries", label: "الدول", icon: Globe },
   { key: "categories", label: "التصنيفات", icon: Tags },
+  { key: "notify", label: "الإشعارات", icon: Bell },
   { key: "reseed", label: "إعادة البيانات", icon: RefreshCw },
 ];
 
@@ -3119,6 +3226,7 @@ function Dashboard() {
           {section === "teams" && <TeamsSection />}
           {section === "countries" && <CountriesSection />}
           {section === "categories" && <CategoriesSection />}
+          {section === "notify" && <NotifySection />}
           {section === "reseed" && <ReseedSection />}
         </main>
 

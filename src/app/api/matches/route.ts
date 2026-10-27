@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireAdmin, getCurrentAdmin } from "@/lib/auth";
 import { cache, CACHE_TTL } from "@/lib/cache";
 import { applyComputedStatus } from "@/lib/match-status";
+import { notifyNewMatch } from "@/lib/onesignal";
 
 export async function GET() {
   const admin = await getCurrentAdmin();
@@ -49,6 +50,10 @@ export async function POST(req: NextRequest) {
     const data = createSchema.parse(body);
     const match = await db.match.create({ data: { ...data, kickoff: new Date(data.kickoff) } });
     cache.invalidatePrefix("matches:");
+    // أرسل إشعارًا فوريًا لكل المشتركين
+    notifyNewMatch(match.homeName, match.awayName).catch(() => {
+      // تجاهل أخطاء الإشعارات — لا تعرقل إنشاء المباراة
+    });
     return NextResponse.json({ match });
   } catch (e: unknown) {
     const status = e instanceof Response ? 401 : 400;
