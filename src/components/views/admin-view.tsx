@@ -3049,18 +3049,12 @@ function NotifySection() {
     <div className="space-y-4">
       <SectionTitle
         title="إرسال إشعار فوري"
-        icon={<Bell className="h-5 w-5" />}
+        icon={<Megaphone className="h-5 w-5" />}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Send className="h-5 w-5 text-emerald" />
-            إشعار جديد
-          </CardTitle>
-          <CardDescription>
-            سيصل الإشعار فورًا لكل المستخدمين المشتركين في الإشعارات
-          </CardDescription>
+          <CardTitle className="text-base">إشعار جديد</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <Field label="عنوان الإشعار" required>
@@ -3082,7 +3076,7 @@ function NotifySection() {
             />
           </Field>
           <div className="flex items-center gap-2 rounded-lg bg-emerald/10 p-3 text-xs text-emerald">
-            <Bell className="h-4 w-4 shrink-0" />
+            <Megaphone className="h-4 w-4 shrink-0" />
             <p>الإشعار يصل لكل المشتركين حتى لو التطبيق مغلق — عبر OneSignal</p>
           </div>
           <Button onClick={send} disabled={sending} className="w-full gap-2">
@@ -3093,7 +3087,7 @@ function NotifySection() {
               </>
             ) : (
               <>
-                <Send className="h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 إرسال الإشعار
               </>
             )}
@@ -3103,10 +3097,7 @@ function NotifySection() {
 
       <Card className="border-gold/30 bg-gold/5">
         <CardContent className="p-4 text-xs leading-relaxed text-foreground">
-          <div className="mb-2 flex items-center gap-1.5 font-bold text-gold">
-            <Bell className="h-4 w-4" />
-            ملاحظات
-          </div>
+          <div className="mb-2 font-bold text-gold">ملاحظات</div>
           <ul className="list-disc space-y-1 pr-4 text-muted-foreground">
             <li>الإشعارات التلقائية تُرسل عند إضافة قناة أو مباراة جديدة</li>
             <li>المستخدمون يجب أن يوافقوا على الإشعارات أولًا</li>
