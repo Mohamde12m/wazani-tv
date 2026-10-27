@@ -1450,3 +1450,25 @@ Stage Summary:
 - الكود مخزّن صحيح في DB
 - السكربت يُحمّل في الصفحة لكن المحتوى 404 (المنطقة جديدة)
 - يحتاج المستخدم: انتظار 10-30 دقيقة + إنشاء منطقة Popunder إضافية
+
+---
+Task ID: hilltopads-popunder
+Agent: main
+Task: إضافة Popunder من HilltopAds + إصلاح نظام الإعلانات
+
+Work Log:
+- المستخدم أنشأ منطقة Popunder في HilltopAds وأعطاني الرابط
+- إضافة slot "popunder" إلى schema في api/ads/route.ts و api/ads/[id]/route.ts
+- إنشاء PopunderLoader component (invisible, يحمّل السكربت في <head>)
+- إضافة PopunderLoader إلى app-shell ليُحمّل على كل الصفحات
+- نشر الإصلاحات على Vercel (commit 4c818a7)
+- إضافة كود Popunder عبر API (id: cmvrb3rv70000jy0827sitgxh)
+- اختبار في المتصفح: السكربت يُحمّل ✅، فتح صفحة الإعلان ✅ (HTTP 200)، إرسال tracking ✅
+- كشف أن Popunder يعمل: يفتح تبويب جديد في الخلفية عند نقرة المستخدم
+
+Stage Summary:
+- Popunder مُفعّل ويعمل على موقع wazani-tv-live.vercel.app
+- كود HilltopAds مخزّن في DB (slot=popunder)
+- السكربت يُحمّل على كل الصفحات عبر PopunderLoader
+- عند نقرة المستخدم، يفتح إعلان في تبويب خلفي
+- Video Slider (sticky_bottom) لا يزال 404 — يحتاج وقت إضافي للنشر على CDN
