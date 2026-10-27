@@ -1,0 +1,144 @@
+// WazaNI TV - Prisma schema
+// Arabic TV channels & football matches platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Admin users with server-side credentials. Regular visitors never become admins.
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("admin") // "admin" | "superadmin"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Country {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  code      String    @unique // ISO-ish short code, used as key
+  flag      String?   // emoji or image url
+  order     Int       @default(0)
+  visible   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  channels  Channel[]
+}
+
+/// Channel classification (sports, news, entertainment, religious, documentary...)
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  icon      String?   // lucide icon name
+  order     Int       @default(0)
+  visible   Boolean   @default(true)
+  isSports  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  channels  Channel[]
+}
+
+model Channel {
+  id         String    @id @default(cuid())
+  name       String
+  nameAr     String?
+  logo       String?
+  countryId  String?
+  country    Country?  @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  streamUrl  String?
+  streamType String    @default("hls") // "hls" | "mp4" | "youtube" | "none"
+  active     Boolean   @default(true)
+  featured   Boolean   @default(false)
+  order      Int       @default(0)
+  verified   Boolean   @default(false) // stream confirmed working
+  demo       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  favorites  Favorite[]
+  matches    Match[]   @relation("Broadcaster")
+}
+
+model Tournament {
+  id        String   @id @default(cuid())
+  name      String
+  nameAr    String?
+  logo      String?
+  country   String?
+  type      String   @default("league") // "league" | "cup" | "international"
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  teams     Team[]
+  matches   Match[]
+}
+
+model Team {
+  id           String      @id @default(cuid())
+  name         String
+  nameAr       String?
+  logo         String?
+  country      String?
+  tournamentId String?
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+  homeMatches  Match[]     @relation("HomeTeam")
+  awayMatches  Match[]     @relation("AwayTeam")
+}
+
+model Match {
+  id           String      @id @default(cuid())
+  homeTeamId   String?
+  awayTeamId   String?
+  homeTeam     Team?       @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: SetNull)
+  awayTeam     Team?       @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: SetNull)
+  homeName     String // denormalized for resilience / demo
+  awayName     String
+  homeLogo     String?
+  awayLogo     String?
+  tournamentId String?
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  tournamentName String?
+  kickoff      DateTime
+  status       String      @default("scheduled") // scheduled | live | finished | postponed
+  homeScore    Int?
+  awayScore    Int?
+  stadium      String?
+  channelId    String?
+  channel      Channel?    @relation("Broadcaster", fields: [channelId], references: [id], onDelete: SetNull)
+  featured     Boolean     @default(false)
+  demo         Boolean     @default(true) // mark seed/demo data
+  reminder     Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  favorites    Favorite[]
+}
+
+/// User favorites (regular visitors, keyed by anonymous session id stored in localStorage)
+model Favorite {
+  id        String   @id @default(cuid())
+  sessionId String
+  kind      String // "channel" | "match" | "tournament" | "team"
+  refId     String
+  channel   Channel?  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String?
+  match     Match?    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId   String?
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, kind, refId])
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
