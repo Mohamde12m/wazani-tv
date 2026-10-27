@@ -21,7 +21,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
@@ -33,7 +33,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -51,40 +51,21 @@
       "short_name": "قنوات",
       "description": "تصفّح كل القنوات",
       "url": "/?view=channels",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "المباريات",
       "short_name": "مباريات",
       "description": "جدول المباريات",
       "url": "/?view=matches",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "المفضلة",
       "short_name": "مفضلة",
       "description": "قنواتك ومبارياتك المفضلة",
       "url": "/?view=favorites",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
-  ],
-  "screenshots": [],
-  "edge_side_panel": {
-    "preferred_width": 400
-  }
+  ]
 }
