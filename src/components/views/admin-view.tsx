@@ -2787,7 +2787,6 @@ function AdsSection() {
     <div className="space-y-4">
       <SectionTitle
         title="إدارة الإعلانات"
-        icon={<Megaphone className="h-5 w-5" />}
         action={
           <Button size="sm" onClick={startCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
@@ -2800,7 +2799,7 @@ function AdsSection() {
       <Card className="border-gold/30 bg-gold/5">
         <CardContent className="space-y-2 p-4 text-xs leading-relaxed text-foreground">
           <div className="flex items-center gap-1.5 font-bold text-gold">
-            <Megaphone className="h-4 w-4" />
+            
             شركات الإعلانات الموصى بها
           </div>
           <p><strong>1. Google AdSense</strong> — الأكثر موثوقية. انسخ كود الوحدة في «كود الإعلان».</p>
@@ -2821,7 +2820,7 @@ function AdsSection() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
-                    <Megaphone className="h-4 w-4 text-emerald" />
+                    
                     {slotInfo.label}
                   </span>
                   <Badge variant="outline" className="text-[10px]">
@@ -2838,13 +2837,13 @@ function AdsSection() {
                 ) : (
                   slotAds.map((ad) => (
                     <div key={ad.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5">
-                      <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
+                      <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded bg-muted text-[10px] font-bold text-muted-foreground">
                         {ad.type === "image" && ad.imageUrl ? (
                           <img src={ad.imageUrl} alt="" className="h-full w-full object-cover" />
                         ) : ad.type === "code" ? (
-                          <Code2 className="h-4 w-4 text-muted-foreground" />
+                          "CODE"
                         ) : (
-                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          "IMG"
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -2857,8 +2856,7 @@ function AdsSection() {
                           )}
                         </div>
                         {ad.linkUrl && (
-                          <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 truncate text-[10px] text-emerald hover:underline">
-                            <ExternalLink className="h-2.5 w-2.5" />
+                          <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="block truncate text-[10px] text-emerald hover:underline">
                             {ad.linkUrl}
                           </a>
                         )}
@@ -2872,11 +2870,11 @@ function AdsSection() {
                         >
                           {ad.active ? "مفعّل" : "معطّل"}
                         </button>
-                        <button onClick={() => startEdit(ad)} className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="تعديل">
-                          <Pencil className="h-3.5 w-3.5" />
+                        <button onClick={() => startEdit(ad)} className="rounded-md px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground">
+                          تعديل
                         </button>
-                        <button onClick={() => remove(ad)} className="rounded-md p-1.5 text-destructive hover:bg-destructive/10" aria-label="حذف">
-                          <Trash2 className="h-3.5 w-3.5" />
+                        <button onClick={() => remove(ad)} className="rounded-md px-2 py-1 text-[10px] font-semibold text-destructive hover:bg-destructive/10">
+                          حذف
                         </button>
                       </div>
                     </div>
@@ -2894,7 +2892,7 @@ function AdsSection() {
           <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Megaphone className="h-5 w-5 text-emerald" />
+                
                 {editing ? "تعديل الإعلان" : "إعلان جديد"}
               </CardTitle>
             </CardHeader>
@@ -3111,6 +3109,7 @@ type SectionKey =
   | "teams"
   | "countries"
   | "categories"
+  | "ads"
   | "notify"
   | "reseed";
 
@@ -3122,6 +3121,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "teams", label: "الفرق", icon: Users },
   { key: "countries", label: "الدول", icon: Globe },
   { key: "categories", label: "التصنيفات", icon: Tags },
+  { key: "ads", label: "الإعلانات", icon: Megaphone },
   { key: "notify", label: "الإشعارات", icon: Bell },
   { key: "reseed", label: "إعادة البيانات", icon: RefreshCw },
 ];
@@ -3208,6 +3208,7 @@ function Dashboard() {
           {section === "countries" && <CountriesSection />}
           {section === "categories" && <CategoriesSection />}
           {section === "notify" && <NotifySection />}
+          {section === "ads" && <AdsSection />}
           {section === "reseed" && <ReseedSection />}
         </main>
 
