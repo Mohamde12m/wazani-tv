@@ -2686,7 +2686,6 @@ function AdsSection() {
       const d = await res.json();
       setAds(d.ads || []);
     } catch (e) {
-      console.error("فشل تحميل الإعلانات:", e);
     } finally {
       setLoading(false);
     }
@@ -2760,9 +2759,8 @@ function AdsSection() {
         body: JSON.stringify({ active: !ad.active }),
       });
       loadAds();
-      toast.success(ad.active ? "تم تعطيل الإعلان" : "تم تفعيل الإعلان");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "خطأ");
+      toast.error("خطأ");
     }
   };
 
@@ -2773,11 +2771,10 @@ function AdsSection() {
       loadAds();
       toast.success("تم حذف الإعلان");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "خطأ");
+      toast.error("خطأ");
     }
   };
 
-  // جمّع الإعلانات حسب الموضع
   const bySlot: Record<string, Ad[]> = {};
   for (const ad of ads) {
     (bySlot[ad.slot] ??= []).push(ad);
@@ -2785,32 +2782,24 @@ function AdsSection() {
 
   return (
     <div className="space-y-4">
-      <SectionTitle
-        title="إدارة الإعلانات"
-        action={
-          <Button size="sm" onClick={startCreate}>
-            إعلان جديد
-          </Button>
-        }
-      />
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">إدارة الإعلانات</h2>
+        <Button size="sm" onClick={startCreate}>إعلان جديد</Button>
+      </div>
 
-      {/* بطاقة تعليمية */}
       <Card className="border-gold/30 bg-gold/5">
-        <CardContent className="space-y-2 p-4 text-xs leading-relaxed text-foreground">
-          <div className="flex items-center gap-1.5 font-bold text-gold">
-            
-            شركات الإعلانات الموصى بها
-          </div>
-          <p><strong>1. Google AdSense</strong> — الأكثر موثوقية. انسخ كود الوحدة في «كود الإعلان».</p>
-          <p><strong>2. Adsterra</strong> — موافقة سهلة للمواقع الجديدة + «Social Bar» أسفل الصفحة.</p>
-          <p><strong>3. Media.net</strong> — شبكة Yahoo/Bing، إعلانات سياقية.</p>
-          <p className="text-muted-foreground">نصيحة: ابدأ بـ Adsterra، لصق الكود في «كود الإعلان» وسيعمل فورًا.</p>
+        <CardContent className="p-4 text-xs leading-relaxed text-foreground">
+          <div className="mb-2 font-bold text-gold">شركات الإعلانات الموصى بها</div>
+          <p className="mb-1"><strong>1. Google AdSense</strong> — الأكثر موثوقية</p>
+          <p className="mb-1"><strong>2. Adsterra</strong> — موافقة سهلة للمواقع الجديدة</p>
+          <p className="mb-1"><strong>3. Media.net</strong> — شبكة Yahoo/Bing</p>
+          <p className="mb-1"><strong>4. HilltopAds</strong> — بانر، In-Page Push، Popunder</p>
+          <p className="text-muted-foreground mt-2">نصيحة: اختر نوع «كود جاهز» والصق كود الإعلان</p>
         </CardContent>
       </Card>
 
-      {/* قائمة الإعلانات حسب الموضع */}
       {loading ? (
-        <SectionLoading />
+        <p className="text-center text-sm text-muted-foreground py-8">جاري التحميل...</p>
       ) : (
         AD_SLOTS.map((slotInfo) => {
           const slotAds = bySlot[slotInfo.value] ?? [];
@@ -2818,41 +2807,23 @@ function AdsSection() {
             <Card key={slotInfo.value}>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2">
-                    
-                    {slotInfo.label}
-                  </span>
-                  <Badge variant="outline" className="text-[10px]">
-                    {slotAds.length}
-                  </Badge>
+                  <span>{slotInfo.label}</span>
+                  <Badge variant="outline" className="text-[10px]">{slotAds.length}</Badge>
                 </CardTitle>
                 <p className="text-[11px] text-muted-foreground">{slotInfo.desc}</p>
               </CardHeader>
               <CardContent className="space-y-2">
                 {slotAds.length === 0 ? (
-                  <p className="py-3 text-center text-xs text-muted-foreground">
-                    لا توجد إعلانات في هذا الموضع
-                  </p>
+                  <p className="py-3 text-center text-xs text-muted-foreground">لا توجد إعلانات في هذا الموضع</p>
                 ) : (
                   slotAds.map((ad) => (
                     <div key={ad.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5">
-                      <div className="flex h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded bg-muted text-[10px] font-bold text-muted-foreground">
-                        {ad.type === "image" && ad.imageUrl ? (
-                          <img src={ad.imageUrl} alt="" className="h-full w-full object-cover" />
-                        ) : ad.type === "code" ? (
-                          "CODE"
-                        ) : (
-                          "IMG"
-                        )}
-                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <span className="truncate text-xs font-semibold">
                             {ad.label || (ad.type === "code" ? "كود إعلان" : "بانر صورة")}
                           </span>
-                          {!ad.active && (
-                            <Badge variant="secondary" className="text-[9px]">معطّل</Badge>
-                          )}
+                          {!ad.active && <Badge variant="secondary" className="text-[9px]">معطّل</Badge>}
                         </div>
                         {ad.linkUrl && (
                           <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="block truncate text-[10px] text-emerald hover:underline">
@@ -2864,12 +2835,12 @@ function AdsSection() {
                         <button
                           onClick={() => toggle(ad)}
                           className={`rounded-md px-2 py-1 text-[10px] font-semibold transition ${
-                            ad.active ? "bg-emerald/10 text-emerald hover:bg-emerald/20" : "bg-muted text-muted-foreground hover:bg-muted/70"
+                            ad.active ? "bg-emerald/10 text-emerald" : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {ad.active ? "مفعّل" : "معطّل"}
                         </button>
-                        <button onClick={() => startEdit(ad)} className="rounded-md px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground">
+                        <button onClick={() => startEdit(ad)} className="rounded-md px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:bg-secondary">
                           تعديل
                         </button>
                         <button onClick={() => remove(ad)} className="rounded-md px-2 py-1 text-[10px] font-semibold text-destructive hover:bg-destructive/10">
@@ -2885,35 +2856,27 @@ function AdsSection() {
         })
       )}
 
-      {/* نموذج الإضافة/التعديل */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center">
           <Card className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                
-                {editing ? "تعديل الإعلان" : "إعلان جديد"}
-              </CardTitle>
+              <CardTitle className="text-base">{editing ? "تعديل الإعلان" : "إعلان جديد"}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Field label="عنوان تعريفي (اختياري)" required>
+              <Field label="عنوان تعريفي (اختياري)">
                 <Input
                   value={form.label}
                   onChange={(e) => setForm({ ...form, label: e.target.value })}
-                  placeholder="مثال: Adsterra بانر رئيسي"
+                  placeholder="مثال: HilltopAds بانر رئيسي"
                 />
               </Field>
 
               <Field label="الموضع" required>
                 <Select value={form.slot} onValueChange={(v) => setForm({ ...form, slot: v as AdSlotName })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {AD_SLOTS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -2927,31 +2890,27 @@ function AdsSection() {
                     className={`rounded-lg border p-2.5 text-xs font-semibold transition ${
                       form.type === "image" ? "border-emerald bg-emerald/10 text-emerald" : "border-border bg-card text-muted-foreground"
                     }`}
-                  >
-                    صورة + رابط
-                  </button>
+                  >صورة + رابط</button>
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, type: "code" })}
                     className={`rounded-lg border p-2.5 text-xs font-semibold transition ${
                       form.type === "code" ? "border-emerald bg-emerald/10 text-emerald" : "border-border bg-card text-muted-foreground"
                     }`}
-                  >
-                    كود جاهز
-                  </button>
+                  >كود جاهز</button>
                 </div>
               </Field>
 
               {form.type === "image" ? (
                 <>
-                  <Field label="صورة الإعلان" required hint="ارفع صورة من جهازك (تُضغط تلقائيًا)">
+                  <Field label="صورة الإعلان" required hint="ارفع صورة من جهازك">
                     <ImageUploader
                       value={form.imageUrl}
                       onChange={(url) => setForm({ ...form, imageUrl: url })}
                       label="صورة الإعلان"
                     />
                   </Field>
-                  <Field label="رابط النقر" hint="الصفحة التي تُفتح عند الضغط على الإعلان">
+                  <Field label="رابط النقر">
                     <Input
                       value={form.linkUrl}
                       onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
@@ -2961,11 +2920,11 @@ function AdsSection() {
                   </Field>
                 </>
               ) : (
-                <Field label="كود الإعلان" required hint="الصق كود الإعلان الكامل من Google AdSense أو Adsterra (يدعم <script>)">
+                <Field label="كود الإعلان" required hint="الصق كود HilltopAds / AdSense / Adsterra الكامل">
                   <textarea
                     value={form.adCode}
                     onChange={(e) => setForm({ ...form, adCode: e.target.value })}
-                    placeholder={'<script src="https://..."></script>\nأو\n<ins class="adsbygoogle" ...></ins>\n<script>(adsbygoogle = window.adsbygoogle || []).push({})</script>'}
+                    placeholder="ضع كود الإعلان هنا"
                     dir="ltr"
                     rows={6}
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs font-mono"
@@ -2990,17 +2949,10 @@ function AdsSection() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button onClick={save} disabled={saving} className="flex-1 gap-1.5">
-                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {editing ? "حفظ التعديلات" : "إضافة الإعلان"}
+                <Button onClick={save} disabled={saving} className="flex-1">
+                  {saving ? "جاري الحفظ..." : editing ? "حفظ التعديلات" : "إضافة الإعلان"}
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditing(null);
-                  }}
-                >
+                <Button variant="outline" onClick={() => { setShowForm(false); setEditing(null); }}>
                   إلغاء
                 </Button>
               </div>
@@ -3010,8 +2962,7 @@ function AdsSection() {
       )}
     </div>
   );
-}
-/* ============================================================
+}/* ============================================================
    Notify section — إرسال إشعارات فورية للمستخدمين
 ============================================================ */
 function NotifySection() {
