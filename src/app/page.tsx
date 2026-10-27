@@ -3,6 +3,7 @@
 import * as React from "react";
 import { AppShell } from "@/components/shared/app-shell";
 import { TopHeader } from "@/components/shared/top-header";
+import { SplashScreen } from "@/components/shared/splash-screen";
 import { useNav } from "@/stores/nav";
 import { HomeView } from "@/components/views/home-view";
 import { ChannelsView } from "@/components/views/channels-view";
@@ -30,24 +31,39 @@ export default function Home() {
   const view = useNav((s) => s.view);
   const isMain = MAIN_VIEWS.has(view.name);
   const meta = TITLES[view.name];
+  const [showSplash, setShowSplash] = React.useState(true);
 
   React.useEffect(() => {
     startReminderChecker();
   }, []);
 
+  // أظهر شاشة البداية فقط عند فتح التطبيق (وليس عند التنقل)
+  React.useEffect(() => {
+    // تحقق إذا تم عرض شاشة البداية في هذه الجلسة
+    const splashShown = sessionStorage.getItem("splash_shown");
+    if (splashShown === "true") {
+      setShowSplash(false);
+    } else {
+      sessionStorage.setItem("splash_shown", "true");
+    }
+  }, []);
+
   return (
-    <AppShell>
-      {!isMain && <TopHeader title={meta?.title} subtitle={meta?.subtitle} showBack />}
-      {view.name === "home" && <HomeView />}
-      {view.name === "channels" && <ChannelsView country={view.country} category={view.category} />}
-      {view.name === "matches" && <MatchesView tab={view.tab} />}
-      {view.name === "favorites" && <FavoritesView />}
-      {view.name === "more" && <MoreView />}
-      {view.name === "player" && <PlayerView channelId={view.channelId} />}
-      {view.name === "tournaments" && <TournamentsView />}
-      {view.name === "tournament" && <TournamentView id={view.id} />}
-      {view.name === "search" && <SearchView initialQuery={view.q} />}
-      {view.name === "admin" && <AdminView />}
-    </AppShell>
+    <>
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      <AppShell>
+        {!isMain && <TopHeader title={meta?.title} subtitle={meta?.subtitle} showBack />}
+        {view.name === "home" && <HomeView />}
+        {view.name === "channels" && <ChannelsView country={view.country} category={view.category} />}
+        {view.name === "matches" && <MatchesView tab={view.tab} />}
+        {view.name === "favorites" && <FavoritesView />}
+        {view.name === "more" && <MoreView />}
+        {view.name === "player" && <PlayerView channelId={view.channelId} />}
+        {view.name === "tournaments" && <TournamentsView />}
+        {view.name === "tournament" && <TournamentView id={view.id} />}
+        {view.name === "search" && <SearchView initialQuery={view.q} />}
+        {view.name === "admin" && <AdminView />}
+      </AppShell>
+    </>
   );
 }
