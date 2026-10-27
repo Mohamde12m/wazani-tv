@@ -19,7 +19,7 @@ export interface AdConfig {
   id: string;
   slot: string;
   type: AdType;
-  code: string; // كود HilltopAds الكامل
+  adCode: string; // كود HilltopAds الكامل (اسم الحقل في DB)
   active: boolean;
 }
 
@@ -58,7 +58,7 @@ export function AdContainer({
   }, [slot]);
 
   // لا تأخذ مساحة قبل التحميل أو إذا لم توجد إعلانات
-  if (!loaded || !ad || !ad.code) return null;
+  if (!loaded || !ad || !ad.adCode) return null;
 
   // وضع لاصق أسفل الشاشة
   if (variant === "sticky") {
@@ -74,12 +74,8 @@ export function AdContainer({
           className="mx-auto max-w-md px-3 pb-1"
           style={{ pointerEvents: "auto" }}
         >
-          <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-lg">
-            <span className="absolute right-1 top-1 z-10 rounded bg-black/50 px-1 text-[9px] text-white/80">
-              إعلان
-            </span>
-            <AdCodeRenderer code={ad.code} style={{ minHeight: 56 }} />
-          </div>
+          {/* حاوية شفافة تسمح لـ HilltopAds بعرض واجهته الخاصة (Video Slider / Native) */}
+          <AdCodeRenderer code={ad.adCode} style={{ minHeight: 0 }} />
         </div>
       </div>
     );
@@ -92,7 +88,7 @@ export function AdContainer({
         <span className="absolute right-2 top-2 z-10 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
           إعلان
         </span>
-        <AdCodeRenderer code={ad.code} style={{ minHeight: 90 }} />
+        <AdCodeRenderer code={ad.adCode} style={{ minHeight: 90 }} />
       </div>
     </div>
   );
