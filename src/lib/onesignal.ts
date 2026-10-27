@@ -29,7 +29,10 @@ interface SendNotificationParams {
  */
 export async function sendPushNotification(params: SendNotificationParams): Promise<{ success: boolean; id?: string; error?: string }> {
   if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
-    return { success: false, error: "OneSignal غير مُعد — تحقق من متغيرات البيئة" };
+    return {
+      success: false,
+      error: "OneSignal غير مُعد — أضف NEXT_PUBLIC_ONESIGNAL_APP_ID و ONESIGNAL_REST_API_KEY في Vercel Environment Variables",
+    };
   }
 
   try {
@@ -41,17 +44,15 @@ export async function sendPushNotification(params: SendNotificationParams): Prom
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
-        included_segments: ["Subscribed Users"], // أرسل لكل المشتركين
+        included_segments: ["Subscribed Users"],
         headings: params.headings || { ar: "WazaNI TV", en: "WazaNI TV" },
         contents: params.contents,
         url: params.url || "https://wazani-tv-live.vercel.app",
-        big_picture: params.big_picture || "https://wazani-tv-live.vercel.app/icon-512.png",
         chrome_web_icon: "https://wazani-tv-live.vercel.app/icon-192.png",
-        chrome_web_image: params.big_picture,
         firefox_icon: "https://wazani-tv-live.vercel.app/icon-192.png",
         android_group: params.android_group,
         priority: 10,
-        ttl: 86400, // 24 ساعة
+        ttl: 86400,
       }),
     });
 
@@ -61,7 +62,12 @@ export async function sendPushNotification(params: SendNotificationParams): Prom
       return { success: true, id: data.id };
     }
 
-    return { success: false, error: data.errors?.[0] || "فشل إرسال الإشعار" };
+    // إذا لم يوجد مشتركين، اعتبره نجاحًا (ليس خطأ)
+    if (data.errors?.[0]?.includes("No subscribers")) {
+      return { success: true, id: "no-subscribers", error: "لا يوجد مشتركون بعد — لكن تم حفظ الإشعار" };
+    }
+
+    return { success: false, error: data.errors?.[0] || `فشل إرسال الإشعار (HTTP ${response.status})` };
   } catch (error) {
     return {
       success: false,

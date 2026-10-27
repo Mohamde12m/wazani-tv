@@ -3031,13 +3031,17 @@ function NotifySection() {
     }
     setSending(true);
     try {
-      await apiFetch("/api/notify", {
+      const result = await apiFetch<{ ok?: boolean; id?: string; error?: string }>("/api/notify", {
         method: "POST",
         body: JSON.stringify({ title, message }),
       });
-      toast.success("تم إرسال الإشعار لكل المشتركين");
-      setTitle("");
-      setMessage("");
+      if (result.ok) {
+        toast.success("تم إرسال الإشعار بنجاح");
+        setTitle("");
+        setMessage("");
+      } else {
+        toast.error(result.error || "فشل الإرسال");
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "خطأ في الإرسال");
     } finally {
