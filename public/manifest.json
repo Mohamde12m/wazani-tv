@@ -1,7 +1,7 @@
 {
-  "name": "WazaNI TV - القنوات العربية ومباريات كرة القدم",
+  "name": "WazaNI TV",
   "short_name": "WazaNI TV",
-  "description": "منصة عربية متكاملة لمتابعة القنوات التلفزيونية ومباريات كرة القدم",
+  "description": "WazaNI TV",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "/",
