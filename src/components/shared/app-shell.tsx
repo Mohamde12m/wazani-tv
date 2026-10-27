@@ -4,6 +4,7 @@ import * as React from "react";
 import { BottomNav } from "./bottom-nav";
 import { AdContainer } from "./ad-container";
 import { InterstitialAd } from "./interstitial-ad";
+import { PopunderLoader } from "./popunder-loader";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
 
@@ -24,6 +25,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="bg-app flex min-h-screen flex-col">
       {/* إعلانات الانتقال بين الصفحات (HilltopAds Interstitial) */}
       <InterstitialAd />
+      {/* Popunder — يُحمّل مرة واحدة ويعمل عند أي نقطة في الموقع (invisible) */}
+      <PopunderLoader />
 
       <main className={showNav ? "mx-auto w-full max-w-3xl flex-1 pb-40" : "mx-auto w-full max-w-3xl flex-1"}>
         {children}

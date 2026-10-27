@@ -50,6 +50,7 @@ const createSchema = z.object({
     "player_top",
     "more_top",
     "interstitial",
+    "popunder",
   ]),
   label: z.string().default(""),
   type: z.enum(["image", "code"]).default("image"),

@@ -18,6 +18,7 @@ const updateSchema = z.object({
     "player_top",
     "more_top",
     "interstitial",
+    "popunder",
   ]).optional(),
   label: z.string().optional(),
   type: z.enum(["image", "code"]).optional(),
