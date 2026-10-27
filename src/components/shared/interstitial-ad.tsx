@@ -56,8 +56,8 @@ export function InterstitialAd() {
       fetch("/api/ads?slot=interstitial")
         .then((r) => r.json())
         .then((d) => {
-          if (d.ads && d.ads.length > 0 && d.ads[0].code) {
-            setAdCode(d.ads[0].code);
+          if (d.ads && d.ads.length > 0 && d.ads[0].adCode) {
+            setAdCode(d.ads[0].adCode);
             setShowAd(true);
             setCanSkip(false);
 
