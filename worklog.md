@@ -1472,3 +1472,25 @@ Stage Summary:
 - السكربت يُحمّل على كل الصفحات عبر PopunderLoader
 - عند نقرة المستخدم، يفتح إعلان في تبويب خلفي
 - Video Slider (sticky_bottom) لا يزال 404 — يحتاج وقت إضافي للنشر على CDN
+
+---
+Task ID: mbc5-stream
+Agent: main
+Task: تشغيل بث HLS من edgenextcdn على قناة MBC5
+
+Work Log:
+- المستخدم أعطى رابط بث HLS: https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-drama/2c28a458e2f3253e678b07ac7d13fe71/index.m3u8
+- البث يعمل من curl (HTTP 200, CORS: *) لكن يرجع 403 من المتصفح (Referer block)
+- تحديث قناة MBC5 (id: cmvld1pcs0019ormd45tx76tm) بـ streamUrl كامل + streamType=hls + verified=true
+- إضافة منطق proxiedSrc في player-view.tsx: تمرير روابط HLS عبر /api/stream
+- إصلاح خطأ React Hooks: useMemo كان بعد early return → نقلناه ليكون computation عادي
+- إصلاح خطأ حرج في /api/stream: لم يكن يعيد كتابة URI= داخل #EXT-X-MEDIA (audio manifests) → 404
+- إضافة #EXT-X-MEDIA إلى قائمة الوسوم المعاد كتابتها
+- نشر 3 commits: d58eb9f, 8926282, c8110c0
+- اختبار في المتصفح: البث يعمل! readyState=4, videoW=1920, videoH=1080, currentTime يتقدم
+- المحتوى: مسلسل "الحفرة" (MBC Drama) يعرض الآن مباشر
+
+Stage Summary:
+- MBC5 يعمل ببث مباشر HD على wazani-tv-live.vercel.app
+- جميع روابط HLS تُمرر عبر /api/stream proxy تلقائياً
+- البروكسي يعيد كتابة: #EXT-X-STREAM-INF, #EXT-X-KEY, #EXT-X-MAP, #EXT-X-MEDIA
