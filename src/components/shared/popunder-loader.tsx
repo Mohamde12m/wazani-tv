@@ -10,7 +10,9 @@ import * as React from "react";
  * 2. يستخرج رابط الإعلان من الكود
  * 3. يحقن كود HilltopAds الأصلي (مع البروكسي) في <head>
  * 4. كاحتياط: لو فشل HilltopAds بعد 3 ثوانٍ، ينشئ Popunder يدوي
- *    بفتح رابط الإعلان في تبويب خلفي عند أول نقرة من المستخدم
+ *    عند أول نقرة من المستخدم:
+ *    - في المتصفح: يفتح تبويب جديد خلفي
+ *    - في PWA/التطبيق المثبت: يفتح في نافذة جديدة أو نفس النافذة
  */
 export function PopunderLoader() {
   const loadedRef = React.useRef(false);
@@ -78,8 +80,13 @@ export function PopunderLoader() {
 }
 
 /**
- * Popunder يدوي: يفتح رابط الإعلان في تبويب خلفي عند أول نقطة
+ * Popunder يدوي: يفتح رابط الإعلان عند أول نقرة
  * (يُستخدم عندما يكون سكربت HilltopAds غير متاح/جديد)
+ *
+ * يعمل في:
+ * - المتصفح العادي: يفتح تبويب جديد خلفي (popunder)
+ * - PWA/التطبيق المثبت: يفتح في نافذة جديدة أو المتصفح الخارجي
+ * - iOS Safari: يفتح في نفس النافذة لو فشل tab جديد
  */
 function setupManualPopunder(url: string) {
   const POPUNDER_KEY = "hilltopads_popunder_fired";
@@ -92,11 +99,49 @@ function setupManualPopunder(url: string) {
     sessionStorage.setItem(POPUNDER_KEY, "1");
 
     try {
-      // افتح في تبويب جديد خلفي (popunder)
-      const w = window.open(url, "_blank");
-      if (w) {
-        w.blur();
-        window.focus();
+      // طريقة 1: استخدم <a target="_blank"> مع click اصطناعي
+      // (أكثر موثوقية من window.open في PWA و iOS)
+      const isPWA =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        // @ts-expect-error - iOS Safari
+        window.navigator.standalone === true;
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      // في PWA، استخدم _top لفتح في المتصفح الخارجي لو فشل _blank
+      if (isPWA) {
+        a.target = "_top";
+      }
+      a.style.position = "fixed";
+      a.style.left = "-9999px";
+      a.style.top = "0";
+      a.style.width = "1px";
+      a.style.height = "1px";
+      a.style.opacity = "0";
+      document.body.appendChild(a);
+
+      // استخدم click() الحقيقي (موثوق في كل المتصفحات)
+      a.click();
+
+      // نظّف بعد ثانية
+      setTimeout(() => {
+        if (a.parentNode) a.parentNode.removeChild(a);
+      }, 1000);
+
+      // طريقة 2 (احتياط): window.open لو فشل <a>
+      // نحاول فقط لو لم نكن في PWA
+      if (!isPWA) {
+        try {
+          const w = window.open(url, "_blank");
+          if (w) {
+            w.blur();
+            window.focus();
+          }
+        } catch {
+          // تجاهل
+        }
       }
     } catch {
       // تجاهل الأخطاء
