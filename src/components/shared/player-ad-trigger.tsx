@@ -68,6 +68,7 @@ export function PlayerAdTrigger() {
 
 /**
  * يفتح رابط الإعلان (يعمل في PWA والمتصفح)
+ * يستخدم <a>.click() فقط لتجنب فتح عدة تبويبات
  */
 function openAdUrl(url: string) {
   try {
@@ -93,18 +94,6 @@ function openAdUrl(url: string) {
     setTimeout(() => {
       if (a.parentNode) a.parentNode.removeChild(a);
     }, 1000);
-
-    if (!isPWA) {
-      try {
-        const w = window.open(url, "_blank");
-        if (w) {
-          w.blur();
-          window.focus();
-        }
-      } catch {
-        // تجاهل
-      }
-    }
   } catch {
     // تجاهل
   }

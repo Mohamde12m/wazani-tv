@@ -99,8 +99,9 @@ function setupManualPopunder(url: string) {
     sessionStorage.setItem(POPUNDER_KEY, "1");
 
     try {
-      // طريقة 1: استخدم <a target="_blank"> مع click اصطناعي
+      // استخدم <a target="_blank"> مع click اصطناعي فقط
       // (أكثر موثوقية من window.open في PWA و iOS)
+      // لا نستخدم window.open لتجنب فتح عدة تبويبات
       const isPWA =
         window.matchMedia("(display-mode: standalone)").matches ||
         // @ts-expect-error - iOS Safari
@@ -129,20 +130,6 @@ function setupManualPopunder(url: string) {
       setTimeout(() => {
         if (a.parentNode) a.parentNode.removeChild(a);
       }, 1000);
-
-      // طريقة 2 (احتياط): window.open لو فشل <a>
-      // نحاول فقط لو لم نكن في PWA
-      if (!isPWA) {
-        try {
-          const w = window.open(url, "_blank");
-          if (w) {
-            w.blur();
-            window.focus();
-          }
-        } catch {
-          // تجاهل
-        }
-      }
     } catch {
       // تجاهل الأخطاء
     }
