@@ -54,8 +54,12 @@ function rewriteM3u8(content: string, baseUrl: string): string {
 
       // تخطّي التعليقات والأسطر الفارغة
       if (trimmed.startsWith("#") || trimmed === "") {
-        // عدّل روابط URI داخل #EXT-X-KEY و #EXT-X-MAP
-        if (trimmed.startsWith("#EXT-X-KEY") || trimmed.startsWith("#EXT-X-MAP")) {
+        // عدّل روابط URI داخل #EXT-X-KEY و #EXT-X-MAP و #EXT-X-MEDIA
+        if (
+          trimmed.startsWith("#EXT-X-KEY") ||
+          trimmed.startsWith("#EXT-X-MAP") ||
+          trimmed.startsWith("#EXT-X-MEDIA")
+        ) {
           line = rewriteUriInTag(line, base);
         }
         rewritten.push(line);
