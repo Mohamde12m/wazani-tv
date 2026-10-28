@@ -88,13 +88,24 @@ export function PlayerView({ channelId }: { channelId: string }) {
   const available = !!channel.streamUrl && channel.streamType !== "none";
   const streamKind: StreamKind = (channel.streamType as StreamKind) ?? "none";
 
+  // مرّر روابط HLS الخارجية عبر /api/stream لتجاوز حظر CORS/Referer من بعض شبكات CDN
+  const proxiedSrc = React.useMemo(() => {
+    if (!available || streamKind !== "hls" || !channel.streamUrl) return channel.streamUrl;
+    const url = channel.streamUrl;
+    // لو الرابط خارجي (يبدأ بـ http) → مرّره عبر البروكسي
+    if (url.startsWith("http")) {
+      return `/api/stream?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  }, [available, streamKind, channel.streamUrl]);
+
   return (
     <div>
       {/* Full-width video player (hls.js) */}
       <div className="relative">
         <StreamPlayer
           key={`player-${channel.id}`}
-          src={available ? channel.streamUrl : null}
+          src={available ? proxiedSrc : null}
           kind={available ? streamKind : "none"}
           poster={channel.logo}
           autoplay
