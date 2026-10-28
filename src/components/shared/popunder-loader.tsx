@@ -36,13 +36,21 @@ export function PopunderLoader() {
             const script = document.createElement("script");
             const original = node as HTMLScriptElement;
             if (original.src) {
-              // مرّر السكربت عبر /api/adscript لتجاوز حظر Sec-Fetch-Dest
-              // (HilltopAds CDN يرجع 404 للـ script tags المباشرة)
+              // مرّر السكربت الخارجي عبر /api/adscript
               script.src = `/api/adscript?url=${encodeURIComponent(original.src)}`;
             }
             if (original.type) script.type = original.type;
             if (original.async) script.async = true;
-            script.text = original.text;
+            // للسكربتات inline: أعد كتابة أي s.src="..." ليستخدم البروكسي
+            if (original.text) {
+              script.text = original.text.replace(
+                /(\w+)\.src\s*=\s*["'](https?:)?\/\/([^"']+)["']/g,
+                (match, varName, protocol, rest) => {
+                  const fullUrl = `https://${rest}`;
+                  return `${varName}.src = "/api/adscript?url=" + encodeURIComponent("${fullUrl}")`;
+                }
+              );
+            }
             document.head.appendChild(script);
           } else {
             document.head.appendChild(node.cloneNode(true));
