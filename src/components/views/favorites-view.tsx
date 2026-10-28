@@ -5,7 +5,6 @@ import { Star, Trash2, Trophy, Tv, CalendarDays, ShieldCheck } from "lucide-reac
 import { ChannelCard } from "@/components/shared/channel-card";
 import { MatchCard } from "@/components/shared/match-card";
 import { EmptyState, LoadingGrid } from "@/components/shared/section";
-import { AdSlot } from "@/components/shared/ad-slot";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useFetch } from "@/hooks/use-fetch";
 import { useFavorites, type FavKind } from "@/stores/favorites";
@@ -94,9 +93,6 @@ export function FavoritesView() {
             </span>
           </TabsTrigger>
         </TabsList>
-
-        {/* إعلان أعلى المفضلة — بعد التبويبات */}
-        <AdSlot slot="favorites_top" className="mt-4" />
 
         {/* Channels tab */}
         <TabsContent value="channels" className="mt-4">

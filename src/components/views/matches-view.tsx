@@ -17,7 +17,6 @@ import { useFetch } from "@/hooks/use-fetch";
 import { useFavorites } from "@/stores/favorites";
 import { isToday, isTomorrow, isSameDay } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
-import { AdContainer } from "@/components/shared/ad-container";
 import type { Match } from "@/lib/types";
 
 const VALID_TABS = [
@@ -339,9 +338,6 @@ export function MatchesView({ tab }: { tab?: string }) {
 
         {/* Content */}
         <div className="mt-1">
-          {/* إعلان أعى المباريات — بعد الفلاتر */}
-          <AdContainer slot="matches_top" />
-
           {loading ? (
             <LoadingGrid count={4} />
           ) : filtered.length === 0 ? (
@@ -359,8 +355,6 @@ export function MatchesView({ tab }: { tab?: string }) {
                   ))}
                 </div>
               )}
-              {/* إعلان وسط المباريات — بين المميزة وبقية المباريات */}
-              {featuredList.length > 0 && restList.length > 0 && <AdContainer slot="matches_middle" />}
               {restList.length > 0 && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {restList.map((m) => (

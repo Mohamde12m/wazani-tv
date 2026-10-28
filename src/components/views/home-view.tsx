@@ -37,7 +37,6 @@ import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
 import { useWatchHistory } from "@/stores/watch-history";
-import { AdContainer } from "@/components/shared/ad-container";
 import { History, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Channel, Match } from "@/lib/types";
@@ -305,9 +304,6 @@ export function HomeView() {
         </div>
       )}
 
-      {/* إعلان HilltopAds — أعلى الصفحة */}
-      <AdContainer slot="home_top" />
-
       {/* 3. Today's important matches */}
       <section>
         <SectionHeader
@@ -386,9 +382,6 @@ export function HomeView() {
           onAll={() => setView({ name: "channels", country: "MA" })}
         />
       )}
-
-      {/* إعلان HilltopAds — منتصف الصفحة */}
-      <AdContainer slot="home_middle" />
 
       {/* 8. Gulf channels */}
       {(channelsLoading || gulf.length > 0) && (

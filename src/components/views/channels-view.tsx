@@ -19,7 +19,6 @@ import {
   EmptyState,
   LoadingGrid,
 } from "@/components/shared/section";
-import { AdSlot } from "@/components/shared/ad-slot";
 import type { Channel, Country, Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -277,9 +276,6 @@ export function ChannelsView({
         </div>
       </div>
 
-      {/* إعلان أعلى القنوات — بعد الفلاتر */}
-      <AdSlot slot="channels_top" />
-
       {/* Results grid */}
       {channelsLoading ? (
         <LoadingGrid count={8} className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4" />
@@ -295,11 +291,7 @@ export function ChannelsView({
             <React.Fragment key={ch.id}>
               <GridChannelCard channel={ch} />
               {/* إعلان وسط القنوات — كل 8 قنوات */}
-              {(i + 1) % 8 === 0 && i < filtered.length - 1 && (
-                <div className="col-span-2 sm:col-span-3 md:col-span-4">
-                  <AdSlot slot="channels_middle" />
-                </div>
-              )}
+              {/* spacer to keep grid rhythm without ads */}
             </React.Fragment>
           ))}
         </div>
