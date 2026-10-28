@@ -89,15 +89,10 @@ export function PlayerView({ channelId }: { channelId: string }) {
   const streamKind: StreamKind = (channel.streamType as StreamKind) ?? "none";
 
   // مرّر روابط HLS الخارجية عبر /api/stream لتجاوز حظر CORS/Referer من بعض شبكات CDN
-  const proxiedSrc = React.useMemo(() => {
-    if (!available || streamKind !== "hls" || !channel.streamUrl) return channel.streamUrl;
-    const url = channel.streamUrl;
-    // لو الرابط خارجي (يبدأ بـ http) → مرّره عبر البروكسي
-    if (url.startsWith("http")) {
-      return `/api/stream?url=${encodeURIComponent(url)}`;
-    }
-    return url;
-  }, [available, streamKind, channel.streamUrl]);
+  const proxiedSrc =
+    available && streamKind === "hls" && channel.streamUrl?.startsWith("http")
+      ? `/api/stream?url=${encodeURIComponent(channel.streamUrl)}`
+      : channel.streamUrl;
 
   return (
     <div>
