@@ -164,7 +164,10 @@ function InterstitialCodeRenderer({ code }: { code: string }) {
       if (node.nodeName === "SCRIPT") {
         const script = document.createElement("script");
         const original = node as HTMLScriptElement;
-        if (original.src) script.src = original.src;
+        if (original.src) {
+          // مرّر السكربت عبر /api/adscript لتجاوز حظر Sec-Fetch-Dest
+          script.src = `/api/adscript?url=${encodeURIComponent(original.src)}`;
+        }
         if (original.type) script.type = original.type;
         if (original.async) script.async = true;
         script.text = original.text;
