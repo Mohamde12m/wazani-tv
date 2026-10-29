@@ -319,13 +319,10 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
 }
 
 /**
- * المهمة الرئيسية: تسحب كل مباريات 3 أيام (اليوم + غدًا + بعد غد)
- * لكل الدوريات المفعّلة. تستخدم eventsday.php?l=<league> لكل دوري
- * (يرجع كل مباريات اليوم لكل دوري، مش مباراة واحدة).
+ * المهمة الرئيسية: تسحب كل مباريات اليوم فقط (14 طلب بدل 42)
+ * أسرع + أقل عرضة لـ rate limiting
  *
- * مع retry logic لتجنب rate limiting.
- *
- * النتيجة: 20-50 مباراة حقيقية موزعة على 3 أيام × 14 دوري
+ * يمكن استدعاؤها عدة مرات في اليوم لتحديث النتائج
  */
 export async function syncDailyMatches(): Promise<{
   upcoming: { created: number; updated: number; skipped: number };
@@ -335,10 +332,10 @@ export async function syncDailyMatches(): Promise<{
   totalFetched: number;
   failedLeagues: string[];
 }> {
+  // اسحب مباريات اليوم وغدًا فقط (2 يوم × 14 دوري = 28 طلب)
   const now = new Date();
   const dates: string[] = [];
-  // 3 أيام: اليوم + غدًا + بعد غد
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
     dates.push(d.toISOString().split("T")[0]);
   }
@@ -349,7 +346,6 @@ export async function syncDailyMatches(): Promise<{
   const seenIds = new Set<string>();
   const allFailedLeagues = new Set<string>();
 
-  // لكل يوم، اسحب مباريات كل الدوريات
   for (const dateStr of dates) {
     console.log(`[sportsdb] fetching matches for ${dateStr}...`);
     const events = await fetchMatchesForDateWithFails(dateStr, allFailedLeagues);
@@ -360,6 +356,11 @@ export async function syncDailyMatches(): Promise<{
       }
     }
     console.log(`[sportsdb] ${dateStr}: ${events.length} events`);
+
+    // انتظار إضافي بين الأيام
+    if (dates.indexOf(dateStr) < dates.length - 1) {
+      await new Promise((r) => setTimeout(r, 5000));
+    }
   }
 
   console.log(`[sportsdb] total unique events: ${allEvents.length}`);
@@ -367,7 +368,6 @@ export async function syncDailyMatches(): Promise<{
     console.log(`[sportsdb] failed leagues: ${Array.from(allFailedLeagues).join(", ")}`);
   }
 
-  // احفظهم
   const result = await saveMatchesToDB(allEvents);
   console.log(
     `[sportsdb] sync: ${result.created} new, ${result.updated} updated, ${result.skipped} skipped`
