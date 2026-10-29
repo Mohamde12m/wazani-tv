@@ -41,6 +41,7 @@ export const ENABLED_LEAGUES = [
   { id: "4753", name: "الدوري الجزائري", nameEn: "Algerian Ligue 1", country: "الجزائر", type: "league", priority: 2 },
   { id: "4828", name: "الدوري التونسي", nameEn: "Tunisian Ligue 1", country: "تونس", type: "league", priority: 2 },
   { id: "4663", name: "الدوري القطري", nameEn: "Qatar Stars League", country: "قطر", type: "league", priority: 3 },
+  { id: "4668", name: "الدوري السعودي للمحترفين", nameEn: "Saudi Pro League", country: "السعودية", type: "league", priority: 1 },
 ] as const;
 
 export interface SportsDBEvent {
