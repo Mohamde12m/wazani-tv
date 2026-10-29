@@ -16,8 +16,8 @@ import { syncDailyMatches } from "@/lib/sportsdb";
  * - أو يدويًا من لوحة الإدارة
  */
 
-// مدة تشغيل أطول لهذه الدالة (90 ثانية) لأنها تسحب من 14 دوريًا × 3 أيام
-export const maxDuration = 90;
+// مدة تشغيل أطول لهذه الدالة (300 ثانية = 5 دقائق) لأنها تسحب من 14 دوريًا × 3 أيام مع retry
+export const maxDuration = 300;
 
 export async function GET(req: NextRequest) {
   // تحقق من الأمان

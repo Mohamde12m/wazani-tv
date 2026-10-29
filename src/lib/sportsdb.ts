@@ -118,41 +118,62 @@ export async function fetchUpcomingMatches(): Promise<SportsDBEvent[]> {
 /**
  * يجلب مباريات يوم محدد من theSportsDB لكل دوري مفعّل
  * يستخدم eventsday.php?l=<league> لكل دوري
+ * مع retry logic لتجنب rate limiting
  */
 export async function fetchMatchesForDate(dateStr: string): Promise<SportsDBEvent[]> {
   const allEvents: SportsDBEvent[] = [];
   const seenIds = new Set<string>();
+  const failedLeagues: Array<{ id: string; name: string }> = [];
 
   for (const league of ENABLED_LEAGUES) {
-    try {
-      const url = `${SPORTSDB_BASE}/eventsday.php?d=${dateStr}&l=${league.id}`;
-      const res = await fetch(url, {
-        headers: { "User-Agent": "WazaNI-TV/1.0" },
-        // @ts-expect-error - next cache
-        next: { revalidate: 0 },
-      });
+    let success = false;
+    // retry 3 مرات لو 429
+    for (let attempt = 1; attempt <= 3 && !success; attempt++) {
+      try {
+        const url = `${SPORTSDB_BASE}/eventsday.php?d=${dateStr}&l=${league.id}`;
+        const res = await fetch(url, {
+          headers: { "User-Agent": "WazaNI-TV/1.0" },
+          // @ts-expect-error - next cache
+          next: { revalidate: 0 },
+        });
 
-      if (!res.ok) {
-        if (res.status === 429) {
-          await new Promise((r) => setTimeout(r, 2000));
+        if (!res.ok) {
+          if (res.status === 429) {
+            // rate limited — انتظر أطول قبل الـ retry
+            const waitMs = attempt === 1 ? 2000 : attempt === 2 ? 4000 : 6000;
+            console.error(`[sportsdb] 429 for ${league.name} (attempt ${attempt}), waiting ${waitMs}ms`);
+            await new Promise((r) => setTimeout(r, waitMs));
+            continue;
+          }
+          console.error(`[sportsdb] ${league.name}: HTTP ${res.status}`);
+          break;
         }
-        continue;
-      }
 
-      const data = await res.json();
-      const events: SportsDBEvent[] = data.events || [];
-      for (const event of events) {
-        if (!seenIds.has(event.idEvent)) {
-          seenIds.add(event.idEvent);
-          allEvents.push(event);
+        const data = await res.json();
+        const events: SportsDBEvent[] = data.events || [];
+        for (const event of events) {
+          if (!seenIds.has(event.idEvent)) {
+            seenIds.add(event.idEvent);
+            allEvents.push(event);
+          }
         }
+        success = true;
+      } catch (err) {
+        console.error(`[sportsdb] fetch error for ${dateStr} league ${league.id} (attempt ${attempt}):`, err);
+        await new Promise((r) => setTimeout(r, 2000));
       }
-    } catch (err) {
-      console.error(`[sportsdb] fetch error for ${dateStr} league ${league.id}:`, err);
     }
 
-    // تأخير 600ms
-    await new Promise((r) => setTimeout(r, 600));
+    if (!success) {
+      failedLeagues.push({ id: league.id, name: league.name });
+    }
+
+    // تأخير 800ms بين كل دوري (متوازن لتجنب 429)
+    await new Promise((r) => setTimeout(r, 800));
+  }
+
+  if (failedLeagues.length > 0) {
+    console.log(`[sportsdb] failed leagues for ${dateStr}:`, failedLeagues.map((l) => l.name).join(", "));
   }
 
   return allEvents;
@@ -302,7 +323,9 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
  * لكل الدوريات المفعّلة. تستخدم eventsday.php?l=<league> لكل دوري
  * (يرجع كل مباريات اليوم لكل دوري، مش مباراة واحدة).
  *
- * النتيجة: 30-50 مباراة حقيقية موزعة على 3 أيام × 14 دوري
+ * مع retry logic لتجنب rate limiting.
+ *
+ * النتيجة: 20-50 مباراة حقيقية موزعة على 3 أيام × 14 دوري
  */
 export async function syncDailyMatches(): Promise<{
   upcoming: { created: number; updated: number; skipped: number };
@@ -310,6 +333,7 @@ export async function syncDailyMatches(): Promise<{
   tomorrow: { created: number; updated: number; skipped: number };
   daysScanned: number;
   totalFetched: number;
+  failedLeagues: string[];
 }> {
   const now = new Date();
   const dates: string[] = [];
@@ -323,11 +347,12 @@ export async function syncDailyMatches(): Promise<{
 
   const allEvents: SportsDBEvent[] = [];
   const seenIds = new Set<string>();
+  const allFailedLeagues = new Set<string>();
 
   // لكل يوم، اسحب مباريات كل الدوريات
   for (const dateStr of dates) {
     console.log(`[sportsdb] fetching matches for ${dateStr}...`);
-    const events = await fetchMatchesForDate(dateStr);
+    const events = await fetchMatchesForDateWithFails(dateStr, allFailedLeagues);
     for (const e of events) {
       if (!seenIds.has(e.idEvent)) {
         seenIds.add(e.idEvent);
@@ -338,6 +363,9 @@ export async function syncDailyMatches(): Promise<{
   }
 
   console.log(`[sportsdb] total unique events: ${allEvents.length}`);
+  if (allFailedLeagues.size > 0) {
+    console.log(`[sportsdb] failed leagues: ${Array.from(allFailedLeagues).join(", ")}`);
+  }
 
   // احفظهم
   const result = await saveMatchesToDB(allEvents);
@@ -351,5 +379,63 @@ export async function syncDailyMatches(): Promise<{
     tomorrow: { created: 0, updated: 0, skipped: 0 },
     daysScanned: dates.length,
     totalFetched: allEvents.length,
+    failedLeagues: Array.from(allFailedLeagues),
   };
+}
+
+/**
+ * نفس fetchMatchesForDate لكنها تجمع الدوريات الفاشلة في set مشترك
+ */
+async function fetchMatchesForDateWithFails(
+  dateStr: string,
+  failedLeaguesSet: Set<string>
+): Promise<SportsDBEvent[]> {
+  const allEvents: SportsDBEvent[] = [];
+  const seenIds = new Set<string>();
+
+  for (const league of ENABLED_LEAGUES) {
+    let success = false;
+    for (let attempt = 1; attempt <= 3 && !success; attempt++) {
+      try {
+        const url = `${SPORTSDB_BASE}/eventsday.php?d=${dateStr}&l=${league.id}`;
+        const res = await fetch(url, {
+          headers: { "User-Agent": "WazaNI-TV/1.0" },
+          // @ts-expect-error - next cache
+          next: { revalidate: 0 },
+        });
+
+        if (!res.ok) {
+          if (res.status === 429) {
+            const waitMs = attempt === 1 ? 2000 : attempt === 2 ? 4000 : 6000;
+            console.error(`[sportsdb] 429 for ${league.name} (attempt ${attempt}), waiting ${waitMs}ms`);
+            await new Promise((r) => setTimeout(r, waitMs));
+            continue;
+          }
+          console.error(`[sportsdb] ${league.name}: HTTP ${res.status}`);
+          break;
+        }
+
+        const data = await res.json();
+        const events: SportsDBEvent[] = data.events || [];
+        for (const event of events) {
+          if (!seenIds.has(event.idEvent)) {
+            seenIds.add(event.idEvent);
+            allEvents.push(event);
+          }
+        }
+        success = true;
+      } catch (err) {
+        console.error(`[sportsdb] fetch error for ${dateStr} league ${league.id} (attempt ${attempt}):`, err);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+
+    if (!success) {
+      failedLeaguesSet.add(league.name);
+    }
+
+    await new Promise((r) => setTimeout(r, 800));
+  }
+
+  return allEvents;
 }
