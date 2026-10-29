@@ -298,21 +298,49 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
 }
 
 /**
- * المهمة الرئيسية: تسحب المباريات القادمة من all الدوريات المفعّلة
- * تستخدم eventsnextleague.php لكل دوري (1 مباراة قادمة لكل دوري)
- * تضيف تأخير بين الطلبات لتجنب rate limiting
+ * المهمة الرئيسية: تسحب كل مباريات 3 أيام (اليوم + غدًا + بعد غد)
+ * لكل الدوريات المفعّلة. تستخدم eventsday.php?l=<league> لكل دوري
+ * (يرجع كل مباريات اليوم لكل دوري، مش مباراة واحدة).
+ *
+ * النتيجة: 30-50 مباراة حقيقية موزعة على 3 أيام × 14 دوري
  */
 export async function syncDailyMatches(): Promise<{
   upcoming: { created: number; updated: number; skipped: number };
   today: { created: number; updated: number; skipped: number };
   tomorrow: { created: number; updated: number; skipped: number };
+  daysScanned: number;
+  totalFetched: number;
 }> {
-  // اجلب المباريات القادمة لكل دوري
-  const events = await fetchUpcomingMatches();
-  console.log(`[sportsdb] fetched ${events.length} events`);
+  const now = new Date();
+  const dates: string[] = [];
+  // 3 أيام: اليوم + غدًا + بعد غد
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+    dates.push(d.toISOString().split("T")[0]);
+  }
+
+  console.log(`[sportsdb] scanning dates: ${dates.join(", ")}`);
+
+  const allEvents: SportsDBEvent[] = [];
+  const seenIds = new Set<string>();
+
+  // لكل يوم، اسحب مباريات كل الدوريات
+  for (const dateStr of dates) {
+    console.log(`[sportsdb] fetching matches for ${dateStr}...`);
+    const events = await fetchMatchesForDate(dateStr);
+    for (const e of events) {
+      if (!seenIds.has(e.idEvent)) {
+        seenIds.add(e.idEvent);
+        allEvents.push(e);
+      }
+    }
+    console.log(`[sportsdb] ${dateStr}: ${events.length} events`);
+  }
+
+  console.log(`[sportsdb] total unique events: ${allEvents.length}`);
 
   // احفظهم
-  const result = await saveMatchesToDB(events);
+  const result = await saveMatchesToDB(allEvents);
   console.log(
     `[sportsdb] sync: ${result.created} new, ${result.updated} updated, ${result.skipped} skipped`
   );
@@ -321,5 +349,7 @@ export async function syncDailyMatches(): Promise<{
     upcoming: result,
     today: { created: 0, updated: 0, skipped: 0 },
     tomorrow: { created: 0, updated: 0, skipped: 0 },
+    daysScanned: dates.length,
+    totalFetched: allEvents.length,
   };
 }
