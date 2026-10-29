@@ -166,16 +166,18 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
   created: number;
   updated: number;
   skipped: number;
+  skipReasons: string[];
 }> {
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const skipReasons: string[] = [];
 
   for (const event of events) {
     try {
       // تخطّي المباريات المؤجلة
       if (event.strPostponed === "yes") {
-        console.log(`[sportsdb] skip postponed: ${event.strHomeTeam} vs ${event.strAwayTeam}`);
+        skipReasons.push(`postponed: ${event.strHomeTeam} vs ${event.strAwayTeam}`);
         skipped++;
         continue;
       }
@@ -183,7 +185,7 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
       // ابحث عن البطولة أو أنشئها
       const leagueInfo = ENABLED_LEAGUES.find((l) => l.id === event.idLeague);
       if (!leagueInfo) {
-        console.log(`[sportsdb] skip unknown league ${event.idLeague}: ${event.strHomeTeam} vs ${event.strAwayTeam}`);
+        skipReasons.push(`unknown league ${event.idLeague}: ${event.strHomeTeam} vs ${event.strAwayTeam}`);
         skipped++;
         continue;
       }
@@ -274,7 +276,7 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
         created++;
       }
     } catch (err) {
-      console.error("[sportsdb] save error for event", event.idEvent, err);
+      skipReasons.push(`error: ${event.strHomeTeam} vs ${event.strAwayTeam} - ${err instanceof Error ? err.message : 'unknown'}`);
       skipped++;
     }
   }
@@ -282,7 +284,7 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
   // ابطل الكاش
   cache.invalidatePrefix("matches:");
 
-  return { created, updated, skipped };
+  return { created, updated, skipped, skipReasons };
 }
 
 /**
