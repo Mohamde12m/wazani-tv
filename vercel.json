@@ -8,11 +8,6 @@
   "git": {
     "deploymentEnabled": true
   },
-  "functions": {
-    "/api/cron/matches": {
-      "maxDuration": 60
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/matches?token=wazani-cron-secret-2026",
