@@ -15,6 +15,8 @@ import {
 } from "@/lib/reminders";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { LiveBadge } from "./live-badge";
+import { ShareButton } from "./share-button";
 
 export function MatchCard({ match, featured = false }: { match: Match; featured?: boolean }) {
   const has = useFavorites((s) => s.has);
@@ -66,16 +68,24 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
         <span className="truncate text-[10px] font-bold text-emerald">
           {match.tournamentName ?? match.tournament?.nameAr ?? "بطولة"}
         </span>
-        {!live && (
-          <span
-            className={cn(
-              "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
-              finished ? "bg-muted text-muted-foreground" : "bg-secondary text-emerald",
-            )}
-          >
-            {statusLabel(match.status)}
-          </span>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          {live && <LiveBadge size="sm" />}
+          {!live && (
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
+                finished ? "bg-muted text-muted-foreground" : "bg-secondary text-emerald",
+              )}
+            >
+              {statusLabel(match.status)}
+            </span>
+          )}
+          <ShareButton
+            title={`${match.homeName} vs ${match.awayName}`}
+            text={`شاهد ${match.homeName} ضد ${match.awayName} على WazaNI TV`}
+            size="sm"
+          />
+        </div>
       </div>
 
       {/* Row 2: teams + score/time (single row, compact) */}

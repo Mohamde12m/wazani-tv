@@ -4,6 +4,7 @@ import * as React from "react";
 import { AppShell } from "@/components/shared/app-shell";
 import { TopHeader } from "@/components/shared/top-header";
 import { SplashScreen } from "@/components/shared/splash-screen";
+import { PageTransition } from "@/components/shared/page-transitions";
 import { useNav } from "@/stores/nav";
 import { HomeView } from "@/components/views/home-view";
 import { ChannelsView } from "@/components/views/channels-view";
@@ -61,17 +62,19 @@ export default function Home() {
       {shouldShowSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       <AppShell>
         {!isMain && <TopHeader title={meta?.title} subtitle={meta?.subtitle} showBack />}
-        {view.name === "home" && <HomeView />}
-        {view.name === "channels" && <ChannelsView country={view.country} category={view.category} />}
-        {view.name === "matches" && <MatchesView tab={view.tab} />}
-        {view.name === "favorites" && <FavoritesView />}
-        {view.name === "more" && <MoreView />}
-        {view.name === "player" && <PlayerView channelId={view.channelId} />}
-        {view.name === "match-player" && <MatchPlayerView matchId={view.matchId} />}
-        {view.name === "tournaments" && <TournamentsView />}
-        {view.name === "tournament" && <TournamentView id={view.id} />}
-        {view.name === "search" && <SearchView initialQuery={view.q} />}
-        {view.name === "admin" && <AdminView />}
+        <PageTransition viewKey={view.name + (view.name === "player" ? view.channelId : "") + (view.name === "match-player" ? view.matchId : "")}>
+          {view.name === "home" && <HomeView />}
+          {view.name === "channels" && <ChannelsView country={view.country} category={view.category} />}
+          {view.name === "matches" && <MatchesView tab={view.tab} />}
+          {view.name === "favorites" && <FavoritesView />}
+          {view.name === "more" && <MoreView />}
+          {view.name === "player" && <PlayerView channelId={view.channelId} />}
+          {view.name === "match-player" && <MatchPlayerView matchId={view.matchId} />}
+          {view.name === "tournaments" && <TournamentsView />}
+          {view.name === "tournament" && <TournamentView id={view.id} />}
+          {view.name === "search" && <SearchView initialQuery={view.q} />}
+          {view.name === "admin" && <AdminView />}
+        </PageTransition>
       </AppShell>
     </>
   );

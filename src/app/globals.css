@@ -520,3 +520,108 @@
   -webkit-text-fill-color: transparent;
   animation: wazani-gold-shimmer 4s linear infinite;
 }
+
+/* Ripple effect - تأثير الموجة عند النقر */
+@keyframes wazani-ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* نبض شارة LIVE */
+@keyframes wazani-live-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+.wazani-live-badge {
+  background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+  color: white;
+  animation: wazani-live-pulse 1.8s ease-in-out infinite;
+}
+
+/* Shimmer loading - تأثير التحميل اللامع */
+@keyframes wazani-skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.wazani-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(218, 165, 32, 0.06) 0%,
+    rgba(218, 165, 32, 0.15) 50%,
+    rgba(218, 165, 32, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: wazani-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* تأثير ظهور البطاقات بالتدريج */
+@keyframes wazani-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wazani-card-enter {
+  animation: wazani-card-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* تأثير الإضاءة الخلفية للبطاقات */
+.wazani-card-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.wazani-card-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 215, 0, 0.08) 0%,
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.wazani-card-glow:hover::before {
+  opacity: 1;
+}
+
+/* تأثير اللمعان الذهبي على البطاقات المميزة */
+@keyframes wazani-featured-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 215, 0, 0.3),
+      0 4px 16px -4px rgba(0, 135, 90, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 215, 0, 0.5),
+      0 6px 20px -2px rgba(0, 200, 83, 0.3);
+  }
+}
+
+.wazani-featured-glow {
+  animation: wazani-featured-glow 3s ease-in-out infinite;
+}

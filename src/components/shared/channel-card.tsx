@@ -35,8 +35,13 @@ export function ChannelCard({ channel }: { channel: Channel }) {
           </span>
         )}
         {available ? (
-          <span className="absolute bottom-1 right-1 flex items-center gap-1 rounded-full bg-emerald px-1.5 py-0.5 text-[10px] font-bold text-white">
-            <span className="h-1.5 w-1.5 rounded-full bg-white live-dot" />
+          <span
+            className="absolute bottom-1 right-1 flex items-center gap-1 rounded-full bg-emerald px-1.5 py-0.5 text-[10px] font-bold text-white"
+            style={{
+              animation: "wazani-live-pulse 2s ease-in-out infinite",
+            }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-white" />
             متاح
           </span>
         ) : (
