@@ -42,78 +42,79 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* WazaNI TV brand tokens */
-  --color-emerald: #0b6e4f;
-  --color-emerald-dark: #084d37;
-  --color-emerald-light: #0f9b6e;
-  --color-gold: #c9962e;
-  --color-gold-light: #e3b45a;
-  --color-cream: #faf6ec;
+  /* WazaNI TV brand tokens — Royal Emerald & Gold (مستوحى من الشعار) */
+  --color-emerald: #00875A;
+  --color-emerald-dark: #023020;
+  --color-emerald-light: #00C853;
+  --color-gold: #FFD700;
+  --color-gold-light: #FFE873;
+  --color-gold-deep: #DAA520;
+  --color-cream: #FAF8F0;
 }
 
 :root {
   --radius: 0.875rem;
-  /* Warm cream background — no harsh white, no black */
-  --background: #faf6ec;
-  --foreground: #1c3a30; /* deep emerald-tinted charcoal, not black */
-  --card: #ffffff;
-  --card-foreground: #1c3a30;
-  --popover: #ffffff;
-  --popover-foreground: #1c3a30;
-  --primary: #0b6e4f;
-  --primary-foreground: #ffffff;
-  --secondary: #eef5ef;
-  --secondary-foreground: #0b6e4f;
-  --muted: #f0ece0;
-  --muted-foreground: #6b7a72;
-  --accent: #c9962e;
-  --accent-foreground: #2a2008;
-  --destructive: #c0392b;
-  --border: #e6ddc8;
-  --input: #ece3cf;
-  --ring: #c9962e;
-  --chart-1: #0b6e4f;
-  --chart-2: #c9962e;
-  --chart-3: #1b9e7a;
-  --chart-4: #e3b45a;
-  --chart-5: #2e7d5b;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1c3a30;
-  --sidebar-primary: #0b6e4f;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0ece0;
-  --sidebar-accent-foreground: #1c3a30;
-  --sidebar-border: #e6ddc8;
-  --sidebar-ring: #c9962e;
+  /* خلفية عاجية كريمية فاخرة */
+  --background: #FAF8F0;
+  --foreground: #0A1F14; /* أخضر غامق جدًا بدلًا من الأسود */
+  --card: #FFFFFF;
+  --card-foreground: #0A1F14;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A1F14;
+  --primary: #00875A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E8F5EE;
+  --secondary-foreground: #00875A;
+  --muted: #F0EBE0;
+  --muted-foreground: #5C6B62;
+  --accent: #DAA520;
+  --accent-foreground: #2A2008;
+  --destructive: #C0392B;
+  --border: #E0D5B8;
+  --input: #ECE3CF;
+  --ring: #DAA520;
+  --chart-1: #00875A;
+  --chart-2: #DAA520;
+  --chart-3: #00C853;
+  --chart-4: #FFD700;
+  --chart-5: #023020;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0A1F14;
+  --sidebar-primary: #00875A;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0EBE0;
+  --sidebar-accent-foreground: #0A1F14;
+  --sidebar-border: #E0D5B8;
+  --sidebar-ring: #DAA520;
 }
 
 .dark {
-  --background: #06140f;
-  --foreground: #eef5ef;
-  --card: #0c1f17;
-  --card-foreground: #eef5ef;
-  --popover: #0c1f17;
-  --popover-foreground: #eef5ef;
-  --primary: #16a085;
-  --primary-foreground: #06140f;
-  --secondary: #11281f;
-  --secondary-foreground: #eef5ef;
-  --muted: #11281f;
-  --muted-foreground: #8fa89c;
-  --accent: #e3b45a;
-  --accent-foreground: #2a2008;
-  --destructive: #e74c3c;
-  --border: #1b3a2c;
-  --input: #1b3a2c;
-  --ring: #e3b45a;
-  --sidebar: #0c1f17;
-  --sidebar-foreground: #eef5ef;
-  --sidebar-primary: #16a085;
-  --sidebar-primary-foreground: #06140f;
-  --sidebar-accent: #11281f;
-  --sidebar-accent-foreground: #eef5ef;
-  --sidebar-border: #1b3a2c;
-  --sidebar-ring: #e3b45a;
+  --background: #021A14;
+  --foreground: #E8F5EE;
+  --card: #0A2218;
+  --card-foreground: #E8F5EE;
+  --popover: #0A2218;
+  --popover-foreground: #E8F5EE;
+  --primary: #00C853;
+  --primary-foreground: #021A14;
+  --secondary: #0D2A1F;
+  --secondary-foreground: #E8F5EE;
+  --muted: #0D2A1F;
+  --muted-foreground: #7A9588;
+  --accent: #FFD700;
+  --accent-foreground: #2A2008;
+  --destructive: #E74C3C;
+  --border: #1B3A2C;
+  --input: #1B3A2C;
+  --ring: #FFD700;
+  --sidebar: #0A2218;
+  --sidebar-foreground: #E8F5EE;
+  --sidebar-primary: #00C853;
+  --sidebar-primary-foreground: #021A14;
+  --sidebar-accent: #0D2A1F;
+  --sidebar-accent-foreground: #E8F5EE;
+  --sidebar-border: #1B3A2C;
+  --sidebar-ring: #FFD700;
 }
 
 @layer base {
@@ -351,3 +352,171 @@
   height: 100% !important;
 }
 
+
+/* ============================================================
+   🌟 WazaNI TV — تأثيرات ديناميكية خرافية (Royal Emerald & Gold)
+   ============================================================ */
+
+/* تدرج ذهبي متلألئ (Shimmer) — يتحرك أفقيًا */
+@keyframes wazani-gold-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* نبض ضوئي ذهبي ناعم */
+@keyframes wazani-gold-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px 0 rgba(255, 215, 0, 0.4);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(255, 215, 0, 0.7);
+    opacity: 1;
+  }
+}
+
+/* نبض زمردي */
+@keyframes wazani-emerald-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px 0 rgba(0, 200, 83, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(0, 200, 83, 0.6);
+  }
+}
+
+/* توهج زجاجي عائم (Glass Glow) */
+@keyframes wazani-glass-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 215, 0, 0.3),
+      0 4px 24px -4px rgba(0, 135, 90, 0.35),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 215, 0, 0.5),
+      0 6px 28px -2px rgba(0, 200, 83, 0.5),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* ارتداد زنبركي للأيقونة */
+@keyframes wazani-bounce-in {
+  0% {
+    transform: scale(0.8) translateY(0);
+  }
+  50% {
+    transform: scale(1.15) translateY(-3px);
+  }
+  100% {
+    transform: scale(1.1) translateY(-2px);
+  }
+}
+
+/* نقطة ذهبية نابضة */
+@keyframes wazani-dot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.6;
+  }
+}
+
+/* شريط ذهبي لامع يتحرك */
+@keyframes wazani-gold-bar-shine {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+/* تدرج زمردي متحرك للخلفية */
+@keyframes wazani-emerald-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ظهور ناعم من الأسفل */
+@keyframes wazani-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* الكلاسات المساعدة */
+.wazani-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 0.5) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.dark .wazani-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 34, 24, 0.75) 0%,
+    rgba(13, 42, 31, 0.65) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.wazani-gold-text {
+  background: linear-gradient(
+    90deg,
+    #DAA520 0%,
+    #FFD700 25%,
+    #FFE873 50%,
+    #FFD700 75%,
+    #DAA520 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wazani-gold-shimmer 3s linear infinite;
+}
+
+.wazani-emerald-text {
+  background: linear-gradient(
+    90deg,
+    #00875A 0%,
+    #00C853 50%,
+    #00875A 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wazani-gold-shimmer 4s linear infinite;
+}
