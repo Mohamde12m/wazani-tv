@@ -11,6 +11,7 @@ import { MatchesView } from "@/components/views/matches-view";
 import { FavoritesView } from "@/components/views/favorites-view";
 import { MoreView } from "@/components/views/more-view";
 import { PlayerView } from "@/components/views/player-view";
+import { MatchPlayerView } from "@/components/views/match-player-view";
 import { TournamentsView } from "@/components/views/tournaments-view";
 import { TournamentView } from "@/components/views/tournament-view";
 import { SearchView } from "@/components/views/search-view";
@@ -21,6 +22,7 @@ const MAIN_VIEWS = new Set(["home", "channels", "matches", "favorites", "more"])
 
 const TITLES: Record<string, { title: string; subtitle?: string }> = {
   player: { title: "مشاهدة القناة" },
+  "match-player": { title: "مشاهدة المباراة" },
   tournaments: { title: "البطولات", subtitle: "أهم البطولات الرياضية" },
   tournament: { title: "تفاصيل البطولة" },
   search: { title: "البحث" },
@@ -65,6 +67,7 @@ export default function Home() {
         {view.name === "favorites" && <FavoritesView />}
         {view.name === "more" && <MoreView />}
         {view.name === "player" && <PlayerView channelId={view.channelId} />}
+        {view.name === "match-player" && <MatchPlayerView matchId={view.matchId} />}
         {view.name === "tournaments" && <TournamentsView />}
         {view.name === "tournament" && <TournamentView id={view.id} />}
         {view.name === "search" && <SearchView initialQuery={view.q} />}

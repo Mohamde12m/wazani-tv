@@ -7,11 +7,5 @@
   "regions": ["fra1"],
   "git": {
     "deploymentEnabled": true
-  },
-  "crons": [
-    {
-      "path": "/api/cron/matches?token=wazani-cron-secret-2026",
-      "schedule": "0 6 * * *"
-    }
-  ]
+  }
 }

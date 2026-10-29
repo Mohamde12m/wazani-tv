@@ -1210,10 +1210,6 @@ function MatchesSection() {
   const [delLoading, setDelLoading] = React.useState(false);
   const logout = useAdmin((s) => s.logout);
 
-  // 🔵 حالة المزامنة التلقائية
-  const [syncing, setSyncing] = React.useState(false);
-  const [syncResult, setSyncResult] = React.useState<string | null>(null);
-
   // 🟢 حالة تحرير روابط البث بالجملة
   const [streamEdits, setStreamEdits] = React.useState<Record<string, { url: string; broadcaster: string }>>({});
   const [savingBulk, setSavingBulk] = React.useState(false);
@@ -1236,38 +1232,6 @@ function MatchesSection() {
   const otherMatches = matches
     .filter((m) => !m.kickoff?.startsWith(todayStr) && !m.kickoff?.startsWith(tomorrowStr))
     .sort((a, b) => a.kickoff.localeCompare(b.kickoff));
-
-  // 🔵 دالة المزامنة التلقائية
-  const handleSync = async () => {
-    setSyncing(true);
-    setSyncResult(null);
-    try {
-      const res = await apiFetch<{ ok: boolean; totalFetched?: number; upcoming?: { created: number; updated: number }; failedLeagues?: string[] }>(
-        "/api/cron/matches?token=wazani-cron-secret-2026"
-      );
-      const fetched = res.totalFetched ?? 0;
-      const created = res.upcoming?.created ?? 0;
-      const updated = res.upcoming?.updated ?? 0;
-      const failed = res.failedLeagues ?? [];
-      setSyncResult(
-        `✅ تم سحب ${fetched} مباراة (${created} جديدة، ${updated} محدثة)` +
-          (failed.length > 0 ? `. ⚠️ فشل ${failed.length} دوري بسبب rate limit — اضغط مرة أخرى.` : "")
-      );
-      toast.success(`تم سحب ${fetched} مباراة`);
-      reload();
-    } catch (e) {
-      const err = e as Error & { status?: number };
-      if (err.status === 401) {
-        toast.error("انتهت الجلسة، يرجى تسجيل الدخول مجددًا");
-        logout();
-      } else {
-        toast.error(err.message || "فشل التحديث");
-        setSyncResult(`❌ فشل: ${err.message}`);
-      }
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   // 🟢 تحديث حقل رابط البث محليًا
   const setStreamEdit = (matchId: string, field: "url" | "broadcaster", value: string) => {
@@ -1297,14 +1261,24 @@ function MatchesSection() {
 
     setSavingBulk(true);
     try {
-      const res = await apiFetch<{ ok: boolean; updated: number; errors: Array<{ id: string; error: string }> }>(
-        "/api/matches/bulk-update",
-        {
-          method: "PUT",
-          body: JSON.stringify({ updates }),
+      // استخدم API تحديث فردي لكل مباراة (لا يوجد bulk endpoint بعد إزالة المزامنة)
+      let updated = 0;
+      for (const u of updates) {
+        try {
+          await apiFetch(`/api/matches/${u.id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              streamUrl: u.streamUrl,
+              streamType: u.streamUrl ? "hls" : "none",
+              broadcaster: u.broadcaster,
+            }),
+          });
+          updated++;
+        } catch {
+          // تجاهل الأخطاء الفردية
         }
-      );
-      toast.success(`تم حفظ ${res.updated} رابط بث`);
+      }
+      toast.success(`تم حفظ ${updated} رابط بث`);
       setStreamEdits({});
       reload();
     } catch (e) {
@@ -1357,37 +1331,18 @@ function MatchesSection() {
           subtitle={`${matches.length} مباراة | ${matchesWithStream} لها رابط بث`}
           noMargin
         />
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            onClick={handleSync}
-            disabled={syncing}
-            variant="outline"
-            size="sm"
-            className="border-emerald text-emerald hover:bg-emerald/10"
-          >
-            {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {syncing ? "جاري المزامنة..." : "🔄 مزامنة المباريات"}
-          </Button>
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-            className="bg-emerald text-white hover:bg-emerald-dark"
-            size="sm"
-          >
-            <Plus className="h-4 w-4" />
-            إضافة مباراة
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setDialogOpen(true);
+          }}
+          className="bg-emerald text-white hover:bg-emerald-dark"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          إضافة مباراة
+        </Button>
       </div>
-
-      {/* 🔵 نتيجة المزامنة */}
-      {syncResult && (
-        <div className="rounded-xl border border-emerald/30 bg-emerald/5 p-3 text-sm">
-          {syncResult}
-        </div>
-      )}
 
       {/* 🟢 زر حفظ الكل */}
       {Object.keys(streamEdits).length > 0 && (
@@ -1466,7 +1421,7 @@ function MatchesSection() {
           <CardContent className="py-12 text-center">
             <Calendar className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              لا توجد مباريات. اضغط «🔄 مزامنة المباريات» لسحب المباريات تلقائيًا.
+              لا توجد مباريات. اضغط «إضافة مباراة» لإضافة مباراة جديدة.
             </p>
           </CardContent>
         </Card>

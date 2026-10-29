@@ -131,9 +131,16 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
 
         {/* Right: actions (compact) */}
         <div className="flex shrink-0 items-center gap-1">
-          {match.channel && (
+          {/* زر المشاهدة — يفتح مشغل المباراة لو لها رابط بث، أو مشغل القناة لو لا */}
+          {(match.streamUrl || match.channel) && (
             <button
-              onClick={() => setView({ name: "player", channelId: match.channel!.id })}
+              onClick={() => {
+                if (match.streamUrl) {
+                  setView({ name: "match-player", matchId: match.id });
+                } else if (match.channel) {
+                  setView({ name: "player", channelId: match.channel!.id });
+                }
+              }}
               className="rounded-lg bg-emerald px-2 py-1 text-[10px] font-bold text-white transition-colors hover:bg-emerald-dark"
             >
               مشاهدة

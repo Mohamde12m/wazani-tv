@@ -21,6 +21,12 @@ const updateSchema = z.object({
   channelId: z.string().nullable().optional(),
   featured: z.boolean().optional(),
   demo: z.boolean().optional(),
+  /// رابط البث — يُضاف يدويًا من لوحة الإدارة
+  streamUrl: z.string().nullable().optional(),
+  /// نوع البث: hls | mp4 | youtube | none
+  streamType: z.string().optional(),
+  /// القناة الناقلة (نص حر)
+  broadcaster: z.string().nullable().optional(),
 });
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

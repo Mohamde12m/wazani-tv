@@ -9,6 +9,7 @@ export type View =
   | { name: "favorites" }
   | { name: "more" }
   | { name: "player"; channelId: string }
+  | { name: "match-player"; matchId: string }
   | { name: "tournaments" }
   | { name: "tournament"; id: string }
   | { name: "search"; q?: string }
