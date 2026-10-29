@@ -235,44 +235,53 @@ export async function saveMatchesToDB(events: SportsDBEvent[]): Promise<{
       const awayScore = event.intAwayScore ? parseInt(event.intAwayScore, 10) : null;
 
       // upsert المباراة (externalId فريد)
-      const existing = await db.match.findUnique({
-        where: { externalId: event.idEvent },
-      });
+      // استخدم raw SQL للتحقق من وجود المباراة (لتجنب مشاكل Prisma client cache)
+      const existingRows = await db.$queryRaw<{ id: string }[]>`
+        SELECT id FROM Match WHERE externalId = ${event.idEvent} LIMIT 1
+      `;
+      const existing = existingRows.length > 0 ? existingRows[0] : null;
 
       if (existing) {
         // حدّث النتيجة + الحالة فقط (لا تمسح streamUrl لو أضافه المسؤول)
-        await db.match.update({
-          where: { id: existing.id },
-          data: {
-            homeScore,
-            awayScore,
-            status,
-            homeLogo: event.strHomeTeamBadge || existing.homeLogo,
-            awayLogo: event.strAwayTeamBadge || existing.awayLogo,
-            tournamentName: tournament.name,
-            stadium: event.strVenue || existing.stadium,
-          },
-        });
+        await db.$executeRaw`
+          UPDATE Match SET
+            homeScore = ${homeScore},
+            awayScore = ${awayScore},
+            status = ${status},
+            homeLogo = COALESCE(${event.strHomeTeamBadge || null}, homeLogo),
+            awayLogo = COALESCE(${event.strAwayTeamBadge || null}, awayLogo),
+            tournamentName = ${tournament.name},
+            stadium = COALESCE(${event.strVenue || null}, stadium),
+            updatedAt = ${new Date()}
+          WHERE id = ${existing.id}
+        `;
         updated++;
       } else {
-        await db.match.create({
-          data: {
-            externalId: event.idEvent,
-            homeName: event.strHomeTeam,
-            awayName: event.strAwayTeam,
-            homeLogo: event.strHomeTeamBadge || null,
-            awayLogo: event.strAwayTeamBadge || null,
-            tournamentId: tournament.id,
-            tournamentName: tournament.name,
-            kickoff,
-            status,
-            homeScore,
-            awayScore,
-            stadium: event.strVenue || null,
-            demo: false, // مباراة حقيقية
-            featured: leagueInfo.priority === 1, // الدوريات المهمة = featured
-          },
-        });
+        // استخدم raw SQL للإنشاء (لتجنب مشاكل Prisma client cache على Vercel)
+        const newId = `sportsdb-${event.idEvent}`;
+        await db.$executeRaw`
+          INSERT INTO Match (id, externalId, homeName, awayName, homeLogo, awayLogo, tournamentId, tournamentName, kickoff, status, homeScore, awayScore, stadium, demo, featured, streamType, createdAt, updatedAt)
+          VALUES (
+            ${newId},
+            ${event.idEvent},
+            ${event.strHomeTeam},
+            ${event.strAwayTeam},
+            ${event.strHomeTeamBadge || null},
+            ${event.strAwayTeamBadge || null},
+            ${tournament.id},
+            ${tournament.name},
+            ${kickoff},
+            ${status},
+            ${homeScore},
+            ${awayScore},
+            ${event.strVenue || null},
+            ${false},
+            ${leagueInfo.priority === 1},
+            'none',
+            ${new Date()},
+            ${new Date()}
+          )
+        `;
         created++;
       }
     } catch (err) {
