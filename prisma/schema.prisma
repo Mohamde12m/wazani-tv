@@ -117,6 +117,14 @@ model Match {
   featured     Boolean     @default(false)
   demo         Boolean     @default(true) // mark seed/demo data
   reminder     Boolean     @default(false)
+  /// رابط البث — يُضاف يدويًا من لوحة الإدارة
+  streamUrl    String?
+  /// نوع البث: hls | mp4 | youtube | none
+  streamType   String      @default("none")
+  /// المعرف الخارجي من theSportsDB لتجنب التكرار
+  externalId   String?     @unique
+  /// القناة الناقلة (نص حر — مثل "beIN Sports 1")
+  broadcaster  String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   favorites    Favorite[]
