@@ -77,6 +77,14 @@ export interface Match {
   channel?: Channel | null;
   featured: boolean;
   demo: boolean;
+  /// رابط البث — يُضاف يدويًا من لوحة الإدارة
+  streamUrl?: string | null;
+  /// نوع البث: hls | mp4 | youtube | none
+  streamType?: string;
+  /// المعرف الخارجي من theSportsDB
+  externalId?: string | null;
+  /// القناة الناقلة (نص حر)
+  broadcaster?: string | null;
 }
 
 /** مواضع الإعلانات المدعومة في التطبيق. */

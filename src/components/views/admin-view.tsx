@@ -1210,7 +1210,115 @@ function MatchesSection() {
   const [delLoading, setDelLoading] = React.useState(false);
   const logout = useAdmin((s) => s.logout);
 
+  // 🔵 حالة المزامنة التلقائية
+  const [syncing, setSyncing] = React.useState(false);
+  const [syncResult, setSyncResult] = React.useState<string | null>(null);
+
+  // 🟢 حالة تحرير روابط البث بالجملة
+  const [streamEdits, setStreamEdits] = React.useState<Record<string, { url: string; broadcaster: string }>>({});
+  const [savingBulk, setSavingBulk] = React.useState(false);
+
   const matches = data?.matches || [];
+
+  // فلتر: فقط مباريات اليوم وغدًا (الأهم للإدارة اليومية)
+  const now = new Date();
+  const todayStr = now.toISOString().split("T")[0];
+  const tomorrowStr = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
+  const todayMatches = matches
+    .filter((m) => m.kickoff?.startsWith(todayStr))
+    .sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+  const tomorrowMatches = matches
+    .filter((m) => m.kickoff?.startsWith(tomorrowStr))
+    .sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+  const otherMatches = matches
+    .filter((m) => !m.kickoff?.startsWith(todayStr) && !m.kickoff?.startsWith(tomorrowStr))
+    .sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+
+  // 🔵 دالة المزامنة التلقائية
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await apiFetch<{ ok: boolean; totalFetched?: number; upcoming?: { created: number; updated: number }; failedLeagues?: string[] }>(
+        "/api/cron/matches?token=wazani-cron-secret-2026"
+      );
+      const fetched = res.totalFetched ?? 0;
+      const created = res.upcoming?.created ?? 0;
+      const updated = res.upcoming?.updated ?? 0;
+      const failed = res.failedLeagues ?? [];
+      setSyncResult(
+        `✅ تم سحب ${fetched} مباراة (${created} جديدة، ${updated} محدثة)` +
+          (failed.length > 0 ? `. ⚠️ فشل ${failed.length} دوري بسبب rate limit — اضغط مرة أخرى.` : "")
+      );
+      toast.success(`تم سحب ${fetched} مباراة`);
+      reload();
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) {
+        toast.error("انتهت الجلسة، يرجى تسجيل الدخول مجددًا");
+        logout();
+      } else {
+        toast.error(err.message || "فشل التحديث");
+        setSyncResult(`❌ فشل: ${err.message}`);
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // 🟢 تحديث حقل رابط البث محليًا
+  const setStreamEdit = (matchId: string, field: "url" | "broadcaster", value: string) => {
+    setStreamEdits((prev) => ({
+      ...prev,
+      [matchId]: {
+        url: field === "url" ? value : prev[matchId]?.url ?? "",
+        broadcaster: field === "broadcaster" ? value : prev[matchId]?.broadcaster ?? "",
+      },
+    }));
+  };
+
+  // 🟢 حفظ كل روابط البث المعدلة
+  const handleSaveBulk = async () => {
+    const updates = Object.entries(streamEdits)
+      .filter(([, v]) => v.url !== undefined || v.broadcaster !== undefined)
+      .map(([id, v]) => ({
+        id,
+        streamUrl: v.url?.trim() || null,
+        broadcaster: v.broadcaster?.trim() || null,
+      }));
+
+    if (updates.length === 0) {
+      toast.info("لا توجد تغييرات لحفظها");
+      return;
+    }
+
+    setSavingBulk(true);
+    try {
+      const res = await apiFetch<{ ok: boolean; updated: number; errors: Array<{ id: string; error: string }> }>(
+        "/api/matches/bulk-update",
+        {
+          method: "PUT",
+          body: JSON.stringify({ updates }),
+        }
+      );
+      toast.success(`تم حفظ ${res.updated} رابط بث`);
+      setStreamEdits({});
+      reload();
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) {
+        toast.error("انتهت الجلسة، يرجى تسجيل الدخول مجددًا");
+        logout();
+      } else {
+        toast.error(err.message || "فشل الحفظ");
+      }
+    } finally {
+      setSavingBulk(false);
+    }
+  };
 
   const confirmDelete = async () => {
     if (!deleting) return;
@@ -1233,128 +1341,136 @@ function MatchesSection() {
     }
   };
 
+  // عدد المباريات التي لها روابط بث جاهزة
+  const matchesWithStream = matches.filter((m) => m.streamUrl).length;
+
   if (loading) return <SectionLoading />;
   if (error) return <ErrorBlock message="تعذّر تحميل المباريات" />;
 
   return (
     <div className="space-y-4">
+      {/* 🔵 شريط الإجراءات العلوي */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionTitle
           icon={Calendar}
           title="إدارة المباريات"
-          subtitle={`${matches.length} مباراة في النظام`}
+          subtitle={`${matches.length} مباراة | ${matchesWithStream} لها رابط بث`}
           noMargin
         />
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setDialogOpen(true);
-          }}
-          className="bg-emerald text-white hover:bg-emerald-dark"
-          size="sm"
-        >
-          <Plus className="h-4 w-4" />
-          إضافة مباراة
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={handleSync}
+            disabled={syncing}
+            variant="outline"
+            size="sm"
+            className="border-emerald text-emerald hover:bg-emerald/10"
+          >
+            {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {syncing ? "جاري المزامنة..." : "🔄 مزامنة المباريات"}
+          </Button>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setDialogOpen(true);
+            }}
+            className="bg-emerald text-white hover:bg-emerald-dark"
+            size="sm"
+          >
+            <Plus className="h-4 w-4" />
+            إضافة مباراة
+          </Button>
+        </div>
       </div>
 
-      <Card className="rounded-2xl border border-border bg-card shadow-sm">
-        <CardContent className="px-0">
-          {matches.length === 0 ? (
-            <EmptyRow text="لا توجد مباريات" />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-secondary/40 hover:bg-secondary/40">
-                  <TableHead className="pr-4">المباراة</TableHead>
-                  <TableHead>البطولة</TableHead>
-                  <TableHead>الموعد</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>القناة</TableHead>
-                  <TableHead className="text-left">إجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {matches.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="pr-4">
-                      <div className="flex items-center gap-2">
-                        {m.demo && (
-                          <Badge
-                            variant="outline"
-                            className="bg-purple-500/10 text-purple-600"
-                          >
-                            <FlaskConical className="h-3 w-3" />
-                            تجريبية
-                          </Badge>
-                        )}
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-semibold">
-                            {m.homeName} <span className="text-muted-foreground">×</span>{" "}
-                            {m.awayName}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {m.homeScore !== null && m.homeScore !== undefined
-                              ? `${m.homeScore} - ${m.awayScore ?? 0}`
-                              : m.stadium || "—"}
-                          </div>
-                        </div>
-                        {m.featured && (
-                          <Star className="h-3.5 w-3.5 shrink-0 fill-gold text-gold" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {m.tournament?.nameAr || m.tournament?.name || m.tournamentName || (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      <div>{formatDate(m.kickoff)}</div>
-                      <div className="text-muted-foreground">{formatTime(m.kickoff)}</div>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={m.status} />
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {m.channel ? (
-                        m.channel.nameAr || m.channel.name
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-left">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-emerald"
-                          onClick={() => {
-                            setEditing(m);
-                            setDialogOpen(true);
-                          }}
-                          aria-label="تعديل"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => setDeleting(m)}
-                          aria-label="حذف"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* 🔵 نتيجة المزامنة */}
+      {syncResult && (
+        <div className="rounded-xl border border-emerald/30 bg-emerald/5 p-3 text-sm">
+          {syncResult}
+        </div>
+      )}
+
+      {/* 🟢 زر حفظ الكل */}
+      {Object.keys(streamEdits).length > 0 && (
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 rounded-xl border border-gold/40 bg-gold/10 p-3 shadow-sm">
+          <span className="text-sm font-semibold text-gold">
+            {Object.keys(streamEdits).length} تغيير غير محفوظ
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setStreamEdits({})}
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={handleSaveBulk}
+              disabled={savingBulk}
+              size="sm"
+              className="bg-gold text-white hover:bg-gold/90"
+            >
+              {savingBulk ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {savingBulk ? "جاري الحفظ..." : "💾 حفظ الكل"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* 🔵 مباريات اليوم (الأهم) */}
+      {todayMatches.length > 0 && (
+        <MatchesDayGroup
+          title="📅 مباريات اليوم"
+          matches={todayMatches}
+          streamEdits={streamEdits}
+          setStreamEdit={setStreamEdit}
+          onEdit={(m) => {
+            setEditing(m);
+            setDialogOpen(true);
+          }}
+          onDelete={setDeleting}
+        />
+      )}
+
+      {/* 🔵 مباريات غدًا */}
+      {tomorrowMatches.length > 0 && (
+        <MatchesDayGroup
+          title="📆 مباريات غدًا"
+          matches={tomorrowMatches}
+          streamEdits={streamEdits}
+          setStreamEdit={setStreamEdit}
+          onEdit={(m) => {
+            setEditing(m);
+            setDialogOpen(true);
+          }}
+          onDelete={setDeleting}
+        />
+      )}
+
+      {/* 🔵 بقية المباريات */}
+      {otherMatches.length > 0 && (
+        <MatchesDayGroup
+          title="⚽ مباريات قادمة"
+          matches={otherMatches}
+          streamEdits={streamEdits}
+          setStreamEdit={setStreamEdit}
+          onEdit={(m) => {
+            setEditing(m);
+            setDialogOpen(true);
+          }}
+          onDelete={setDeleting}
+        />
+      )}
+
+      {matches.length === 0 && (
+        <Card className="rounded-2xl border border-border bg-card shadow-sm">
+          <CardContent className="py-12 text-center">
+            <Calendar className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              لا توجد مباريات. اضغط «🔄 مزامنة المباريات» لسحب المباريات تلقائيًا.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <MatchDialog
         open={dialogOpen}
@@ -1374,6 +1490,130 @@ function MatchesSection() {
         onConfirm={confirmDelete}
       />
     </div>
+  );
+}
+
+/* ============================================================
+   🆕 مكون: مجموعة مباريات يوم واحد مع تحرير روابط البث
+============================================================ */
+function MatchesDayGroup({
+  title,
+  matches,
+  streamEdits,
+  setStreamEdit,
+  onEdit,
+  onDelete,
+}: {
+  title: string;
+  matches: Match[];
+  streamEdits: Record<string, { url: string; broadcaster: string }>;
+  setStreamEdit: (matchId: string, field: "url" | "broadcaster", value: string) => void;
+  onEdit: (m: Match) => void;
+  onDelete: (m: Match) => void;
+}) {
+  return (
+    <Card className="rounded-2xl border border-border bg-card shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-bold">{title} ({matches.length})</CardTitle>
+      </CardHeader>
+      <CardContent className="px-3 pb-3">
+        <div className="space-y-2">
+          {matches.map((m) => {
+            const hasStream = !!m.streamUrl;
+            const editState = streamEdits[m.id];
+            const currentUrl = editState?.url ?? m.streamUrl ?? "";
+            const currentBroadcaster = editState?.broadcaster ?? m.broadcaster ?? "";
+            const isModified = !!editState;
+
+            return (
+              <div
+                key={m.id}
+                className={`rounded-xl border p-3 transition-colors ${
+                  isModified
+                    ? "border-gold/50 bg-gold/5"
+                    : hasStream
+                    ? "border-emerald/30 bg-emerald/5"
+                    : "border-border bg-background"
+                }`}
+              >
+                {/* صف المباراة + الحالة */}
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    {m.externalId && (
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-600">
+                        🔄 تلقائي
+                      </Badge>
+                    )}
+                    {m.demo && !m.externalId && (
+                      <Badge variant="outline" className="bg-purple-500/10 text-purple-600">
+                        <FlaskConical className="h-3 w-3" />
+                        تجريبية
+                      </Badge>
+                    )}
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">
+                        {m.homeName} <span className="text-muted-foreground">×</span> {m.awayName}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {m.tournament?.nameAr || m.tournament?.name || m.tournamentName || "—"} · {formatTime(m.kickoff)}
+                        {m.homeScore !== null && m.homeScore !== undefined && ` · ${m.homeScore}-${m.awayScore ?? 0}`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {hasStream && (
+                      <Badge variant="outline" className="bg-emerald/10 text-emerald">
+                        ✅ بث جاهز
+                      </Badge>
+                    )}
+                    <StatusBadge status={m.status} />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-emerald"
+                      onClick={() => onEdit(m)}
+                      aria-label="تعديل"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-destructive"
+                      onClick={() => onDelete(m)}
+                      aria-label="حذف"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 🟢 حقل رابط البث */}
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="url"
+                      placeholder="https://... (رابط بث HLS أو MP4)"
+                      value={currentUrl}
+                      onChange={(e) => setStreamEdit(m.id, "url", e.target.value)}
+                      className="h-9 text-xs"
+                      dir="ltr"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="القناة الناقلة (beIN 1)"
+                      value={currentBroadcaster}
+                      onChange={(e) => setStreamEdit(m.id, "broadcaster", e.target.value)}
+                      className="h-9 w-32 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
