@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
@@ -72,6 +73,14 @@ export default function RootLayout({
           <SonnerToaster position="top-center" richColors />
           <OneSignalProvider />
           <PWARegister />
+          {/* Monetag Vignette Ad — يعمل على客户端 فقط */}
+          <Script
+            id="monetag-vignette"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `(function(s){s.dataset.zone='12156403',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`,
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>
