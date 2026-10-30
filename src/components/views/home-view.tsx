@@ -178,12 +178,31 @@ export function HomeView() {
     <div>
       {/* ===== App header (sticky) =====
           RTL: brand on the RIGHT (start), search + bell on the LEFT (end) */}
-      <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-30"
+        style={{
+          background:
+            "linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, transparent) 0%, color-mix(in srgb, var(--card) 80%, transparent) 100%)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderBottom: "1px solid color-mix(in srgb, var(--accent) 22%, transparent)",
+          boxShadow: "0 4px 20px -8px rgba(2, 20, 16, 0.12)",
+        }}
+      >
+        {/* شريط ذهبي علوي رفيع */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent) 55%, transparent) 50%, transparent 100%)",
+          }}
+        />
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2.5">
           {/* Brand block (right side in RTL) — animated logo + animated wordmark */}
           <button
             onClick={() => setView({ name: "home" })}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 transition-opacity hover:opacity-90"
             aria-label="WazaNI TV"
           >
             <Logo size={48} />
@@ -196,7 +215,7 @@ export function HomeView() {
           {/* Search button (left side) */}
           <button
             onClick={() => setView({ name: "search" })}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-emerald transition-colors hover:bg-secondary/70 active:scale-95"
+            className="wz-glass-chip flex h-10 w-10 items-center justify-center rounded-xl text-emerald transition-all hover:scale-105 active:scale-95"
             aria-label="بحث"
           >
             <Search className="h-5 w-5" />
@@ -205,12 +224,18 @@ export function HomeView() {
           {/* Notifications button (left side) */}
           <button
             onClick={() => setView({ name: "matches", tab: "live" })}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-emerald transition-colors hover:bg-secondary/70 active:scale-95"
+            className="wz-glass-chip relative flex h-10 w-10 items-center justify-center rounded-xl text-emerald transition-all hover:scale-105 active:scale-95"
             aria-label="التنبيهات"
           >
             <Bell className="h-5 w-5" />
             {liveCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-bold text-white">
+              <span
+                className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white"
+                style={{
+                  background: "linear-gradient(135deg, var(--accent) 0%, var(--color-gold-deep) 100%)",
+                  boxShadow: "0 2px 6px -1px color-mix(in srgb, var(--accent) 60%, transparent)",
+                }}
+              >
                 {liveCount}
               </span>
             )}
@@ -223,10 +248,18 @@ export function HomeView() {
       {/* 1. Compact search trigger */}
       <button
         onClick={() => setView({ name: "search" })}
-        className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+        className="wz-cine-card flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-right active:scale-[0.99]"
         aria-label="بحث"
       >
-        <Search className="h-5 w-5 shrink-0 text-gold" />
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-lg"
+          style={{
+            background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent) 0%, color-mix(in srgb, var(--accent) 10%, transparent) 100%)",
+            color: "var(--accent)",
+          }}
+        >
+          <Search className="h-4 w-4 shrink-0" />
+        </span>
         <span className="flex-1 truncate text-sm text-muted-foreground">
           ابحث عن قناة، دولة، أو تصنيف...
         </span>

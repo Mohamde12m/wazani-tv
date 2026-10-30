@@ -42,79 +42,82 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* WazaNI TV brand tokens — Royal Emerald & Gold (مستوحى من الشعار) */
-  --color-emerald: #00875A;
-  --color-emerald-dark: #023020;
-  --color-emerald-light: #00C853;
-  --color-gold: #FFD700;
-  --color-gold-light: #FFE873;
-  --color-gold-deep: #DAA520;
-  --color-cream: #FAF8F0;
+  /* WazaNI TV brand tokens — Cinematic Royal Emerald & Gold (مستوحى من الشعار) */
+  --color-emerald: #00B377;
+  --color-emerald-dark: #022B1C;
+  --color-emerald-deep: #011A10;
+  --color-emerald-light: #1FE07A;
+  --color-gold: #F5C842;
+  --color-gold-light: #FFE08A;
+  --color-gold-deep: #C99A2E;
+  --color-cream: #F5F1E6;
+  --color-pearl: #FAF8F2;
 }
 
 :root {
-  --radius: 0.875rem;
-  /* خلفية زاهية: أخضر زمردي زاهي (مستوحى من الشعار) */
-  --background: #A5D6A7;
-  --foreground: #0A1F14; /* أخضر غامق جدًا بدلًا من الأسود */
+  --radius: 1rem;
+  /* الوضع الفاتح: عاجي زمردي راقي (ليس أخضر صارخ) */
+  --background: #F2EFE3;
+  --foreground: #0A1F14;
   --card: #FFFFFF;
   --card-foreground: #0A1F14;
   --popover: #FFFFFF;
   --popover-foreground: #0A1F14;
   --primary: #00875A;
   --primary-foreground: #FFFFFF;
-  --secondary: #E8F5EE;
-  --secondary-foreground: #00875A;
-  --muted: #F0EBE0;
-  --muted-foreground: #5C6B62;
-  --accent: #DAA520;
+  --secondary: #E8E4D6;
+  --secondary-foreground: #0A1F14;
+  --muted: #ECE8DA;
+  --muted-foreground: #5A6660;
+  --accent: #C99A2E;
   --accent-foreground: #2A2008;
-  --destructive: #C0392B;
-  --border: #D4E8D9;
-  --input: #ECE3CF;
-  --ring: #DAA520;
+  --destructive: #B91C1C;
+  --border: #DDD7C4;
+  --input: #E4DECC;
+  --ring: #C99A2E;
   --chart-1: #00875A;
-  --chart-2: #DAA520;
-  --chart-3: #00C853;
-  --chart-4: #FFD700;
-  --chart-5: #023020;
+  --chart-2: #C99A2E;
+  --chart-3: #1FE07A;
+  --chart-4: #F5C842;
+  --chart-5: #022B1C;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #0A1F14;
   --sidebar-primary: #00875A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F0EBE0;
+  --sidebar-accent: #ECE8DA;
   --sidebar-accent-foreground: #0A1F14;
-  --sidebar-border: #D4E8D9;
-  --sidebar-ring: #DAA520;
+  --sidebar-border: #DDD7C4;
+  --sidebar-ring: #C99A2E;
 }
 
 .dark {
-  --background: #021A14;
-  --foreground: #E8F5EE;
-  --card: #0A2218;
-  --card-foreground: #E8F5EE;
-  --popover: #0A2218;
-  --popover-foreground: #E8F5EE;
-  --primary: #00C853;
-  --primary-foreground: #021A14;
-  --secondary: #0D2A1F;
-  --secondary-foreground: #E8F5EE;
-  --muted: #0D2A1F;
-  --muted-foreground: #7A9588;
-  --accent: #FFD700;
-  --accent-foreground: #2A2008;
-  --destructive: #E74C3C;
-  --border: #1B3A2C;
-  --input: #1B3A2C;
-  --ring: #FFD700;
-  --sidebar: #0A2218;
-  --sidebar-foreground: #E8F5EE;
-  --sidebar-primary: #00C853;
-  --sidebar-primary-foreground: #021A14;
-  --sidebar-accent: #0D2A1F;
-  --sidebar-accent-foreground: #E8F5EE;
-  --sidebar-border: #1B3A2C;
-  --sidebar-ring: #FFD700;
+  /* الوضع الليلي: زمردي سينمائي عميق (the cinematic premium look) */
+  --background: #021410;
+  --foreground: #E8F0EA;
+  --card: #0A2418;
+  --card-foreground: #E8F0EA;
+  --popover: #0A2418;
+  --popover-foreground: #E8F0EA;
+  --primary: #1FE07A;
+  --primary-foreground: #021410;
+  --secondary: #0E2C1E;
+  --secondary-foreground: #E8F0EA;
+  --muted: #0E2C1E;
+  --muted-foreground: #7E9588;
+  --accent: #F5C842;
+  --accent-foreground: #1A1404;
+  --destructive: #EF4444;
+  --border: #1A3A2A;
+  --input: #1A3A2A;
+  --ring: #F5C842;
+  --sidebar: #0A2418;
+  --sidebar-foreground: #E8F0EA;
+  --sidebar-primary: #1FE07A;
+  --sidebar-primary-foreground: #021410;
+  --sidebar-accent: #0E2C1E;
+  --sidebar-accent-foreground: #E8F0EA;
+  --sidebar-border: #1A3A2A;
+  --sidebar-ring: #F5C842;
 }
 
 @layer base {
@@ -125,19 +128,21 @@
     @apply text-foreground;
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
-    /* خلفية زاهية: أخضر زمردي زاهي مع توهج ذهبي */
+    /* خلفية سينمائية: عاجي دافئ مع توهجات زمرديّة وذهبية خفيفة */
     background:
-      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.30) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.22) 0%, transparent 50%),
-      linear-gradient(180deg, #A5D6A7 0%, #81C784 50%, #A5D6A7 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.08) 0%, transparent 60%),
+      linear-gradient(180deg, #F2EFE3 0%, #EDE8D8 50%, #F2EFE3 100%);
     background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
+    /* خلفية سينمائية ليلية: زمردي عميق مع توهجات ذهبية مسرحية */
     background:
-      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.25) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.18) 0%, transparent 50%),
-      linear-gradient(180deg, #021A14 0%, #0A2218 50%, #021A14 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(31, 224, 122, 0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 30% at 50% 50%, rgba(2, 43, 28, 0.6) 0%, transparent 70%),
+      linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%);
     background-attachment: fixed;
   }
   /* RTL niceties */
@@ -174,18 +179,19 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.35), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.25), transparent 55%),
-    linear-gradient(180deg, #A5D6A7 0%, #81C784 50%, #A5D6A7 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.14), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.10), transparent 55%),
+    linear-gradient(180deg, #F2EFE3 0%, #EDE8D8 50%, #F2EFE3 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
 .dark .bg-app {
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.25), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.18), transparent 55%),
-    linear-gradient(180deg, #021A14 0%, #0A2218 50%, #021A14 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(31, 224, 122, 0.18), transparent 55%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.13), transparent 55%),
+    radial-gradient(ellipse 60% 30% at 50% 50%, rgba(2, 43, 28, 0.5) 0%, transparent 70%),
+    linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -649,4 +655,304 @@
 
 .wazani-featured-glow {
   animation: wazani-featured-glow 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   🎬 WazaNI TV — Cinematic Premium Design System (v2)
+   طبقة فاخرة فوق النظام الحالي — لا تكسر أي شيء موجود
+   ============================================================ */
+
+/* --- بطاقة سينمائية فاخرة (Cinematic Premium Card) --- */
+.wz-cine-card {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--card) 96%, transparent) 0%,
+    color-mix(in srgb, var(--card) 88%, transparent) 100%
+  );
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 8px 24px -8px rgba(2, 20, 16, 0.18),
+    0 2px 6px -2px rgba(2, 20, 16, 0.08);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.35s ease;
+}
+
+.wz-cine-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+    0 14px 36px -10px rgba(2, 20, 16, 0.28),
+    0 4px 10px -2px rgba(2, 20, 16, 0.12);
+}
+
+/* لمعان ذهبي يمر على البطاقة عند الhover */
+.wz-cine-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(245, 200, 66, 0.10) 50%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.wz-cine-card:hover::after {
+  opacity: 1;
+  animation: wz-sheen-pass 1.4s ease-out;
+}
+
+@keyframes wz-sheen-pass {
+  from { background-position: 100% 0; }
+  to   { background-position: -50% 0; }
+}
+
+/* --- بطاقة مميزة (Featured) — توهج ذهبي مستمر --- */
+.wz-cine-featured {
+  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 10px 30px -8px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 4px 12px -2px rgba(2, 20, 16, 0.12);
+}
+
+/* --- زر سينمائي فاخر --- */
+.wz-cine-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%);
+  color: var(--primary-foreground);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
+    0 6px 18px -4px color-mix(in srgb, var(--primary) 50%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.wz-cine-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.22) inset,
+    0 10px 24px -4px color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+.wz-cine-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.wz-cine-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.18) 50%, transparent 60%);
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  pointer-events: none;
+  transition: background-position 0.6s ease;
+}
+
+.wz-cine-btn:hover::before {
+  background-position: -50% 0;
+}
+
+/* --- زر ذهبي --- */
+.wz-cine-btn-gold {
+  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 75%, #4a2e04) 100%);
+  color: var(--accent-foreground);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.22) inset,
+    0 6px 18px -4px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* --- نص ذهبي سينمائي متدرج --- */
+.wz-gold-text-cine {
+  background: linear-gradient(
+    100deg,
+    var(--color-gold-deep) 0%,
+    var(--color-gold) 35%,
+    var(--color-gold-light) 50%,
+    var(--color-gold) 65%,
+    var(--color-gold-deep) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* --- نص زمردي متدرج --- */
+.wz-emerald-text-cine {
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--primary) 80%, #000) 0%,
+    var(--primary) 50%,
+    var(--color-emerald-light) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* --- فاصل ذهبي رقيق --- */
+.wz-gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent) 55%, transparent) 50%, transparent 100%);
+}
+
+/* --- شارة زجاجية فاخرة --- */
+.wz-glass-chip {
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  box-shadow: 0 2px 8px -2px rgba(2, 20, 16, 0.15);
+}
+
+/* --- رأس قسم سينمائي --- */
+.wz-section-title {
+  background: linear-gradient(90deg, var(--foreground) 0%, color-mix(in srgb, var(--foreground) 70%, var(--accent)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  letter-spacing: -0.01em;
+}
+
+/* --- توهج ناعم خلف العناصر المهمة --- */
+.wz-aura {
+  position: relative;
+}
+
+.wz-aura::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10%;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--primary) 22%, transparent) 0%, transparent 70%);
+  filter: blur(20px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* --- تأثير الظهور السينمائي للبطاقات --- */
+@keyframes wz-cine-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.wz-cine-enter {
+  animation: wz-cine-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* --- نبض ذهبي ناعم للعناصر النشطة --- */
+@keyframes wz-gold-breathe {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
+.wz-gold-breathe {
+  animation: wz-gold-breathe 2.4s ease-in-out infinite;
+}
+
+/* --- شريط توهج علوي للبطاقات المميزة --- */
+.wz-top-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.wz-top-glow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.7;
+}
+
+/* --- تظليل ناعم للصور (cinematic vignette) --- */
+.wz-vignette {
+  position: relative;
+}
+
+.wz-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(2, 20, 16, 0.35) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* --- تحسينات الـ scrollbar للقوائم الأفقية --- */
+.wz-scroll-x {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.wz-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- تأثير الـ noise الخفيف للخلفية السينمائية --- */
+.wz-noise::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* --- تحسين الطباعة: أوزان خط أوضح --- */
+.font-cine-display {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.font-cine-body {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* --- تحسين الـ focus للوصولية --- */
+*:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --- تحسين الـ selection --- */
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--foreground);
 }

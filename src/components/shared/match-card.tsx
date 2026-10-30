@@ -58,9 +58,9 @@ export function MatchCard({ match, featured = false }: { match: Match; featured?
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border bg-card p-2.5 shadow-sm transition-all hover:shadow-md",
-        featured ? "border-gold/40 ring-1 ring-gold/20" : "border-border",
-        live && "ring-1 ring-emerald/40",
+        "wz-cine-card relative overflow-hidden rounded-xl p-2.5",
+        featured && "wz-cine-featured wz-top-glow",
+        live && "wz-cine-featured",
       )}
     >
       {/* Row 1: tournament + status (compact single line) */}

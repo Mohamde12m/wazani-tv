@@ -17,13 +17,24 @@ export function SectionHeader({
   return (
     <div className="mb-3 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2">
-        {icon && <span className="text-gold">{icon}</span>}
-        <h2 className="text-base font-extrabold text-foreground sm:text-lg">{title}</h2>
+        {icon && (
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-lg"
+            style={{
+              background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent) 0%, color-mix(in srgb, var(--accent) 10%, transparent) 100%)",
+              color: "var(--accent)",
+              boxShadow: "0 2px 6px -1px color-mix(in srgb, var(--accent) 30%, transparent)",
+            }}
+          >
+            {icon}
+          </span>
+        )}
+        <h2 className="wz-section-title text-base font-extrabold sm:text-lg">{title}</h2>
       </div>
       {action && (
         <button
           onClick={onAction}
-          className="rounded-full px-3 py-1 text-xs font-bold text-emerald transition-colors hover:bg-secondary"
+          className="wz-glass-chip rounded-full px-3 py-1 text-xs font-bold text-emerald transition-all hover:scale-105 active:scale-95"
         >
           {action}
         </button>
@@ -42,8 +53,15 @@ export function ChannelRow({ children }: { children: React.ReactNode }) {
 
 export function EmptyState({ title, subtitle, icon }: { title: string; subtitle?: string; icon?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card/50 py-12 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+    <div className="wz-cine-card flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-12 text-center">
+      <div
+        className="flex h-14 w-14 items-center justify-center rounded-full"
+        style={{
+          background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent) 0%, color-mix(in srgb, var(--primary) 10%, transparent) 100%)",
+          color: "var(--accent)",
+          boxShadow: "0 4px 14px -3px color-mix(in srgb, var(--accent) 30%, transparent)",
+        }}
+      >
         {icon ?? <span className="text-2xl">📭</span>}
       </div>
       <p className="text-sm font-bold text-foreground">{title}</p>

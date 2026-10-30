@@ -42,7 +42,8 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
       style={{
-        background: "linear-gradient(135deg, #06140f 0%, #0b2820 50%, #06140f 100%)",
+        background:
+          "radial-gradient(ellipse 80% 60% at 50% 30%, rgba(31, 224, 122, 0.18) 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 50% 100%, rgba(245, 200, 66, 0.12) 0%, transparent 55%), linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%)",
       }}
     >
       {/* ===== جسيمات متحركة (Particles) — CSS فقط (لا Math.random) لتجنب hydration mismatch ===== */}
@@ -62,8 +63,18 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 50%, rgba(11, 110, 79, 0.3) 0%, transparent 60%)",
+            "radial-gradient(circle at 50% 50%, rgba(31, 224, 122, 0.22) 0%, transparent 60%)",
           animation: "pulse 3s ease-in-out infinite",
+        }}
+      />
+
+      {/* ===== توهج ذهبي سفلي سينمائي ===== */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
+        style={{
+          background:
+            "linear-gradient(180deg, transparent 0%, rgba(245, 200, 66, 0.08) 100%)",
         }}
       />
 
@@ -94,7 +105,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
             animation: "textEntry 0.8s ease-out 0.3s both",
           }}
         >
-          Waza<span className="bg-gradient-to-l from-emerald-400 to-amber-400 bg-clip-text text-transparent">NI</span> TV
+          Waza<span className="bg-gradient-to-l from-emerald-300 to-amber-300 bg-clip-text text-transparent">NI</span> TV
         </h1>
 
         {/* الوصف */}
@@ -110,7 +121,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         {/* شريط التحميل */}
         <div className="h-1 w-48 overflow-hidden rounded-full bg-white/10">
           <div
-            className="h-full rounded-full bg-gradient-to-l from-emerald-400 to-emerald-600 transition-all duration-100"
+            className="h-full rounded-full bg-gradient-to-l from-emerald-300 via-emerald-400 to-amber-300 transition-all duration-100"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -150,7 +161,7 @@ export function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         .splash-particle {
           position: absolute;
           border-radius: 50%;
-          background: rgba(16, 185, 129, 0.3);
+          background: rgba(31, 224, 122, 0.3);
           animation: float 4s ease-in-out infinite;
         }
         .splash-particle-1 { width: 4px; height: 4px; left: 10%; top: 20%; animation-delay: 0s; }

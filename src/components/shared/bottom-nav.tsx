@@ -28,18 +28,18 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-40"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      {/* الشريط الزجاجي الأساسي */}
+      {/* الشريط الزجاجي السينمائي */}
       <div
         className="relative mx-auto max-w-3xl overflow-hidden"
         style={{
           background:
-            "linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(250,248,240,0.8) 50%, rgba(255,255,255,0.85) 100%)",
-          backdropFilter: "blur(24px) saturate(200%)",
-          WebkitBackdropFilter: "blur(24px) saturate(200%)",
-          borderTop: "1px solid rgba(218, 165, 32, 0.3)",
-          borderBottom: "1px solid rgba(0, 135, 90, 0.1)",
+            "linear-gradient(135deg, color-mix(in srgb, var(--card) 92%, transparent) 0%, color-mix(in srgb, var(--card) 82%, transparent) 100%)",
+          backdropFilter: "blur(28px) saturate(180%)",
+          WebkitBackdropFilter: "blur(28px) saturate(180%)",
+          borderTop: "1px solid color-mix(in srgb, var(--accent) 32%, transparent)",
+          borderBottom: "1px solid color-mix(in srgb, var(--primary) 14%, transparent)",
           boxShadow:
-            "0 -8px 32px -8px rgba(0, 48, 32, 0.15), 0 -1px 0 0 rgba(255, 215, 0, 0.15)",
+            "0 -10px 36px -8px rgba(2, 20, 16, 0.22), 0 -1px 0 0 color-mix(in srgb, var(--accent) 22%, transparent)",
         }}
       >
         {/* شريط ذهبي علوي رفيع متحرك */}
@@ -47,18 +47,18 @@ export function BottomNav() {
           className="absolute inset-x-0 top-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent 0%, #FFD700 20%, #DAA520 50%, #FFD700 80%, transparent 100%)",
+              "linear-gradient(90deg, transparent 0%, var(--accent) 20%, var(--color-gold-light) 50%, var(--accent) 80%, transparent 100%)",
             backgroundSize: "200% 100%",
-            animation: "wazani-gold-shimmer 4s linear infinite",
+            animation: "wazani-gold-shimmer 5s linear infinite",
           }}
         />
 
-        {/* تأثير ضوء ذهبي خلفي يتحرك ببطء */}
+        {/* توهج ذهبي خلفي */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-40"
+          className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 100%, rgba(255, 215, 0, 0.12) 0%, transparent 70%)",
+              "radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 70%)",
           }}
         />
 
@@ -80,17 +80,17 @@ export function BottomNav() {
                     : undefined,
                 }}
               >
-                {/* الكبسولة الزجاجية النشطة */}
+                {/* الكبسولة الزجاجية النشطة — سينمائية */}
                 {isActive && (
                   <span
                     className="absolute top-0.5 h-9 w-12 rounded-2xl"
                     style={{
                       background:
-                        "linear-gradient(135deg, rgba(0, 135, 90, 0.12) 0%, rgba(218, 165, 32, 0.12) 100%)",
-                      backdropFilter: "blur(8px)",
-                      WebkitBackdropFilter: "blur(8px)",
-                      border: "1px solid rgba(255, 215, 0, 0.35)",
-                      animation: "wazani-glass-glow 2.5s ease-in-out infinite",
+                        "linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent) 0%, color-mix(in srgb, var(--accent) 16%, transparent) 100%)",
+                      backdropFilter: "blur(10px)",
+                      WebkitBackdropFilter: "blur(10px)",
+                      border: "1px solid color-mix(in srgb, var(--accent) 42%, transparent)",
+                      animation: "wazani-glass-glow 2.8s ease-in-out infinite",
                     }}
                   >
                     {/* بريق ذهبي متحرك */}
@@ -98,9 +98,9 @@ export function BottomNav() {
                       className="absolute inset-0 overflow-hidden rounded-2xl"
                       style={{
                         background:
-                          "linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.4), transparent)",
+                          "linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 50%, transparent), transparent)",
                         backgroundSize: "200% 100%",
-                        animation: "wazani-gold-shimmer 2.5s linear infinite",
+                        animation: "wazani-gold-shimmer 3s linear infinite",
                       }}
                     />
                   </span>
@@ -124,11 +124,11 @@ export function BottomNav() {
                     style={
                       isActive
                         ? {
-                            color: "#00875A",
+                            color: "var(--primary)",
                             filter:
-                              "drop-shadow(0 1px 2px rgba(0, 135, 90, 0.3)) drop-shadow(0 0 6px rgba(255, 215, 0, 0.4))",
+                              "drop-shadow(0 1px 2px color-mix(in srgb, var(--primary) 40%, transparent)) drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent))",
                           }
-                        : { color: "#5C6B62" }
+                        : { color: "var(--muted-foreground)" }
                     }
                   />
                 </span>
@@ -140,9 +140,9 @@ export function BottomNav() {
                     isActive ? "scale-105" : "",
                   )}
                   style={{
-                    color: isActive ? "#00875A" : "#5C6B62",
+                    color: isActive ? "var(--primary)" : "var(--muted-foreground)",
                     textShadow: isActive
-                      ? "0 0 8px rgba(255, 215, 0, 0.4)"
+                      ? "0 0 10px color-mix(in srgb, var(--accent) 45%, transparent)"
                       : "none",
                   }}
                 >
@@ -154,9 +154,9 @@ export function BottomNav() {
                   <span
                     className="absolute bottom-0 h-1 w-1 rounded-full"
                     style={{
-                      background: "#FFD700",
-                      boxShadow: "0 0 6px 1px rgba(255, 215, 0, 0.6)",
-                      animation: "wazani-dot-pulse 1.5s ease-in-out infinite",
+                      background: "var(--accent)",
+                      boxShadow: "0 0 8px 1px color-mix(in srgb, var(--accent) 70%, transparent)",
+                      animation: "wazani-dot-pulse 1.6s ease-in-out infinite",
                     }}
                   />
                 )}
@@ -170,7 +170,7 @@ export function BottomNav() {
           className="absolute inset-x-0 bottom-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(218, 165, 32, 0.5) 50%, transparent 100%)",
+              "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent) 60%, transparent) 50%, transparent 100%)",
           }}
         />
       </div>
