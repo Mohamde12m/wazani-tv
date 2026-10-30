@@ -37,7 +37,7 @@ import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
 import { useWatchHistory } from "@/stores/watch-history";
-import { History, X } from "lucide-react";
+import { History, X, Play } from "lucide-react";
 import { toast } from "sonner";
 import type { Channel, Match } from "@/lib/types";
 
@@ -273,10 +273,16 @@ export function HomeView() {
         <section>
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-gold">
+              <span
+                className="flex h-7 w-7 items-center justify-center rounded-lg"
+                style={{
+                  background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent) 0%, color-mix(in srgb, var(--accent) 10%, transparent) 100%)",
+                  color: "var(--accent)",
+                }}
+              >
                 <History className="h-5 w-5" />
               </span>
-              <h2 className="text-base font-extrabold text-foreground sm:text-lg">
+              <h2 className="wz-section-title text-base font-extrabold sm:text-lg">
                 تابع المشاهدة
               </h2>
             </div>
@@ -287,42 +293,118 @@ export function HomeView() {
                   toast.success("تم مسح السجل");
                 }
               }}
-              className="rounded-full p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+              className="wz-glass-chip rounded-full p-1.5 text-muted-foreground transition hover:text-foreground"
               aria-label="مسح السجل"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
-            {watchHistory.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setView({ name: "player", channelId: item.id })}
-                className="group relative w-[140px] shrink-0 overflow-hidden rounded-2xl border border-border bg-card text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
-              >
-                <div className="flex h-20 items-center justify-center bg-gradient-to-br from-emerald-dark to-emerald">
-                  {item.logo ? (
-                    <img
-                      src={item.logo.startsWith("http") ? `/api/img?url=${encodeURIComponent(item.logo)}` : item.logo}
-                      alt={item.nameAr || item.name}
-                      className="h-12 w-12 rounded-xl object-cover shadow-md"
+          <div className="no-scrollbar wz-scroll-x -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+            {watchHistory.map((item) => {
+              // مؤشر تقدم ديكوري: الأحدث = شريط أطول/ذهبي أكثف
+              const ageMinutes = (Date.now() - (item.watchedAt || 0)) / 60000;
+              const progress = Math.max(15, Math.min(100, 100 - ageMinutes * 0.05));
+              const isRecent = ageMinutes < 60; // آخر ساعة
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setView({ name: "player", channelId: item.id })}
+                  className="wz-cine-card group relative w-[140px] shrink-0 overflow-hidden rounded-2xl text-right active:scale-[0.98]"
+                >
+                  {/* رأس البطاقة — شعار + تدرج سينمائي */}
+                  <div
+                    className="relative flex h-20 items-center justify-center overflow-hidden"
+                    style={{
+                      background: "linear-gradient(135deg, var(--color-emerald-dark) 0%, color-mix(in srgb, var(--primary) 60%, #000) 100%)",
+                    }}
+                  >
+                    {/* توهج خلفي ناعم */}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0"
+                      style={{
+                        background: "radial-gradient(circle at 50% 50%, rgba(31, 224, 122, 0.22) 0%, transparent 65%)",
+                      }}
                     />
-                  ) : (
-                    <span className="text-2xl font-bold text-white">
-                      {(item.nameAr || item.name).charAt(0)}
+
+                    {/* الشعار */}
+                    {item.logo ? (
+                      <img
+                        src={item.logo.startsWith("http") ? `/api/img?url=${encodeURIComponent(item.logo)}` : item.logo}
+                        alt={item.nameAr || item.name}
+                        className="relative h-12 w-12 rounded-xl object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
+                      />
+                    ) : (
+                      <span className="relative text-2xl font-bold text-white">
+                        {(item.nameAr || item.name).charAt(0)}
+                      </span>
+                    )}
+
+                    {/* زر تشغيل عائم — يظهر عند الhover */}
+                    <span
+                      className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/40 group-hover:opacity-100"
+                    >
+                      <span
+                        className="flex h-11 w-11 items-center justify-center rounded-full text-white"
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent) 0%, var(--color-gold-deep) 100%)",
+                          boxShadow: "0 6px 18px -4px color-mix(in srgb, var(--accent) 65%, transparent)",
+                          transform: "scale(0.85)",
+                          transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        }}
+                      >
+                        <Play className="h-5 w-5 translate-x-[-1px]" fill="currentColor" />
+                      </span>
                     </span>
-                  )}
-                </div>
-                <div className="p-2">
-                  <div className="truncate text-xs font-bold text-foreground">
-                    {item.nameAr || item.name}
+
+                    {/* شارة "شوهد مؤخرًا" للأحدث */}
+                    {isRecent && (
+                      <span
+                        className="absolute right-1.5 top-1.5 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-black"
+                        style={{
+                          background: "linear-gradient(135deg, var(--accent) 0%, var(--color-gold-light) 100%)",
+                          boxShadow: "0 2px 6px -1px color-mix(in srgb, var(--accent) 50%, transparent)",
+                        }}
+                      >
+                        <span className="h-1 w-1 rounded-full bg-black/60" />
+                        الآن
+                      </span>
+                    )}
                   </div>
-                  <div className="truncate text-[10px] text-muted-foreground">
-                    {item.country?.name || "عربية"} · {item.category?.name || "عامة"}
+
+                  {/* جسم البطاقة */}
+                  <div className="p-2">
+                    <div className="truncate text-xs font-bold text-foreground">
+                      {item.nameAr || item.name}
+                    </div>
+                    <div className="truncate text-[10px] text-muted-foreground">
+                      {item.country?.name || "عربية"} · {item.category?.name || "عامة"}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+
+                  {/* مؤشر التقدم السفلي — ذهبي يتناقص مع الوقت */}
+                  <div
+                    className="absolute inset-x-0 bottom-0 h-1 overflow-hidden"
+                    style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
+                  >
+                    <div
+                      className="h-full rounded-r-full"
+                      style={{
+                        width: `${progress}%`,
+                        background: isRecent
+                          ? "linear-gradient(90deg, var(--accent) 0%, var(--color-gold-light) 100%)"
+                          : "linear-gradient(90deg, var(--color-gold-deep) 0%, var(--accent) 100%)",
+                        boxShadow: isRecent
+                          ? "0 0 8px 0 color-mix(in srgb, var(--accent) 60%, transparent)"
+                          : "none",
+                        transition: "width 0.4s ease",
+                      }}
+                    />
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
       )}
