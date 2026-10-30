@@ -56,9 +56,9 @@
 
 :root {
   --radius: 1rem;
-  /* الوضع الفاتح: عاجي زمردي راقي (ليس أخضر صارخ) */
-  --background: #F2EFE3;
-  --foreground: #0A1F14;
+  /* خلفية احترافية: أخضر بالأعلى + أبيض بالأسفل + حافة ذهبية */
+  --background: #10B981;
+  --foreground: #FFFFFF;
   --card: #FFFFFF;
   --card-foreground: #0A1F14;
   --popover: #FFFFFF;
@@ -128,21 +128,52 @@
     @apply text-foreground;
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
-    /* خلفية سينمائية: عاجي دافئ مع توهجات زمرديّة وذهبية خفيفة */
+    /* خلفية احترافية: أخضر زاهي بالأعلى + أبيض بالأسفل + حافة ذهبية راقية */
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.08) 0%, transparent 60%),
-      linear-gradient(180deg, #F2EFE3 0%, #EDE8D8 50%, #F2EFE3 100%);
+      /* خط ذهبي رفيع عند نقطة الانتقال (الحافة الاحترافية) */
+      linear-gradient(180deg,
+        transparent 0%,
+        transparent 64%,
+        rgba(245, 200, 66, 0.35) 65%,
+        rgba(245, 200, 66, 0.18) 66.5%,
+        transparent 68%,
+        transparent 100%
+      ),
+      /* تدرج أخضر → أبيض سينمائي */
+      linear-gradient(180deg,
+        #047857 0%,      /* أخضر زمردي عميق - أعلى */
+        #059669 25%,     /* أخضر زاهي */
+        #10B981 50%,     /* أخضر فاتح */
+        #34D399 62%,     /* أخضر نعناعي */
+        #A7F3D0 66%,     /* أخضر فاتح جدًا - بداية الانتقال */
+        #ECFDF5 70%,     /* أبيض مخضر */
+        #F7FAF8 80%,     /* عاجي ناعم */
+        #FFFFFF 100%     /* أبيض نقي - أسفل */
+      );
     background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
-    /* خلفية سينمائية ليلية: زمردي عميق مع توهجات ذهبية مسرحية */
+    /* الوضع الليلي: نفس التدرج لكن بألوان غامقة */
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(31, 224, 122, 0.14) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 30% at 50% 50%, rgba(2, 43, 28, 0.6) 0%, transparent 70%),
-      linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%);
+      linear-gradient(180deg,
+        transparent 0%,
+        transparent 64%,
+        rgba(245, 200, 66, 0.30) 65%,
+        rgba(245, 200, 66, 0.15) 66.5%,
+        transparent 68%,
+        transparent 100%
+      ),
+      linear-gradient(180deg,
+        #021410 0%,
+        #04190F 25%,
+        #062014 50%,
+        #0A2218 62%,
+        #0E2C1E 66%,
+        #11281E 70%,
+        #0E2218 80%,
+        #0A1F14 100%
+      );
     background-attachment: fixed;
   }
   /* RTL niceties */
@@ -179,19 +210,50 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.14), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.10), transparent 55%),
-    linear-gradient(180deg, #F2EFE3 0%, #EDE8D8 50%, #F2EFE3 100%);
+    /* خط ذهبي رفيع عند نقطة الانتقال */
+    linear-gradient(180deg,
+      transparent 0%,
+      transparent 64%,
+      rgba(245, 200, 66, 0.35) 65%,
+      rgba(245, 200, 66, 0.18) 66.5%,
+      transparent 68%,
+      transparent 100%
+    ),
+    /* تدرج أخضر → أبيض */
+    linear-gradient(180deg,
+      #047857 0%,
+      #059669 25%,
+      #10B981 50%,
+      #34D399 62%,
+      #A7F3D0 66%,
+      #ECFDF5 70%,
+      #F7FAF8 80%,
+      #FFFFFF 100%
+    );
   background-attachment: fixed;
   min-height: 100vh;
 }
 
 .dark .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(31, 224, 122, 0.18), transparent 55%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.13), transparent 55%),
-    radial-gradient(ellipse 60% 30% at 50% 50%, rgba(2, 43, 28, 0.5) 0%, transparent 70%),
-    linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%);
+    linear-gradient(180deg,
+      transparent 0%,
+      transparent 64%,
+      rgba(245, 200, 66, 0.30) 65%,
+      rgba(245, 200, 66, 0.15) 66.5%,
+      transparent 68%,
+      transparent 100%
+    ),
+    linear-gradient(180deg,
+      #021410 0%,
+      #04190F 25%,
+      #062014 50%,
+      #0A2218 62%,
+      #0E2C1E 66%,
+      #11281E 70%,
+      #0E2218 80%,
+      #0A1F14 100%
+    );
   background-attachment: fixed;
   min-height: 100vh;
 }
