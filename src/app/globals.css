@@ -54,8 +54,8 @@
 
 :root {
   --radius: 0.875rem;
-  /* خلفية عاجية كريمية فاخرة */
-  --background: #FAF8F0;
+  /* خلفية زاهية: تدرج أخضر فاتح مع لمسات ذهبية (مستوحى من الشعار) */
+  --background: #F0F7F2;
   --foreground: #0A1F14; /* أخضر غامق جدًا بدلًا من الأسود */
   --card: #FFFFFF;
   --card-foreground: #0A1F14;
@@ -70,7 +70,7 @@
   --accent: #DAA520;
   --accent-foreground: #2A2008;
   --destructive: #C0392B;
-  --border: #E0D5B8;
+  --border: #D4E8D9;
   --input: #ECE3CF;
   --ring: #DAA520;
   --chart-1: #00875A;
@@ -84,7 +84,7 @@
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #F0EBE0;
   --sidebar-accent-foreground: #0A1F14;
-  --sidebar-border: #E0D5B8;
+  --sidebar-border: #D4E8D9;
   --sidebar-ring: #DAA520;
 }
 
@@ -122,9 +122,23 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
+    /* خلفية زاهية: تدرج أخضر فاتح مع توهج ذهبي خفيف */
+    background:
+      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #F0F7F2 0%, #E8F5EE 50%, #F0F7F2 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .dark body {
+    background:
+      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+      linear-gradient(180deg, #021A14 0%, #0A2218 50%, #021A14 100%);
+    background-attachment: fixed;
   }
   /* RTL niceties */
   [dir="rtl"] {
@@ -160,9 +174,20 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1200px 600px at 100% -10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
-    var(--background);
+    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.12), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.10), transparent 55%),
+    linear-gradient(180deg, #F0F7F2 0%, #E8F5EE 50%, #F0F7F2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.dark .bg-app {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.15), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.12), transparent 55%),
+    linear-gradient(180deg, #021A14 0%, #0A2218 50%, #021A14 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 .glass-card {
