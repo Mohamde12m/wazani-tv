@@ -54,8 +54,8 @@
 
 :root {
   --radius: 0.875rem;
-  /* خلفية زاهية: تدرج أخضر فاتح مع لمسات ذهبية (مستوحى من الشعار) */
-  --background: #F0F7F2;
+  /* خلفية زاهية: أخضر فاتح زاهي مع توهج ذهبي (مستوحى من الشعار) */
+  --background: #D4ECD9;
   --foreground: #0A1F14; /* أخضر غامق جدًا بدلًا من الأسود */
   --card: #FFFFFF;
   --card-foreground: #0A1F14;
@@ -125,18 +125,18 @@
     @apply text-foreground;
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
-    /* خلفية زاهية: تدرج أخضر فاتح مع توهج ذهبي خفيف */
+    /* خلفية زاهية: أخضر فاتح زاهي مع توهج ذهبي */
     background:
-      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.06) 0%, transparent 50%),
-      linear-gradient(180deg, #F0F7F2 0%, #E8F5EE 50%, #F0F7F2 100%);
+      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+      linear-gradient(180deg, #D4ECD9 0%, #C8E5D0 50%, #D4ECD9 100%);
     background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
     background:
-      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at top right, rgba(0, 200, 83, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.12) 0%, transparent 50%),
       linear-gradient(180deg, #021A14 0%, #0A2218 50%, #021A14 100%);
     background-attachment: fixed;
   }
@@ -174,17 +174,17 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.12), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.10), transparent 55%),
-    linear-gradient(180deg, #F0F7F2 0%, #E8F5EE 50%, #F0F7F2 100%);
+    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.22), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.18), transparent 55%),
+    linear-gradient(180deg, #D4ECD9 0%, #C8E5D0 50%, #D4ECD9 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
 .dark .bg-app {
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.15), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.12), transparent 55%),
+    radial-gradient(1200px 600px at 100% -10%, rgba(0, 200, 83, 0.20), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255, 215, 0, 0.15), transparent 55%),
     linear-gradient(180deg, #021A14 0%, #0A2218 50%, #021A14 100%);
   background-attachment: fixed;
   min-height: 100vh;
