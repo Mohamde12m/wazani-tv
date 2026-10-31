@@ -21,6 +21,7 @@ interface MoviesResponse {
  * - صفوف أفلام حسب النوع (Genre Rows)
  */
 export function MoviesView() {
+  const setView = useNav((s) => s.setView);
   const [activeGenre, setActiveGenre] = React.useState<string>("الكل");
   const { data, loading } = useFetch<MoviesResponse>("/api/movies");
 
@@ -198,10 +199,12 @@ function FeaturedCarousel({ movies }: { movies: MovieItem[] }) {
 }
 
 function FeaturedCard({ movie }: { movie: MovieItem }) {
+  const setView = useNav((s) => s.setView);
   const genresArray = movie.genres ? movie.genres.split(",").map((g) => g.trim()).filter(Boolean) : [];
 
   return (
-    <div
+    <button
+      onClick={() => setView({ name: "movie-player", movieId: movie.id })}
       className="wz-cine-card relative w-[280px] shrink-0 overflow-hidden rounded-2xl"
       style={{ scrollSnapAlign: "start" }}
     >
@@ -261,7 +264,7 @@ function FeaturedCard({ movie }: { movie: MovieItem }) {
           </span>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -292,11 +295,12 @@ function MovieRow({ title, movies }: { title: string; movies: MovieItem[] }) {
    بطاقة فيلم — Movie Card
 ============================================================ */
 function MovieCard({ movie, compact = false }: { movie: MovieItem; compact?: boolean }) {
+  const setView = useNav((s) => s.setView);
   const genresArray = movie.genres ? movie.genres.split(",").map((g) => g.trim()).filter(Boolean) : [];
 
   return (
     <button
-      onClick={() => movie.streamUrl ? toast.info(`مشاهدة: ${movie.title}`) : toast.info(`سينضاف "${movie.title}" قريبًا`)}
+      onClick={() => setView({ name: "movie-player", movieId: movie.id })}
       className={cn(
         "wz-cine-card group relative shrink-0 overflow-hidden rounded-xl text-right active:scale-[0.98]",
         compact ? "w-full" : "w-[130px]"
