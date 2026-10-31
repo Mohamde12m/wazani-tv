@@ -6,6 +6,7 @@ export type View =
   | { name: "home" }
   | { name: "channels"; country?: string; category?: string }
   | { name: "matches"; tab?: string }
+  | { name: "movies" }
   | { name: "favorites" }
   | { name: "more" }
   | { name: "player"; channelId: string }

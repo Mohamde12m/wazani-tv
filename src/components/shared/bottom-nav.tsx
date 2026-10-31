@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Tv, Trophy, Star, Menu } from "lucide-react";
+import { Home, Tv, Trophy, Film, Menu } from "lucide-react";
 import { useNav } from "@/stores/nav";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,7 @@ const items = [
   { key: "home", label: "الرئيسية", icon: Home },
   { key: "channels", label: "القنوات", icon: Tv },
   { key: "matches", label: "المباريات", icon: Trophy },
-  { key: "favorites", label: "المفضلة", icon: Star },
+  { key: "movies", label: "أفلام", icon: Film },
   { key: "more", label: "المزيد", icon: Menu },
 ] as const;
 

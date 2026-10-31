@@ -9,6 +9,7 @@ import { useNav } from "@/stores/nav";
 import { HomeView } from "@/components/views/home-view";
 import { ChannelsView } from "@/components/views/channels-view";
 import { MatchesView } from "@/components/views/matches-view";
+import { MoviesView } from "@/components/views/movies-view";
 import { FavoritesView } from "@/components/views/favorites-view";
 import { MoreView } from "@/components/views/more-view";
 import { PlayerView } from "@/components/views/player-view";
@@ -19,11 +20,12 @@ import { SearchView } from "@/components/views/search-view";
 import { AdminView } from "@/components/views/admin-view";
 import { startReminderChecker } from "@/lib/reminders";
 
-const MAIN_VIEWS = new Set(["home", "channels", "matches", "favorites", "more"]);
+const MAIN_VIEWS = new Set(["home", "channels", "matches", "movies", "more"]);
 
 const TITLES: Record<string, { title: string; subtitle?: string }> = {
   player: { title: "مشاهدة القناة" },
   "match-player": { title: "مشاهدة المباراة" },
+  favorites: { title: "المفضلة" },
   tournaments: { title: "البطولات", subtitle: "أهم البطولات الرياضية" },
   tournament: { title: "تفاصيل البطولة" },
   search: { title: "البحث" },
@@ -66,6 +68,7 @@ export default function Home() {
           {view.name === "home" && <HomeView />}
           {view.name === "channels" && <ChannelsView country={view.country} category={view.category} />}
           {view.name === "matches" && <MatchesView tab={view.tab} />}
+          {view.name === "movies" && <MoviesView />}
           {view.name === "favorites" && <FavoritesView />}
           {view.name === "more" && <MoreView />}
           {view.name === "player" && <PlayerView channelId={view.channelId} />}

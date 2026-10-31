@@ -6,7 +6,7 @@ import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
 
 // Views that should show the bottom navigation bar.
-const WITH_NAV = new Set(["home", "channels", "matches", "favorites", "more"]);
+const WITH_NAV = new Set(["home", "channels", "matches", "movies", "more"]);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const view = useNav((s) => s.view);

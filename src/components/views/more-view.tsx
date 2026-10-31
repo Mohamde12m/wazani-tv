@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   Settings,
   Download,
+  Star,
   type LucideIcon,
 } from "lucide-react";
 import { useNav } from "@/stores/nav";
@@ -86,6 +87,13 @@ export function MoreView() {
           title="جدول المباريات"
           subtitle="مباريات اليوم والأسبوع القادم"
           onClick={() => setView({ name: "matches" })}
+        />
+        <MenuCard
+          icon={Star}
+          iconTone="gold"
+          title="المفضلة"
+          subtitle="قنواتك ومبارياتك المفضلة في مكان واحد"
+          onClick={() => setView({ name: "favorites" })}
         />
       </section>
 
