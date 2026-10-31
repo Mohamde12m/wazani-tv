@@ -3,20 +3,79 @@
 import * as React from "react";
 import { Film, Play, Star, ChevronLeft, ChevronRight, Clock, Calendar } from "lucide-react";
 import { useNav } from "@/stores/nav";
+import { useFetch } from "@/hooks/use-fetch";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/components/shared/page-transitions";
-import { MOVIES, FEATURED_MOVIES, getMoviesByGenre, ALL_GENRES, type Movie } from "@/lib/movies-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { MovieItem } from "@/lib/types";
+
+interface MoviesResponse {
+  movies: MovieItem[];
+}
 
 /**
  * MoviesView — قسم الأفلام السينمائي الاحترافي (Netflix-style)
  *
+ * - يجلب الأفلام من /api/movies
  * - شريط منزلق أفقي في الأعلى للأفلام المميزة (Featured Carousel)
  * - صفوف أفلام حسب النوع (Genre Rows)
- * - بطاقات أفلام سينمائية مع بوستر متدرج + تقييم
  */
 export function MoviesView() {
   const [activeGenre, setActiveGenre] = React.useState<string>("الكل");
+  const { data, loading } = useFetch<MoviesResponse>("/api/movies");
+
+  const allMovies = React.useMemo(() => {
+    return (data?.movies ?? []).map((m) => ({
+      ...m,
+      genresArray: m.genres ? m.genres.split(",").map((g) => g.trim()).filter(Boolean) : [],
+    }));
+  }, [data?.movies]);
+
+  const featuredMovies = React.useMemo(
+    () => allMovies.filter((m) => m.featured),
+    [allMovies]
+  );
+
+  const allGenres = React.useMemo(() => {
+    const genres = new Set<string>();
+    allMovies.forEach((m) => m.genresArray.forEach((g) => genres.add(g)));
+    return Array.from(genres).sort();
+  }, [allMovies]);
+
+  const getMoviesByGenre = (genre: string) => allMovies.filter((m) => m.genresArray.includes(genre));
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div
+          className="h-8 w-8 rounded-full border-2"
+          style={{
+            borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)",
+            borderTopColor: "var(--accent)",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (allMovies.length === 0) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-6 text-center">
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-2xl"
+          style={{
+            background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent) 0%, color-mix(in srgb, var(--primary) 10%, transparent) 100%)",
+            color: "var(--accent)",
+          }}
+        >
+          <Film className="h-8 w-8" />
+        </div>
+        <p className="text-sm font-bold text-foreground">لا توجد أفلام متاحة حاليًا</p>
+        <p className="text-xs text-muted-foreground">سيتم إضافة أفلام جديدة قريبًا</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-4">
@@ -35,40 +94,44 @@ export function MoviesView() {
             </span>
             <div>
               <h1 className="wz-section-title text-xl font-extrabold">الأفلام</h1>
-              <p className="text-[10px] text-muted-foreground">{MOVIES.length} فيلم — شاهد أفضل الأفلام</p>
+              <p className="text-[10px] text-muted-foreground">{allMovies.length} فيلم — شاهد أفضل الأفلام</p>
             </div>
           </div>
         </div>
       </FadeIn>
 
       {/* ===== الشريط المنزلق العلوي (Featured Carousel) ===== */}
-      <FadeIn delay={0.1}>
-        <FeaturedCarousel />
-      </FadeIn>
+      {featuredMovies.length > 0 && (
+        <FadeIn delay={0.1}>
+          <FeaturedCarousel movies={featuredMovies} />
+        </FadeIn>
+      )}
 
       {/* ===== فلترة الأنواع ===== */}
-      <FadeIn delay={0.2}>
-        <div className="no-scrollbar wz-scroll-x -mx-4 flex gap-2 overflow-x-auto px-4 py-3">
-          <GenreChip
-            label="الكل"
-            active={activeGenre === "الكل"}
-            onClick={() => setActiveGenre("الكل")}
-          />
-          {ALL_GENRES.map((g) => (
+      {allGenres.length > 0 && (
+        <FadeIn delay={0.2}>
+          <div className="no-scrollbar wz-scroll-x -mx-4 flex gap-2 overflow-x-auto px-4 py-3">
             <GenreChip
-              key={g}
-              label={g}
-              active={activeGenre === g}
-              onClick={() => setActiveGenre(g)}
+              label="الكل"
+              active={activeGenre === "الكل"}
+              onClick={() => setActiveGenre("الكل")}
             />
-          ))}
-        </div>
-      </FadeIn>
+            {allGenres.map((g) => (
+              <GenreChip
+                key={g}
+                label={g}
+                active={activeGenre === g}
+                onClick={() => setActiveGenre(g)}
+              />
+            ))}
+          </div>
+        </FadeIn>
+      )}
 
       {/* ===== صفوف الأفلام حسب النوع ===== */}
       <StaggerContainer className="space-y-6 px-4">
         {activeGenre === "الكل" ? (
-          ALL_GENRES.map((genre) => {
+          allGenres.map((genre) => {
             const movies = getMoviesByGenre(genre);
             if (movies.length === 0) return null;
             return (
@@ -94,20 +157,18 @@ export function MoviesView() {
 /* ============================================================
    الشريط المنزلق العلوي — Featured Carousel
 ============================================================ */
-function FeaturedCarousel() {
-  const [index, setIndex] = React.useState(0);
+function FeaturedCarousel({ movies }: { movies: MovieItem[] }) {
   const scrollerRef = React.useRef<HTMLDivElement>(null);
 
   const scrollByCards = (dir: "left" | "right") => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
-    const cardWidth = 280; // width + gap
+    const cardWidth = 280;
     scroller.scrollBy({ left: dir === "left" ? -cardWidth : cardWidth, behavior: "smooth" });
   };
 
   return (
     <div className="relative mb-2">
-      {/* أزرار التنقل */}
       <button
         onClick={() => scrollByCards("right")}
         className="absolute right-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full wz-glass-chip text-emerald transition-all hover:scale-110 active:scale-95"
@@ -123,13 +184,12 @@ function FeaturedCarousel() {
         <ChevronLeft className="h-5 w-5" />
       </button>
 
-      {/* الشريط المنزلق */}
       <div
         ref={scrollerRef}
         className="no-scrollbar wz-scroll-x flex gap-3 overflow-x-auto scroll-smooth px-4 pb-2"
         style={{ scrollSnapType: "x mandatory" }}
       >
-        {FEATURED_MOVIES.map((movie) => (
+        {movies.map((movie) => (
           <FeaturedCard key={movie.id} movie={movie} />
         ))}
       </div>
@@ -137,18 +197,22 @@ function FeaturedCarousel() {
   );
 }
 
-function FeaturedCard({ movie }: { movie: Movie }) {
+function FeaturedCard({ movie }: { movie: MovieItem }) {
+  const genresArray = movie.genres ? movie.genres.split(",").map((g) => g.trim()).filter(Boolean) : [];
+
   return (
     <div
       className="wz-cine-card relative w-[280px] shrink-0 overflow-hidden rounded-2xl"
       style={{ scrollSnapAlign: "start" }}
     >
-      {/* البوستر */}
       <div
         className="relative aspect-[16/10] overflow-hidden"
-        style={{ background: movie.gradient }}
+        style={{ background: movie.posterUrl ? undefined : movie.gradient }}
       >
-        {/* تدرج سفلي للنص */}
+        {movie.posterUrl && (
+          <img src={movie.posterUrl} alt={movie.title} className="h-full w-full object-cover" />
+        )}
+
         <div
           aria-hidden
           className="absolute inset-0"
@@ -157,15 +221,13 @@ function FeaturedCard({ movie }: { movie: Movie }) {
           }}
         />
 
-        {/* أيقونة فيلم في الزاوية */}
         <div className="absolute right-3 top-3 flex items-center gap-1">
           <span className="wz-glass-chip flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-bold text-white">
             <Star className="h-3 w-3 fill-current text-yellow-400" />
-            {movie.rating}
+            {movie.rating.toFixed(1)}
           </span>
         </div>
 
-        {/* النص */}
         <div className="absolute inset-x-0 bottom-0 p-3">
           <h3 className="mb-1 text-base font-extrabold text-white drop-shadow-lg">{movie.title}</h3>
           <div className="flex items-center gap-2 text-[10px] text-white/70">
@@ -173,17 +235,20 @@ function FeaturedCard({ movie }: { movie: Movie }) {
               <Calendar className="h-3 w-3" />
               {movie.year}
             </span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {movie.duration}
-            </span>
-            <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[8px] font-bold">
-              {movie.genres[0]}
-            </span>
+            {movie.duration && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {movie.duration}
+              </span>
+            )}
+            {genresArray[0] && (
+              <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[8px] font-bold">
+                {genresArray[0]}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* زر التشغيل عند الhover */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 hover:bg-black/40 hover:opacity-100">
           <span
             className="flex h-12 w-12 items-center justify-center rounded-full text-white"
@@ -203,7 +268,7 @@ function FeaturedCard({ movie }: { movie: Movie }) {
 /* ============================================================
    صف أفلام حسب نوع — Movie Row
 ============================================================ */
-function MovieRow({ title, movies }: { title: string; movies: Movie[] }) {
+function MovieRow({ title, movies }: { title: string; movies: MovieItem[] }) {
   return (
     <div>
       <div className="mb-2 flex items-center gap-2">
@@ -226,21 +291,25 @@ function MovieRow({ title, movies }: { title: string; movies: Movie[] }) {
 /* ============================================================
    بطاقة فيلم — Movie Card
 ============================================================ */
-function MovieCard({ movie, compact = false }: { movie: Movie; compact?: boolean }) {
+function MovieCard({ movie, compact = false }: { movie: MovieItem; compact?: boolean }) {
+  const genresArray = movie.genres ? movie.genres.split(",").map((g) => g.trim()).filter(Boolean) : [];
+
   return (
     <button
-      onClick={() => toast.info(`سينضاف "${movie.title}" قريبًا`)}
+      onClick={() => movie.streamUrl ? toast.info(`مشاهدة: ${movie.title}`) : toast.info(`سينضاف "${movie.title}" قريبًا`)}
       className={cn(
         "wz-cine-card group relative shrink-0 overflow-hidden rounded-xl text-right active:scale-[0.98]",
         compact ? "w-full" : "w-[130px]"
       )}
     >
-      {/* البوستر */}
       <div
-        className={cn("relative overflow-hidden", compact ? "aspect-[2/3]" : "aspect-[2/3]")}
-        style={{ background: movie.gradient }}
+        className="relative aspect-[2/3] overflow-hidden"
+        style={{ background: movie.posterUrl ? undefined : movie.gradient }}
       >
-        {/* تدرج سفلي */}
+        {movie.posterUrl && (
+          <img src={movie.posterUrl} alt={movie.title} className="h-full w-full object-cover" />
+        )}
+
         <div
           aria-hidden
           className="absolute inset-0"
@@ -249,24 +318,22 @@ function MovieCard({ movie, compact = false }: { movie: Movie; compact?: boolean
           }}
         />
 
-        {/* أيقونة فيلم في المنتصف */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Film className="h-8 w-8 text-white/20" />
-        </div>
+        {!movie.posterUrl && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Film className="h-8 w-8 text-white/20" />
+          </div>
+        )}
 
-        {/* التقييم */}
         <span className="absolute right-1.5 top-1.5 flex items-center gap-1 rounded-full bg-black/60 px-1.5 py-0.5 text-[8px] font-bold text-yellow-400 backdrop-blur-sm">
           <Star className="h-2.5 w-2.5 fill-current" />
-          {movie.rating}
+          {movie.rating.toFixed(1)}
         </span>
 
-        {/* النص السفلي */}
         <div className="absolute inset-x-0 bottom-0 p-2">
           <p className="truncate text-[11px] font-bold text-white drop-shadow">{movie.title}</p>
-          <p className="truncate text-[8px] text-white/60">{movie.year} · {movie.genres[0]}</p>
+          <p className="truncate text-[8px] text-white/60">{movie.year}{genresArray[0] ? ` · ${genresArray[0]}` : ""}</p>
         </div>
 
-        {/* زر تشغيل عند الhover */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/50 group-hover:opacity-100">
           <span
             className="flex h-10 w-10 items-center justify-center rounded-full text-white"

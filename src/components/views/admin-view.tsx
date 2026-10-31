@@ -32,6 +32,7 @@ import {
   Image as ImageIcon,
   Bell,
   Send,
+  Film,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +71,7 @@ import { ImageUploader } from "@/components/shared/image-uploader";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { toast } from "sonner";
-import type { Channel, Country, Category, Tournament, Team, Match, Ad, AdSlotName } from "@/lib/types";
+import type { Channel, Country, Category, Tournament, Team, Match, Ad, AdSlotName, MovieItem } from "@/lib/types";
 import { formatTime, formatDate, statusLabel } from "@/lib/datetime";
 
 /* ============================================================
@@ -3242,12 +3243,480 @@ function NotifySection() {
 }
 
 /* ============================================================
+   🎬 Movies section — إدارة الأفلام
+============================================================ */
+interface MovieFormState {
+  title: string;
+  titleEn: string;
+  description: string;
+  posterUrl: string;
+  rating: string;
+  duration: string;
+  year: string;
+  genres: string;
+  gradient: string;
+  streamUrl: string;
+  featured: boolean;
+  active: boolean;
+  order: string;
+}
+
+function emptyMovieForm(): MovieFormState {
+  return {
+    title: "",
+    titleEn: "",
+    description: "",
+    posterUrl: "",
+    rating: "0",
+    duration: "",
+    year: String(new Date().getFullYear()),
+    genres: "",
+    gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+    streamUrl: "",
+    featured: false,
+    active: true,
+    order: "0",
+  };
+}
+
+function MovieDialog({
+  open,
+  onOpenChange,
+  movie,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  movie: MovieItem | null;
+  onSaved: () => void;
+}) {
+  const [form, setForm] = React.useState<MovieFormState>(emptyMovieForm());
+  const [saving, setSaving] = React.useState(false);
+  const logout = useAdmin((s) => s.logout);
+
+  React.useEffect(() => {
+    if (open) {
+      if (movie) {
+        setForm({
+          title: movie.title || "",
+          titleEn: movie.titleEn || "",
+          description: movie.description || "",
+          posterUrl: movie.posterUrl || "",
+          rating: movie.rating !== undefined ? String(movie.rating) : "0",
+          duration: movie.duration || "",
+          year: movie.year ? String(movie.year) : "",
+          genres: movie.genres || "",
+          gradient: movie.gradient || "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          streamUrl: movie.streamUrl || "",
+          featured: !!movie.featured,
+          active: movie.active !== false,
+          order: movie.order !== undefined ? String(movie.order) : "0",
+        });
+      } else {
+        setForm(emptyMovieForm());
+      }
+    }
+  }, [open, movie]);
+
+  const set = <K extends keyof MovieFormState>(k: K, v: MovieFormState[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  const submit = async () => {
+    if (!form.title.trim()) {
+      toast.error("عنوان الفيلم مطلوب");
+      return;
+    }
+    setSaving(true);
+    try {
+      const body = {
+        title: form.title.trim(),
+        titleEn: form.titleEn.trim() || null,
+        description: form.description.trim(),
+        posterUrl: form.posterUrl.trim() || null,
+        rating: Math.max(0, Math.min(10, Number(form.rating) || 0)),
+        duration: form.duration.trim(),
+        year: Number(form.year) || new Date().getFullYear(),
+        genres: form.genres.trim(),
+        gradient: form.gradient.trim() || "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+        streamUrl: form.streamUrl.trim() || null,
+        streamType: form.streamUrl.trim() ? "hls" : "none",
+        featured: form.featured,
+        active: form.active,
+        order: Number(form.order) || 0,
+      };
+      if (movie) {
+        await apiFetch(`/api/movies/${movie.id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        });
+        toast.success("تم تحديث الفيلم");
+      } else {
+        await apiFetch("/api/movies", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        toast.success("تمت إضافة الفيلم");
+      }
+      onSaved();
+      onOpenChange(false);
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) {
+        toast.error("انتهت الجلسة، يرجى تسجيل الدخول مجددًا");
+        logout();
+      } else {
+        toast.error(err.message || "خطأ في الحفظ");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-emerald">
+            <Film className="h-5 w-5" />
+            {movie ? "تعديل فيلم" : "إضافة فيلم جديد"}
+          </DialogTitle>
+          <DialogDescription>أدخل بيانات الفيلم بدقة.</DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="عنوان الفيلم" required>
+            <Input
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+              placeholder="اسم الفيلم"
+            />
+          </Field>
+          <Field label="العنوان بالإنجليزية (اختياري)">
+            <Input
+              dir="ltr"
+              value={form.titleEn}
+              onChange={(e) => set("titleEn", e.target.value)}
+              placeholder="Movie Title"
+            />
+          </Field>
+
+          <div className="sm:col-span-2">
+            <Field label="وصف الفيلم">
+              <Textarea
+                rows={3}
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                placeholder="نبذة عن الفيلم..."
+              />
+            </Field>
+          </div>
+
+          <div className="sm:col-span-2">
+            <ImageUploader
+              label="بوستر الفيلم"
+              value={form.posterUrl || null}
+              onChange={(v) => set("posterUrl", v ?? "")}
+            />
+          </div>
+
+          <Field label="التقييم (0 - 10)">
+            <Input
+              type="number"
+              min={0}
+              max={10}
+              step={0.1}
+              value={form.rating}
+              onChange={(e) => set("rating", e.target.value)}
+              placeholder="7.5"
+            />
+          </Field>
+          <Field label="المدة">
+            <Input
+              value={form.duration}
+              onChange={(e) => set("duration", e.target.value)}
+              placeholder="2س 15د"
+            />
+          </Field>
+          <Field label="سنة الإصدار">
+            <Input
+              type="number"
+              min={1900}
+              max={2100}
+              value={form.year}
+              onChange={(e) => set("year", e.target.value)}
+              placeholder="2024"
+            />
+          </Field>
+          <Field label="الأنواع (مفصولة بفاصلة)">
+            <Input
+              value={form.genres}
+              onChange={(e) => set("genres", e.target.value)}
+              placeholder="دراما,أكشن"
+            />
+          </Field>
+
+          <div className="sm:col-span-2">
+            <Field label="التدرّج اللوني (CSS gradient)">
+              <Input
+                dir="ltr"
+                value={form.gradient}
+                onChange={(e) => set("gradient", e.target.value)}
+                placeholder="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+              />
+            </Field>
+            <div
+              className="mt-2 h-10 w-full rounded-lg border border-border"
+              style={{ background: form.gradient || undefined }}
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <Field label="رابط البث (اختياري)">
+              <Input
+                dir="ltr"
+                value={form.streamUrl}
+                onChange={(e) => set("streamUrl", e.target.value)}
+                placeholder="https://.../playlist.m3u8"
+              />
+            </Field>
+          </div>
+
+          <Field label="الترتيب">
+            <Input
+              type="number"
+              min={0}
+              value={form.order}
+              onChange={(e) => set("order", e.target.value)}
+              placeholder="0"
+            />
+          </Field>
+
+          <div className="space-y-2 sm:col-span-2">
+            <SwitchField
+              label="فيلم مميز (يظهر في الشريط العلوي)"
+              checked={form.featured}
+              onChange={(v) => set("featured", v)}
+            />
+            <SwitchField
+              label="نشط (يظهر للجمهور)"
+              checked={form.active}
+              onChange={(v) => set("active", v)}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+            إلغاء
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="bg-emerald text-white hover:bg-emerald-dark"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {movie ? "حفظ التعديلات" : "إضافة الفيلم"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MoviesSection() {
+  const { data, loading, error, reload } = useFetch<{ movies: MovieItem[] }>("/api/movies?all=1");
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<MovieItem | null>(null);
+  const [deleting, setDeleting] = React.useState<MovieItem | null>(null);
+  const [delLoading, setDelLoading] = React.useState(false);
+  const logout = useAdmin((s) => s.logout);
+
+  const movies = data?.movies || [];
+
+  const sortedMovies = [...movies].sort((a, b) => {
+    if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
+    return (a.order ?? 0) - (b.order ?? 0);
+  });
+
+  const featuredCount = movies.filter((m) => m.featured).length;
+  const activeCount = movies.filter((m) => m.active).length;
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setDelLoading(true);
+    try {
+      await apiFetch(`/api/movies/${deleting.id}`, { method: "DELETE" });
+      toast.success("تم حذف الفيلم");
+      setDeleting(null);
+      reload();
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) {
+        toast.error("انتهت الجلسة، يرجى تسجيل الدخول مجددًا");
+        logout();
+      } else {
+        toast.error(err.message || "فشل الحذف");
+      }
+    } finally {
+      setDelLoading(false);
+    }
+  };
+
+  if (loading) return <SectionLoading />;
+  if (error) return <ErrorBlock message="تعذّر تحميل الأفلام" />;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle
+          icon={Film}
+          title="إدارة الأفلام"
+          subtitle={`${movies.length} فيلم | ${featuredCount} مميّز | ${activeCount} نشط`}
+          noMargin
+        />
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setDialogOpen(true);
+          }}
+          className="bg-emerald text-white hover:bg-emerald-dark"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          إضافة فيلم
+        </Button>
+      </div>
+
+      {sortedMovies.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {sortedMovies.map((m) => (
+            <div
+              key={m.id}
+              className={`group relative overflow-hidden rounded-xl border bg-card shadow-sm transition-colors ${
+                m.active ? "border-border" : "border-border/50 opacity-60"
+              }`}
+            >
+              <div
+                className="relative aspect-[2/3] w-full overflow-hidden"
+                style={!m.posterUrl ? { background: m.gradient } : undefined}
+              >
+                {m.posterUrl ? (
+                  <img
+                    src={m.posterUrl}
+                    alt={m.title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Film className="h-10 w-10 text-white/40" />
+                  </div>
+                )}
+
+                <div className="absolute right-1.5 top-1.5 flex flex-col gap-1">
+                  {m.featured && (
+                    <Badge className="bg-gold text-white shadow-sm">
+                      <Star className="h-3 w-3" />
+                      مميّز
+                    </Badge>
+                  )}
+                  {!m.active && (
+                    <Badge variant="outline" className="bg-background/80 text-foreground shadow-sm">
+                      معطّل
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 backdrop-blur-sm">
+                  <Star className="h-3 w-3 fill-gold text-gold" />
+                  <span className="text-[11px] font-bold text-white">
+                    {(m.rating ?? 0).toFixed(1)}
+                  </span>
+                </div>
+
+                <div className="absolute left-1.5 top-1.5 flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-7 w-7 bg-background/80 shadow-sm backdrop-blur-sm hover:bg-background"
+                    onClick={() => {
+                      setEditing(m);
+                      setDialogOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-7 w-7 bg-background/80 text-destructive shadow-sm backdrop-blur-sm hover:bg-destructive hover:text-white"
+                    onClick={() => setDeleting(m)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-1 p-2.5">
+                <h3 className="line-clamp-1 text-sm font-bold text-foreground" title={m.title}>
+                  {m.title}
+                </h3>
+                {m.titleEn && (
+                  <p className="line-clamp-1 text-[11px] text-muted-foreground" dir="ltr">
+                    {m.titleEn}
+                  </p>
+                )}
+                <div className="flex items-center justify-between gap-1 text-[11px] text-muted-foreground">
+                  <span>{m.year || "—"}</span>
+                  {m.duration && <span>{m.duration}</span>}
+                </div>
+                {m.genres && (
+                  <p className="line-clamp-1 text-[11px] text-muted-foreground" title={m.genres}>
+                    {m.genres}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Card className="rounded-2xl border border-border bg-card shadow-sm">
+          <CardContent className="py-12 text-center">
+            <Film className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              لا توجد أفلام. اضغط «إضافة فيلم» لإضافة فيلم جديد.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <MovieDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        movie={editing}
+        onSaved={reload}
+      />
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(v) => !v && setDeleting(null)}
+        title="حذف الفيلم"
+        description={`سيتم حذف فيلم "${deleting?.title}" نهائيًا.`}
+        loading={delLoading}
+        onConfirm={confirmDelete}
+      />
+    </div>
+  );
+}
+
+/* ============================================================
    Section navigation
 ============================================================ */
 type SectionKey =
   | "stats"
   | "channels"
   | "matches"
+  | "movies"
   | "tournaments"
   | "teams"
   | "countries"
@@ -3260,6 +3729,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "stats", label: "الإحصائيات", icon: ShieldCheck },
   { key: "channels", label: "القنوات", icon: Tv },
   { key: "matches", label: "المباريات", icon: Calendar },
+  { key: "movies", label: "الأفلام", icon: Film },
   { key: "tournaments", label: "البطولات", icon: Trophy },
   { key: "teams", label: "الفرق", icon: Users },
   { key: "countries", label: "الدول", icon: Globe },
@@ -3346,6 +3816,7 @@ function Dashboard() {
           {section === "stats" && <StatsSection />}
           {section === "channels" && <ChannelsSection />}
           {section === "matches" && <MatchesSection />}
+          {section === "movies" && <MoviesSection />}
           {section === "tournaments" && <TournamentsSection />}
           {section === "teams" && <TeamsSection />}
           {section === "countries" && <CountriesSection />}

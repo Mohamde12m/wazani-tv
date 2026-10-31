@@ -112,3 +112,22 @@ export interface Ad {
   active: boolean;
   order: number;
 }
+
+/** فيلم — يُدار من لوحة التحكم */
+export interface MovieItem {
+  id: string;
+  title: string;
+  titleEn?: string | null;
+  description: string;
+  posterUrl?: string | null;
+  rating: number;
+  duration: string;
+  year: number;
+  genres: string;
+  gradient: string;
+  streamUrl?: string | null;
+  streamType?: string;
+  featured: boolean;
+  active: boolean;
+  order: number;
+}

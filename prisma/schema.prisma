@@ -178,3 +178,30 @@ model Ad {
 
   @@index([slot, active, order])
 }
+
+/// الأفلام — يديرها المسؤول من لوحة التحكم
+model Movie {
+  id          String   @id @default(cuid())
+  title       String
+  titleEn     String?
+  description String   @default("")
+  /// رابط صورة البوستر (data URL أو URL خارجي)
+  posterUrl   String?
+  /// التقييم /10
+  rating      Float    @default(0)
+  /// المدة: "2س 15د"
+  duration    String   @default("")
+  year        Int      @default(2024)
+  /// الأنواع مفصولة بفاصلة: "دراما,أكشن"
+  genres      String   @default("")
+  /// تدرج لوني CSS للبوستر الافتراضي
+  gradient    String   @default("linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)")
+  /// رابط البث (لو موجود)
+  streamUrl   String?
+  streamType  String   @default("none")
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
