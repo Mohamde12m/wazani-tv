@@ -37,7 +37,8 @@ export function MoviesView() {
       (c) =>
         c.category?.slug === "movies" ||
         c.category?.slug === "entertainment" ||
-        (c.nameAr && ("سينما" in c.nameAr || "أفلام" in c.nameAr || "film" in c.name.toLowerCase()))
+        (c.nameAr && (c.nameAr.includes("سينما") || c.nameAr.includes("أفلام"))) ||
+        (c.name && c.name.toLowerCase().includes("film"))
     );
   }, [allChannels]);
 
