@@ -11,7 +11,6 @@ export type View =
   | { name: "more" }
   | { name: "player"; channelId: string }
   | { name: "match-player"; matchId: string }
-  | { name: "movie-player"; movieId: string }
   | { name: "tournaments" }
   | { name: "tournament"; id: string }
   | { name: "search"; q?: string }

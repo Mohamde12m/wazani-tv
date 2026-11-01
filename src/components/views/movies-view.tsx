@@ -199,12 +199,10 @@ function FeaturedCarousel({ movies }: { movies: MovieItem[] }) {
 }
 
 function FeaturedCard({ movie }: { movie: MovieItem }) {
-  const setView = useNav((s) => s.setView);
   const genresArray = movie.genres ? movie.genres.split(",").map((g) => g.trim()).filter(Boolean) : [];
 
   return (
-    <button
-      onClick={() => setView({ name: "movie-player", movieId: movie.id })}
+    <div
       className="wz-cine-card relative w-[280px] shrink-0 overflow-hidden rounded-2xl"
       style={{ scrollSnapAlign: "start" }}
     >
@@ -264,7 +262,7 @@ function FeaturedCard({ movie }: { movie: MovieItem }) {
           </span>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -295,12 +293,11 @@ function MovieRow({ title, movies }: { title: string; movies: MovieItem[] }) {
    بطاقة فيلم — Movie Card
 ============================================================ */
 function MovieCard({ movie, compact = false }: { movie: MovieItem; compact?: boolean }) {
-  const setView = useNav((s) => s.setView);
   const genresArray = movie.genres ? movie.genres.split(",").map((g) => g.trim()).filter(Boolean) : [];
 
   return (
     <button
-      onClick={() => setView({ name: "movie-player", movieId: movie.id })}
+      onClick={() => toast.info(`سينضاف "${movie.title}" قريبًا`)}
       className={cn(
         "wz-cine-card group relative shrink-0 overflow-hidden rounded-xl text-right active:scale-[0.98]",
         compact ? "w-full" : "w-[130px]"
