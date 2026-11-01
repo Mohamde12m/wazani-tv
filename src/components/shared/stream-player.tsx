@@ -559,6 +559,9 @@ export function StreamPlayer({
         </button>
       )}
 
+      {/* العلامة المائية المتحركة — اسم التطبيق يكتب حرفًا بحرف */}
+      <AnimatedWatermark />
+
       {/* زر التشغيل الكبير في المنتصف — احترافي مع توهج نابض */}
       {showCenterPlay && (
         <button
@@ -898,5 +901,131 @@ function IframePlayer({
         }}
       />
     </>
+  );
+}
+
+/* ============================================================
+   🎬 AnimatedWatermark — علامة مائية متحركة
+   تكتب "WazaNI TV" حرفًا بحرف، تبقى ثابتة دقيقة، ثم تعيد الكتابة
+============================================================ */
+function AnimatedWatermark() {
+  const FULL_TEXT = "WazaNI TV";
+  const PHASE_TYPE = "type";      // كتابة حرف بحرف
+  const PHASE_HOLD = "hold";      // ثابت
+  const PHASE_ERASE = "erase";    // مسح حرف بحرف
+  const PHASE_PAUSE = "pause";    // توقف قصير قبل إعادة البداية
+
+  const TYPE_SPEED = 180;   // ms per letter
+  const HOLD_TIME = 60000;  // دقيقة كاملة ثابت
+  const ERASE_SPEED = 100;  // ms per letter
+  const PAUSE_TIME = 800;   // توقف قبل إعادة
+
+  const [phase, setPhase] = React.useState(PHASE_TYPE);
+  const [text, setText] = React.useState("");
+  const [opacity, setOpacity] = React.useState(0);
+
+  React.useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    if (phase === PHASE_TYPE) {
+      if (text.length < FULL_TEXT.length) {
+        timer = setTimeout(() => {
+          setText(FULL_TEXT.slice(0, text.length + 1));
+          setOpacity(1);
+        }, TYPE_SPEED);
+      } else {
+        timer = setTimeout(() => setPhase(PHASE_HOLD), 400);
+      }
+    } else if (phase === PHASE_HOLD) {
+      timer = setTimeout(() => setPhase(PHASE_ERASE), HOLD_TIME);
+    } else if (phase === PHASE_ERASE) {
+      if (text.length > 0) {
+        timer = setTimeout(() => {
+          setText(FULL_TEXT.slice(0, text.length - 1));
+        }, ERASE_SPEED);
+      } else {
+        setOpacity(0);
+        timer = setTimeout(() => setPhase(PHASE_PAUSE), 200);
+      }
+    } else if (phase === PHASE_PAUSE) {
+      timer = setTimeout(() => setPhase(PHASE_TYPE), PAUSE_TIME);
+    }
+
+    return () => clearTimeout(timer);
+  }, [phase, text]);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: 12,
+        left: 12,
+        zIndex: 5,
+        pointerEvents: "none",
+        opacity: opacity,
+        transition: "opacity 0.4s ease",
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      {/* نقطة ذهبية نابضة */}
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #F5C842 0%, #C99A2E 100%)",
+          boxShadow: "0 0 6px 1px rgba(245, 200, 66, 0.6)",
+          animation: "wz-wm-dot 2s ease-in-out infinite",
+          flexShrink: 0,
+        }}
+      />
+      {/* النص المتحرك */}
+      <span
+        style={{
+          fontFamily: "var(--font-cairo), sans-serif",
+          fontSize: 13,
+          fontWeight: 800,
+          letterSpacing: "0.02em",
+          color: "rgba(255, 255, 255, 0.85)",
+          textShadow: "0 1px 4px rgba(0,0,0,0.6), 0 0 8px rgba(245, 200, 66, 0.15)",
+          background: "linear-gradient(90deg, #FFFFFF 0%, #FFE08A 50%, #FFFFFF 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          whiteSpace: "nowrap",
+          minHeight: 16,
+          minWidth: text.length > 0 ? 1 : 0,
+        }}
+      >
+        {text}
+        {/* مؤشر الكتابة */}
+        {(phase === PHASE_TYPE || phase === PHASE_ERASE) && text.length > 0 && (
+          <span
+            style={{
+              display: "inline-block",
+              width: 2,
+              height: 14,
+              marginLeft: 2,
+              background: "#F5C842",
+              animation: "wz-wm-blink 0.6s step-end infinite",
+              verticalAlign: "middle",
+            }}
+          />
+        )}
+      </span>
+
+      <style>{`
+        @keyframes wz-wm-dot {
+          0%, 100% { opacity: 0.8; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.3); }
+        }
+        @keyframes wz-wm-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+      `}</style>
+    </div>
   );
 }
