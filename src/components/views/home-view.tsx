@@ -581,8 +581,14 @@ function TodayMatchCard({ match }: { match: Match }) {
       <div className="mb-1.5 flex items-center justify-between gap-1.5">
         <span className="truncate text-[10px] font-bold text-emerald">{tournamentName}</span>
         {live ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-emerald px-1.5 py-0.5 text-[8px] font-bold text-white">
-            <span className="h-1 w-1 rounded-full bg-white live-dot" />
+          <span
+            className="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white"
+            style={{
+              background: "linear-gradient(135deg, #DC2626 0%, #EF4444 100%)",
+              animation: "wazani-live-pulse 1.8s ease-in-out infinite",
+            }}
+          >
+            <span className="h-1 w-1 rounded-full bg-white" />
             مباشر
           </span>
         ) : finished ? (
