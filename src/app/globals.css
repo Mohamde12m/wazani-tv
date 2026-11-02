@@ -56,8 +56,8 @@
 
 :root {
   --radius: 1rem;
-  /* الوضع الفاتح: عاجي زمردي راقي (ليس أخضر صارخ) */
-  --background: #F2EFE3;
+  /* خلفية بيضاء نظيفة مع لمسة زمرديّة خفيفة */
+  --background: #F8FAF8;
   --foreground: #0A1F14;
   --card: #FFFFFF;
   --card-foreground: #0A1F14;
@@ -72,7 +72,7 @@
   --accent: #C99A2E;
   --accent-foreground: #2A2008;
   --destructive: #B91C1C;
-  --border: #DDD7C4;
+  --border: rgba(245, 200, 66, 0.25);
   --input: #E4DECC;
   --ring: #C99A2E;
   --chart-1: #00875A;
@@ -86,7 +86,7 @@
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #ECE8DA;
   --sidebar-accent-foreground: #0A1F14;
-  --sidebar-border: #DDD7C4;
+  --sidebar-border: rgba(245, 200, 66, 0.25);
   --sidebar-ring: #C99A2E;
 }
 
@@ -128,16 +128,14 @@
     @apply text-foreground;
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
-    /* خلفية سينمائية: عاجي دافئ مع توهجات زمرديّة وذهبية خفيفة */
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.08) 0%, transparent 60%),
-      linear-gradient(180deg, #F2EFE3 0%, #EDE8D8 50%, #F2EFE3 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.05) 0%, transparent 60%),
+      linear-gradient(180deg, #F8FAF8 0%, #F0F5F0 50%, #F8FAF8 100%);
     background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
-    /* خلفية سينمائية ليلية: زمردي عميق مع توهجات ذهبية مسرحية */
     background:
       radial-gradient(ellipse 80% 50% at 100% 0%, rgba(31, 224, 122, 0.14) 0%, transparent 55%),
       radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.10) 0%, transparent 55%),
@@ -179,9 +177,9 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.14), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.10), transparent 55%),
-    linear-gradient(180deg, #F2EFE3 0%, #EDE8D8 50%, #F2EFE3 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.08), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.06), transparent 55%),
+    linear-gradient(180deg, #F8FAF8 0%, #F0F5F0 50%, #F8FAF8 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -672,7 +670,7 @@
   );
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px solid rgba(245, 200, 66, 0.35);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
     0 8px 24px -8px rgba(2, 20, 16, 0.18),
@@ -684,7 +682,7 @@
 
 .wz-cine-card:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  border-color: rgba(245, 200, 66, 0.55);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
     0 14px 36px -10px rgba(2, 20, 16, 0.28),
@@ -819,7 +817,7 @@
   background: color-mix(in srgb, var(--card) 70%, transparent);
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border: 1px solid rgba(245, 200, 66, 0.30);
   box-shadow: 0 2px 8px -2px rgba(2, 20, 16, 0.15);
 }
 
