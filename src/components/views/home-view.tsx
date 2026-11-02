@@ -409,16 +409,6 @@ export function HomeView() {
         </section>
       )}
 
-      {/* 2. Featured match hero — معطل مؤقتًا للتشخيص */}
-      {featuredMatch && (
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground mb-1">المباراة المميزة</div>
-          <div className="font-bold text-sm">
-            {featuredMatch.homeName} ضد {featuredMatch.awayName}
-          </div>
-        </div>
-      )}
-
       {/* 3. Today's important matches */}
       <section>
         <SectionHeader
