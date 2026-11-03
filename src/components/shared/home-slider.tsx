@@ -154,20 +154,24 @@ function SliderSlide({ item }: { item: SliderItemData }) {
           }}
         />
 
-        {/* المحتوى — مثبّت في أسفل البطاقة، على الجهة اليسرى */}
-        <div className="absolute bottom-0 left-0 max-w-[70%] p-4">
-          <h2 className="mb-1 text-base font-extrabold text-white drop-shadow-lg sm:text-lg">
-            {item.title}
-          </h2>
-          {item.subtitle && (
-            <p className="mb-3 text-[11px] text-white/90 line-clamp-2 sm:text-xs">
-              {item.subtitle}
-            </p>
-          )}
+        {/* المحتوى — العنوان والوصف في الجهة اليمنى، الزر في الجهة اليسرى */}
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
+          {/* العنوان + الوصف — جهة يمين (RTL) */}
+          <div className="max-w-[65%]">
+            <h2 className="mb-1 text-base font-extrabold text-white drop-shadow-lg sm:text-lg">
+              {item.title}
+            </h2>
+            {item.subtitle && (
+              <p className="text-[11px] text-white/90 line-clamp-2 sm:text-xs">
+                {item.subtitle}
+              </p>
+            )}
+          </div>
+          {/* الزر — جهة يسار */}
           {item.linkType !== "none" && (
             <button
               onClick={handleClick}
-              className="flex w-fit items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-black"
+              className="flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-black"
               style={{
                 background: "linear-gradient(135deg, #F5C842 0%, #C99A2E 100%)",
                 boxShadow: "0 4px 12px -2px rgba(245, 200, 66, 0.5)",
