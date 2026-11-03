@@ -131,7 +131,7 @@ function SliderSlide({ item }: { item: SliderItemData }) {
       <div
         className="relative overflow-hidden rounded-2xl"
         style={{
-          aspectRatio: "16 / 10",
+          aspectRatio: "16 / 8",
           background: item.imageUrl ? "#000" : item.gradient,
           border: "1px solid rgba(245, 200, 66, 0.25)",
           boxShadow: "0 8px 24px -8px rgba(0,0,0,0.4)",
