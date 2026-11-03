@@ -249,28 +249,6 @@ export function HomeView() {
       {/* 0. شاشة منزلقة احترافية */}
       <HomeSlider />
 
-      {/* 1. Compact search trigger */}
-      <button
-        onClick={() => setView({ name: "search" })}
-        className="wz-cine-card flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-right active:scale-[0.99]"
-        aria-label="بحث"
-      >
-        <span
-          className="flex h-8 w-8 items-center justify-center rounded-lg"
-          style={{
-            background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent) 0%, color-mix(in srgb, var(--accent) 10%, transparent) 100%)",
-            color: "var(--accent)",
-          }}
-        >
-          <Search className="h-4 w-4 shrink-0" />
-        </span>
-        <span className="flex-1 truncate text-sm text-muted-foreground">
-          ابحث عن قناة، دولة، أو تصنيف...
-        </span>
-        <span className="rounded-lg bg-secondary px-2 py-1 text-[10px] font-bold text-emerald">
-          بحث
-        </span>
-      </button>
 
       {/* 1.5. سجل المشاهدة — آخر القنوات التي شاهدتها */}
       {watchHistory.length > 0 && (
