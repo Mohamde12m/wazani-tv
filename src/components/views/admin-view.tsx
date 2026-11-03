@@ -3471,8 +3471,8 @@ function SliderDialog({
           <Field label="الوصف">
             <Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} placeholder="وصف مختصر" />
           </Field>
-          <Field label="صورة البانر (اختياري)">
-            <ImageUploader label="صورة البانر" value={form.imageUrl || null} onChange={(v) => set("imageUrl", v ?? "")} />
+          <Field label="رابط صورة البانر (اختياري)">
+            <Input dir="ltr" value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} placeholder="https://... صورة البانر" />
           </Field>
           <Field label="التدرج اللوني (عند عدم وجود صورة)">
             <Input dir="ltr" value={form.gradient} onChange={(e) => set("gradient", e.target.value)} />
