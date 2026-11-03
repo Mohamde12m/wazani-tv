@@ -146,21 +146,21 @@ function SliderSlide({ item }: { item: SliderItemData }) {
           />
         )}
 
-        {/* تدرج سفلي للنص */}
+        {/* تدرج سفلي للنص — أقوى لضمان وضوح النص */}
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.8) 100%)",
+            background: "linear-gradient(180deg, transparent 20%, rgba(0,0,0,0.9) 100%)",
           }}
         />
 
-        {/* المحتوى */}
-        <div className="absolute inset-0 flex flex-col justify-end p-4">
+        {/* المحتوى — مثبّت في أسفل البطاقة */}
+        <div className="absolute inset-x-0 bottom-0 p-4">
           <h2 className="mb-1 text-lg font-extrabold text-white drop-shadow-lg">
             {item.title}
           </h2>
           {item.subtitle && (
-            <p className="mb-3 text-xs text-white/70 line-clamp-2">{item.subtitle}</p>
+            <p className="mb-3 text-xs text-white/80 line-clamp-2">{item.subtitle}</p>
           )}
           {item.linkType !== "none" && (
             <button
