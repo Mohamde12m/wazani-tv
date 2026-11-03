@@ -115,8 +115,18 @@ export function StreamPlayer({
       if (Hls.isSupported()) {
         const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
         hlsRef.current = hls;
-        hls.loadSource(src);
-        hls.attachMedia(video);
+
+        // لو الرابط يمر عبر البروكسي ويفشل، جرّب الرابط الأصلي مباشرة
+        let currentSrc = src;
+        let triedDirect = false;
+
+        const loadStream = (url: string) => {
+          hls.loadSource(url);
+          hls.attachMedia(video);
+        };
+
+        loadStream(currentSrc);
+
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           onReady?.();
           if (autoplay) {
@@ -128,7 +138,27 @@ export function StreamPlayer({
           }
         });
         hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) { setIsBuffering(false); onError?.(); }
+          if (data.fatal) {
+            // لو فشل البروكسي، جرّب الرابط الأصلي مباشرة (بعض الروابط تدعم CORS)
+            if (!triedDirect && currentSrc.includes("/api/stream?url=")) {
+              triedDirect = true;
+              try {
+                const originalUrl = decodeURIComponent(currentSrc.split("url=")[1]);
+                currentSrc = originalUrl;
+                loadStream(currentSrc);
+                return;
+              } catch {}
+            }
+            // لو فشل الرابط المباشر، جرّب البروكسي
+            if (!triedDirect && !currentSrc.includes("/api/stream?url=") && currentSrc.startsWith("http")) {
+              triedDirect = true;
+              currentSrc = `/api/stream?url=${encodeURIComponent(currentSrc)}`;
+              loadStream(currentSrc);
+              return;
+            }
+            setIsBuffering(false);
+            onError?.();
+          }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = src;
