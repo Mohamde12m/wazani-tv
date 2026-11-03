@@ -25,6 +25,7 @@ import {
 } from "@/components/shared/channel-card";
 import { Logo } from "@/components/shared/top-header";
 import { AppWordmark } from "@/components/shared/app-wordmark";
+import { HomeSlider } from "@/components/shared/home-slider";
 import {
   SectionHeader,
   ChannelRow,
@@ -245,6 +246,9 @@ export function HomeView() {
 
       {/* Page body */}
       <div className="space-y-6 px-4 py-4">
+      {/* 0. شاشة منزلقة احترافية */}
+      <HomeSlider />
+
       {/* 1. Compact search trigger */}
       <button
         onClick={() => setView({ name: "search" })}

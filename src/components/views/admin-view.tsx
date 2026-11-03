@@ -70,7 +70,7 @@ import { ImageUploader } from "@/components/shared/image-uploader";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { toast } from "sonner";
-import type { Channel, Country, Category, Tournament, Team, Match, Ad, AdSlotName } from "@/lib/types";
+import type { Channel, Country, Category, Tournament, Team, Match, Ad, AdSlotName, SliderItem } from "@/lib/types";
 import { formatTime, formatDate, statusLabel } from "@/lib/datetime";
 
 /* ============================================================
@@ -3242,6 +3242,282 @@ function NotifySection() {
 }
 
 /* ============================================================
+   🎬 Slider section — إدارة الشاشة المنزلقة
+============================================================ */
+function SliderSection() {
+  const { data, loading, error, reload } = useFetch<{ items: SliderItem[] }>("/api/slider?all=1");
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<SliderItem | null>(null);
+  const [deleting, setDeleting] = React.useState<SliderItem | null>(null);
+  const [delLoading, setDelLoading] = React.useState(false);
+  const logout = useAdmin((s) => s.logout);
+
+  const items = data?.items || [];
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setDelLoading(true);
+    try {
+      await apiFetch(`/api/slider/${deleting.id}`, { method: "DELETE" });
+      toast.success("تم حذف العنصر");
+      setDeleting(null);
+      reload();
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) {
+        toast.error("انتهت الجلسة");
+        logout();
+      } else {
+        toast.error(err.message || "فشل الحذف");
+      }
+    } finally {
+      setDelLoading(false);
+    }
+  };
+
+  if (loading) return <SectionLoading />;
+  if (error) return <ErrorBlock message="تعذّر تحميل السلايدر" />;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle
+          icon={ImageIcon}
+          title="إدارة السلايدر"
+          subtitle={`${items.length} عنصر في الشاشة المنزلقة`}
+          noMargin
+        />
+        <Button
+          onClick={() => { setEditing(null); setDialogOpen(true); }}
+          className="bg-emerald text-white hover:bg-emerald-dark"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          إضافة عنصر
+        </Button>
+      </div>
+
+      {items.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className={`relative overflow-hidden rounded-xl border bg-card shadow-sm ${item.active ? "border-border" : "border-border/50 opacity-60"}`}
+            >
+              <div
+                className="relative aspect-[16/7] w-full overflow-hidden"
+                style={{ background: item.imageUrl ? "#000" : item.gradient }}
+              >
+                {item.imageUrl && (
+                  <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                )}
+                <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.8) 100%)" }} />
+                <div className="absolute inset-x-0 bottom-0 p-3">
+                  <h3 className="text-sm font-bold text-white drop-shadow">{item.title}</h3>
+                  {item.subtitle && <p className="text-[10px] text-white/60 line-clamp-1">{item.subtitle}</p>}
+                </div>
+                <div className="absolute right-2 top-2 flex gap-1">
+                  <Button size="icon" variant="secondary" className="h-7 w-7 bg-background/80 backdrop-blur-sm" onClick={() => { setEditing(item); setDialogOpen(true); }}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="secondary" className="h-7 w-7 bg-background/80 text-destructive backdrop-blur-sm hover:bg-destructive hover:text-white" onClick={() => setDeleting(item)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {!item.active && (
+                  <Badge variant="outline" className="absolute left-2 top-2 bg-background/80">معطّل</Badge>
+                )}
+              </div>
+              <div className="p-2 text-[10px] text-muted-foreground">
+                نوع الرابط: {item.linkType === "none" ? "بدون" : item.linkType} · الترتيب: {item.order}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Card className="rounded-2xl border border-border bg-card shadow-sm">
+          <CardContent className="py-12 text-center">
+            <ImageIcon className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">لا توجد عناصر. اضغط «إضافة عنصر» لإنشاء شريحة جديدة.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <SliderDialog open={dialogOpen} onOpenChange={setDialogOpen} item={editing} onSaved={reload} />
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(v) => !v && setDeleting(null)}
+        title="حذف العنصر"
+        description={`سيتم حذف "${deleting?.title}" نهائيًا.`}
+        loading={delLoading}
+        onConfirm={confirmDelete}
+      />
+    </div>
+  );
+}
+
+function SliderDialog({
+  open,
+  onOpenChange,
+  item,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  item: SliderItem | null;
+  onSaved: () => void;
+}) {
+  const [form, setForm] = React.useState({
+    title: "",
+    subtitle: "",
+    imageUrl: "",
+    gradient: "linear-gradient(135deg, #022B1C 0%, #00875A 50%, #022B1C 100%)",
+    linkType: "none" as string,
+    linkId: "",
+    buttonText: "شاهد الآن",
+    active: true,
+    order: "0",
+  });
+  const [saving, setSaving] = React.useState(false);
+  const logout = useAdmin((s) => s.logout);
+
+  React.useEffect(() => {
+    if (open) {
+      if (item) {
+        setForm({
+          title: item.title || "",
+          subtitle: item.subtitle || "",
+          imageUrl: item.imageUrl || "",
+          gradient: item.gradient || "linear-gradient(135deg, #022B1C 0%, #00875A 50%, #022B1C 100%)",
+          linkType: item.linkType || "none",
+          linkId: item.linkId || "",
+          buttonText: item.buttonText || "شاهد الآن",
+          active: item.active !== false,
+          order: String(item.order ?? 0),
+        });
+      } else {
+        setForm({
+          title: "",
+          subtitle: "",
+          imageUrl: "",
+          gradient: "linear-gradient(135deg, #022B1C 0%, #00875A 50%, #022B1C 100%)",
+          linkType: "none",
+          linkId: "",
+          buttonText: "شاهد الآن",
+          active: true,
+          order: "0",
+        });
+      }
+    }
+  }, [open, item]);
+
+  const set = (k: string, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
+
+  const submit = async () => {
+    if (!form.title.trim()) {
+      toast.error("العنوان مطلوب");
+      return;
+    }
+    setSaving(true);
+    try {
+      const body = {
+        title: form.title.trim(),
+        subtitle: form.subtitle.trim(),
+        imageUrl: form.imageUrl.trim() || null,
+        gradient: form.gradient.trim(),
+        linkType: form.linkType,
+        linkId: form.linkId.trim() || null,
+        buttonText: form.buttonText.trim(),
+        active: form.active,
+        order: Number(form.order) || 0,
+      };
+      if (item) {
+        await apiFetch(`/api/slider/${item.id}`, { method: "PUT", body: JSON.stringify(body) });
+        toast.success("تم تحديث العنصر");
+      } else {
+        await apiFetch("/api/slider", { method: "POST", body: JSON.stringify(body) });
+        toast.success("تمت إضافة العنصر");
+      }
+      onSaved();
+      onOpenChange(false);
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) {
+        toast.error("انتهت الجلسة");
+        logout();
+      } else {
+        toast.error(err.message || "خطأ في الحفظ");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-emerald">
+            <ImageIcon className="h-5 w-5" />
+            {item ? "تعديل عنصر السلايدر" : "إضافة عنصر جديد"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <Field label="العنوان" required>
+            <Input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="عنوان الشريحة" />
+          </Field>
+          <Field label="الوصف">
+            <Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} placeholder="وصف مختصر" />
+          </Field>
+          <Field label="صورة البانر (اختياري)">
+            <ImageUploader label="صورة البانر" value={form.imageUrl || null} onChange={(v) => set("imageUrl", v ?? "")} />
+          </Field>
+          <Field label="التدرج اللوني (عند عدم وجود صورة)">
+            <Input dir="ltr" value={form.gradient} onChange={(e) => set("gradient", e.target.value)} />
+            <div className="mt-2 h-8 w-full rounded-lg border border-border" style={{ background: form.gradient }} />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="نوع الرابط">
+              <Select value={form.linkType} onValueChange={(v) => set("linkType", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون رابط</SelectItem>
+                  <SelectItem value="channel">قناة</SelectItem>
+                  <SelectItem value="match">مباراة</SelectItem>
+                  <SelectItem value="url">رابط خارجي</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="معرف/رابط">
+              <Input dir="ltr" value={form.linkId} onChange={(e) => set("linkId", e.target.value)} placeholder="ID أو URL" disabled={form.linkType === "none"} />
+            </Field>
+          </div>
+          <Field label="نص الزر">
+            <Input value={form.buttonText} onChange={(e) => set("buttonText", e.target.value)} />
+          </Field>
+          <div className="flex items-center gap-4">
+            <SwitchField label="نشط" checked={form.active} onChange={(v) => set("active", v)} />
+            <Field label="الترتيب">
+              <Input type="number" className="w-20" value={form.order} onChange={(e) => set("order", e.target.value)} />
+            </Field>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>إلغاء</Button>
+          <Button onClick={submit} disabled={saving} className="bg-emerald text-white hover:bg-emerald-dark">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {item ? "حفظ" : "إضافة"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ============================================================
    Section navigation
 ============================================================ */
 type SectionKey =
@@ -3253,6 +3529,7 @@ type SectionKey =
   | "countries"
   | "categories"
   | "ads"
+  | "slider"
   | "notify"
   | "reseed";
 
@@ -3265,6 +3542,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "countries", label: "الدول", icon: Globe },
   { key: "categories", label: "التصنيفات", icon: Tags },
   { key: "ads", label: "الإعلانات", icon: Megaphone },
+  { key: "slider", label: "السلايدر", icon: ImageIcon },
   { key: "notify", label: "الإشعارات", icon: Bell },
   { key: "reseed", label: "إعادة البيانات", icon: RefreshCw },
 ];
@@ -3352,6 +3630,7 @@ function Dashboard() {
           {section === "categories" && <CategoriesSection />}
           {section === "notify" && <NotifySection />}
           {section === "ads" && <AdsSection />}
+          {section === "slider" && <SliderSection />}
           {section === "reseed" && <ReseedSection />}
         </main>
 

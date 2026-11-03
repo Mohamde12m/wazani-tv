@@ -113,3 +113,17 @@ export interface Ad {
   order: number;
 }
 
+
+/** عنصر الشاشة المنزلقة في الصفحة الرئيسية */
+export interface SliderItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  imageUrl?: string | null;
+  gradient: string;
+  linkType: "channel" | "match" | "url" | "none";
+  linkId?: string | null;
+  buttonText: string;
+  active: boolean;
+  order: number;
+}

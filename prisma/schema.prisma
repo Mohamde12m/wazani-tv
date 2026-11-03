@@ -179,3 +179,24 @@ model Ad {
   @@index([slot, active, order])
 }
 
+
+/// عناصر الشاشة المنزلقة في الصفحة الرئيسية
+model SliderItem {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String   @default("")
+  /// رابط الصورة (بوستر/بانر)
+  imageUrl    String?
+  /// تدرج لوني CSS كبديل للصورة
+  gradient    String   @default("linear-gradient(135deg, #022B1C 0%, #00875A 50%, #022B1C 100%)")
+  /// نوع الرابط: "channel" | "match" | "url" | "none"
+  linkType    String   @default("none")
+  /// معرف القناة/المباراة أو رابط خارجي
+  linkId      String?
+  /// نص الزر
+  buttonText  String   @default("شاهد الآن")
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
