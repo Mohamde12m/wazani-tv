@@ -154,8 +154,8 @@ function SliderSlide({ item }: { item: SliderItemData }) {
           }}
         />
 
-        {/* المحتوى — مثبّت في أسفل البطاقة دائمًا */}
-        <div className="absolute inset-x-0 bottom-0 p-4">
+        {/* المحتوى — مثبّت في أسفل البطاقة، على الجهة اليسرى */}
+        <div className="absolute bottom-0 left-0 max-w-[70%] p-4">
           <h2 className="mb-1 text-base font-extrabold text-white drop-shadow-lg sm:text-lg">
             {item.title}
           </h2>
