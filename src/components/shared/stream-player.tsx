@@ -89,6 +89,28 @@ export function StreamPlayer({
       hlsRef.current = null;
     }
 
+    // لو الرابط هو صفحة تضمين (freeshot.live/embed/...)، استخرج القناة واجلب token جديد
+    let finalSrc = src;
+    const freeshotMatch = src.match(/freeshot\.live\/embed\/(?:beINSPORTSAR?(\w+)|(\w+))\.php/i);
+    const wideiptvMatch = src.match(/wideiptv\.top\/player\/(\w+)/i);
+
+    if (freeshotMatch || wideiptvMatch) {
+      const channelCode = freeshotMatch
+        ? `beINAR${freeshotMatch[1] || freeshotMatch[2]}`
+        : wideiptvMatch![1];
+
+      setIsBuffering(true);
+      try {
+        const tokenRes = await fetch(`/api/stream-token?channel=${channelCode}`);
+        const tokenData = await tokenRes.json();
+        if (tokenData.ok && tokenData.streamUrl) {
+          finalSrc = tokenData.streamUrl;
+        }
+      } catch {
+        // لو فشل جلب الـ token، استخدم الرابط الأصلي
+      }
+    }
+
     const handlePlay = () => { setIsPlaying(true); setHasStarted(true); setIsBuffering(false); };
     const handlePlaying = () => { setIsPlaying(true); setIsBuffering(false); };
     const handlePause = () => setIsPlaying(false);
@@ -117,7 +139,7 @@ export function StreamPlayer({
         hlsRef.current = hls;
 
         // لو الرابط يمر عبر البروكسي ويفشل، جرّب الرابط الأصلي مباشرة
-        let currentSrc = src;
+        let currentSrc = finalSrc;
         let triedDirect = false;
 
         const loadStream = (url: string) => {
@@ -161,7 +183,7 @@ export function StreamPlayer({
           }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
+        video.src = finalSrc;
         onReady?.();
         if (autoplay) {
           video.muted = true;
@@ -175,7 +197,7 @@ export function StreamPlayer({
         onError?.();
       }
     } else if (kind === "mp4" || kind === "dash") {
-      video.src = src;
+      video.src = finalSrc;
       onReady?.();
       if (autoplay) {
         video.muted = true;
