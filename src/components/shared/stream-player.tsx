@@ -62,6 +62,7 @@ export function StreamPlayer({
   const [isBuffering, setIsBuffering] = React.useState(true);
   const [hasStarted, setHasStarted] = React.useState(false);
   const [streamError, setStreamError] = React.useState(false);
+  const [retryCount, setRetryCount] = React.useState(0);
   const [showControls, setShowControls] = React.useState(true);
 
   // رابط مُحلَّل: لو كان src عبارة عن صفحة تضمين (freeshot.live)،
@@ -71,6 +72,7 @@ export function StreamPlayer({
 
   // أضف حالة لتتبّع هل بدأنا الاستخراج
   const resolveStartedRef = React.useRef(false);
+  const retryRef = React.useRef(0);
   // وضع التدوير القسري (force-landscape): يُفعّل تلقائيًا عند الضغط على ملء الشاشة
   // إذا كانت الشاشة عمودية، ليُظهر الفيديو أفقيًا فورًا دون ضغط زر إضافي.
   // على الأجهزة التي لا تدعم screen.orientation.lock (iOS Safari)، هذا هو
@@ -116,6 +118,8 @@ export function StreamPlayer({
     setHasStarted(false);
     setIsBuffering(true);
     setStreamError(false);
+    retryRef.current = 0;
+    setRetryCount(0);
 
     if (!activeSrc || kind === "none") {
       setIsBuffering(false);
@@ -128,8 +132,8 @@ export function StreamPlayer({
       hlsRef.current = null;
     }
 
-    const handlePlay = () => { setIsPlaying(true); setHasStarted(true); setIsBuffering(false); };
-    const handlePlaying = () => { setIsPlaying(true); setIsBuffering(false); };
+    const handlePlay = () => { setIsPlaying(true); setHasStarted(true); setIsBuffering(false); retryRef.current = 0; setRetryCount(0); };
+    const handlePlaying = () => { setIsPlaying(true); setIsBuffering(false); retryRef.current = 0; setRetryCount(0); };
     const handlePause = () => setIsPlaying(false);
     const handleEnded = () => setIsPlaying(false);
     const handleWaiting = () => setIsBuffering(true);
@@ -137,7 +141,32 @@ export function StreamPlayer({
     const handleVolume = () => setIsMuted(video.muted);
     const handleEnterPip = () => setIsPip(true);
     const handleLeavePip = () => setIsPip(false);
-    const handleError = () => { setIsBuffering(false); setStreamError(true); onError?.(); };
+
+    // === نظام إعادة المحاولة التلقائي ===
+    // لو فشل البث، يحاول 3 مرات تلقائيًا قبل إظهار رسالة الخطأ
+    const MAX_RETRIES = 3;
+
+    const triggerRetry = () => {
+      if (retryRef.current < MAX_RETRIES) {
+        retryRef.current++;
+        setRetryCount(retryRef.current);
+        setIsBuffering(true);
+        setStreamError(false);
+        // أعد تحميل المشغل بعد 1.5 ثانية
+        setTimeout(() => {
+          const oldSrc = resolvedSrc;
+          setResolvedSrc(null);
+          setTimeout(() => setResolvedSrc(oldSrc), 100);
+        }, 1500);
+      } else {
+        // استنفد المحاولات ← أظهر شاشة الخطأ
+        setIsBuffering(false);
+        setStreamError(true);
+        onError?.();
+      }
+    };
+
+    const handleError = () => { triggerRetry(); };
 
     // كشف توقف البث: لو الفيديو متوقف عن التقدم لأكثر من 15 ثانية أثناء التشغيل
     let stallTimer: ReturnType<typeof setTimeout> | null = null;
@@ -145,7 +174,7 @@ export function StreamPlayer({
       if (stallTimer) clearTimeout(stallTimer);
       stallTimer = setTimeout(() => {
         if (video.readyState < 3 && !video.paused) {
-          setStreamError(true);
+          triggerRetry();
         }
       }, 15000);
     };
@@ -212,9 +241,7 @@ export function StreamPlayer({
               loadStream(currentSrc);
               return;
             }
-            setIsBuffering(false);
-            setStreamError(true);
-            onError?.();
+            triggerRetry();
           }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -594,15 +621,17 @@ export function StreamPlayer({
       )}
 
       {/* مؤشر التحميل — أنيق ومركز */}
-      {isBuffering && src && kind !== "none" && !isPip && (
+      {isBuffering && src && kind !== "none" && !isPip && !streamError && (
         <div
           style={{
             position: "absolute",
             inset: 0,
             zIndex: 3,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
+            gap: 8,
             pointerEvents: "none",
             background: "radial-gradient(circle, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 70%)",
           }}
@@ -627,6 +656,12 @@ export function StreamPlayer({
               strokeWidth={2.5}
             />
           </div>
+          {/* مؤشر المحاولات التلقائية */}
+          {retryCount > 0 && (
+            <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
+              جاري المحاولة... ({retryCount}/3)
+            </span>
+          )}
         </div>
       )}
 
@@ -697,7 +732,8 @@ export function StreamPlayer({
             onClick={() => {
               setStreamError(false);
               setIsBuffering(true);
-              // أعد إنشاء المشغل بإعادة تعيين resolvedSrc
+              retryRef.current = 0;
+              setRetryCount(0);
               const oldSrc = resolvedSrc;
               setResolvedSrc(null);
               setTimeout(() => setResolvedSrc(oldSrc), 100);
