@@ -60,6 +60,9 @@ export function PlayerView({ channelId }: { channelId: string }) {
 
   const fav = channel ? has("channel", channel.id) : false;
 
+  // === حالة إعادة التحميل اليدوي ===
+  const [reloadNonce, setReloadNonce] = React.useState(0);
+
   const suggestions = React.useMemo(() => {
     if (!channel) return [];
     const cat = channel.category?.slug;
@@ -87,9 +90,6 @@ export function PlayerView({ channelId }: { channelId: string }) {
 
   const available = !!channel.streamUrl && channel.streamType !== "none";
   const streamKind: StreamKind = (channel.streamType as StreamKind) ?? "none";
-
-  // === حالة إعادة التحميل اليدوي ===
-  const [reloadNonce, setReloadNonce] = React.useState(0);
 
   // مرّر روابط HLS الخارجية عبر /api/stream لتجاوز حظر CORS/Referer
   // لكن لو كان الرابط صفحة تضمين (freeshot.live)، مرّره كما هو — المشغل سيستخرج الرابط النظيف
