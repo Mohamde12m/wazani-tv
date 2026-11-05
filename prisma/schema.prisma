@@ -200,3 +200,13 @@ model SliderItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+/// الشريط الإخباري المتحرك في صفحة المشغل
+model NewsTicker {
+  id        String   @id @default(cuid())
+  text      String
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

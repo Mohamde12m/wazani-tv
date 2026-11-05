@@ -15,6 +15,7 @@ import { useFavorites } from "@/stores/favorites";
 import { useWatchHistory } from "@/stores/watch-history";
 import { ChannelLogo } from "@/components/shared/channel-logo";
 import { ChannelCard } from "@/components/shared/channel-card";
+import { NewsTicker } from "@/components/shared/news-ticker";
 import {
   SectionHeader,
   EmptyState,
@@ -125,6 +126,11 @@ export function PlayerView({ channelId }: { channelId: string }) {
             </span>
           </div>
         )}
+      </div>
+
+      {/* الشريط الإخباري المتحرك */}
+      <div className="px-3 pt-2">
+        <NewsTicker />
       </div>
 
       {/* Padded content below the player */}

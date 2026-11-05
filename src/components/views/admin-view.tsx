@@ -3518,6 +3518,182 @@ function SliderDialog({
 }
 
 /* ============================================================
+   📢 News Ticker section — إدارة الشريط الإخباري
+============================================================ */
+interface NewsTickerItem {
+  id: string;
+  text: string;
+  active: boolean;
+  order: number;
+}
+
+function NewsTickerSection() {
+  const { data, loading, error, reload } = useFetch<{ items: NewsTickerItem[] }>("/api/news-ticker?all=1");
+  const [newText, setNewText] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editText, setEditText] = React.useState("");
+  const logout = useAdmin((s) => s.logout);
+
+  const items = data?.items || [];
+
+  const handleAdd = async () => {
+    if (!newText.trim()) return;
+    setSaving(true);
+    try {
+      await apiFetch("/api/news-ticker", {
+        method: "POST",
+        body: JSON.stringify({ text: newText.trim(), active: true, order: 0 }),
+      });
+      toast.success("تمت إضافة النص");
+      setNewText("");
+      reload();
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 401) { toast.error("انتهت الجلسة"); logout(); }
+      else toast.error(err.message || "خطأ");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggle = async (item: NewsTickerItem) => {
+    try {
+      await apiFetch(`/api/news-ticker/${item.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ active: !item.active }),
+      });
+      reload();
+    } catch {
+      toast.error("خطأ");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await apiFetch(`/api/news-ticker/${id}`, { method: "DELETE" });
+      toast.success("تم الحذف");
+      reload();
+    } catch {
+      toast.error("خطأ");
+    }
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editText.trim()) return;
+    try {
+      await apiFetch(`/api/news-ticker/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ text: editText.trim() }),
+      });
+      toast.success("تم التحديث");
+      setEditingId(null);
+      reload();
+    } catch {
+      toast.error("خطأ");
+    }
+  };
+
+  if (loading) return <SectionLoading />;
+  if (error) return <ErrorBlock message="تعذّر تحميل الشريط الإخباري" />;
+
+  return (
+    <div className="space-y-4">
+      <SectionTitle
+        icon={Bell}
+        title="الشريط الإخباري"
+        subtitle={`${items.length} نص | يظهر في كل مشغلات القنوات`}
+        noMargin
+      />
+
+      {/* إضافة نص جديد */}
+      <Card className="rounded-2xl border border-border bg-card shadow-sm">
+        <CardContent className="p-4">
+          <Label className="mb-2 block text-sm font-bold">إضافة نص جديد</Label>
+          <div className="flex gap-2">
+            <Input
+              value={newText}
+              onChange={(e) => setNewText(e.target.value)}
+              placeholder="اكتب النص هنا..."
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            />
+            <Button
+              onClick={handleAdd}
+              disabled={saving || !newText.trim()}
+              className="bg-emerald text-white hover:bg-emerald-dark"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              إضافة
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* قائمة النصوص */}
+      {items.length > 0 ? (
+        <div className="space-y-2">
+          {items.map((item) => (
+            <Card key={item.id} className={`rounded-xl border bg-card p-3 ${item.active ? "border-border" : "border-border/50 opacity-60"}`}>
+              {editingId === item.id ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveEdit(item.id)}
+                  />
+                  <Button size="sm" onClick={() => handleSaveEdit(item.id)} className="bg-emerald text-white">
+                    حفظ
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
+                    إلغاء
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className="flex-1 text-sm text-foreground">{item.text}</p>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-emerald"
+                    onClick={() => { setEditingId(item.id); setEditText(item.text); }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => handleToggle(item)}
+                  >
+                    <Switch checked={item.active} />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="rounded-2xl border border-border bg-card">
+          <CardContent className="py-8 text-center">
+            <Bell className="mx-auto mb-2 h-10 w-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">لا توجد نصوص. أضف نصًا ليظهر في الشريط الإخباري.</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
    Section navigation
 ============================================================ */
 type SectionKey =
@@ -3530,6 +3706,7 @@ type SectionKey =
   | "categories"
   | "ads"
   | "slider"
+  | "news"
   | "notify"
   | "reseed";
 
@@ -3543,6 +3720,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
   { key: "categories", label: "التصنيفات", icon: Tags },
   { key: "ads", label: "الإعلانات", icon: Megaphone },
   { key: "slider", label: "السلايدر", icon: ImageIcon },
+  { key: "news", label: "الشريط الإخباري", icon: Bell },
   { key: "notify", label: "الإشعارات", icon: Bell },
   { key: "reseed", label: "إعادة البيانات", icon: RefreshCw },
 ];
@@ -3631,6 +3809,7 @@ function Dashboard() {
           {section === "notify" && <NotifySection />}
           {section === "ads" && <AdsSection />}
           {section === "slider" && <SliderSection />}
+          {section === "news" && <NewsTickerSection />}
           {section === "reseed" && <ReseedSection />}
         </main>
 
