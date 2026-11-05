@@ -128,26 +128,26 @@ export function PlayerView({ channelId }: { channelId: string }) {
       </div>
 
       {/* Padded content below the player */}
-      <div className="space-y-4 px-4 py-4">
-        {/* Channel info bar */}
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+      <div className="space-y-3 px-3 py-3">
+        {/* Channel info bar — مضغوط ويمتد بعرض كامل */}
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-2 shadow-sm">
           <ChannelLogo
             src={channel.logo}
             name={channel.nameAr ?? channel.name}
-            size={48}
+            size={40}
           />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate text-base font-extrabold text-foreground">
+            <div className="flex items-center gap-1.5">
+              <h2 className="truncate text-sm font-extrabold text-foreground">
                 {channel.nameAr ?? channel.name}
               </h2>
               {channel.verified && (
-                <span className="rounded-full bg-gold/15 px-1.5 py-0.5 text-[10px] font-bold text-gold">
+                <span className="shrink-0 rounded-full bg-gold/15 px-1.5 py-0.5 text-[9px] font-bold text-gold">
                   موثّقة
                 </span>
               )}
             </div>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="truncate text-[11px] text-muted-foreground">
               {channel.country?.name ?? "عربية"} · {channel.category?.name ?? "عامة"}
             </p>
           </div>
@@ -157,23 +157,23 @@ export function PlayerView({ channelId }: { channelId: string }) {
               toast.success(fav ? "أُزيلت من المفضلة" : "أُضيفت إلى المفضلة");
             }}
             className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all active:scale-95",
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-all active:scale-95",
               fav
                 ? "border-gold bg-gold text-white"
                 : "border-border bg-card text-muted-foreground hover:text-gold",
             )}
             aria-label={fav ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
           >
-            <Star className="h-5 w-5" fill={fav ? "currentColor" : "none"} />
+            <Star className="h-4 w-4" fill={fav ? "currentColor" : "none"} />
           </button>
           {/* زر إعادة تحميل البث */}
           <button
             onClick={() => setReloadNonce((n) => n + 1)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-emerald transition-all hover:bg-emerald/10 active:scale-95"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-emerald transition-all hover:bg-emerald/10 active:scale-95"
             aria-label="إعادة تحميل البث"
             title="إعادة تحميل البث"
           >
-            <RotateCcw className="h-5 w-5" />
+            <RotateCcw className="h-4 w-4" />
           </button>
         </div>
 
