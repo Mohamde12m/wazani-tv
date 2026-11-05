@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
  * GET /api/resolve-stream?url=https://freeshot.live/embed/beINSPORTSAR7.php
  *
  * يأخذ رابط صفحة تضمين (freeshot.live/embed/...) ويستخرج منه رابط m3u8 النظيف بدون إعلانات.
+ *
+ * + تخزين مؤقت (Cache) لمدة 5 دقائق:
+ *   أول مستخدم ينتظر 2-3 ثوانٍ (يستخرج الرابط)
+ *   بقية المستخدمين خلال 5 دقائق → 0.3 ثانية ⚡ (الرابط مخزّن)
  */
 
 const HEADERS = {
@@ -13,12 +17,45 @@ const HEADERS = {
   "Accept-Language": "en-US,en;q=0.9,ar;q=0.8",
 };
 
+// === Cache في الذاكرة ===
+interface CacheEntry {
+  streamUrl: string;
+  channel: string;
+  expiresAt: number;
+}
+
+const CACHE_TTL = 5 * 60 * 1000; // 5 دقائق
+const cache = new Map<string, CacheEntry>();
+
+// تنظيف دوري للـ cache المنتهي
+function cleanExpiredCache() {
+  const now = Date.now();
+  for (const [key, entry] of cache) {
+    if (entry.expiresAt <= now) {
+      cache.delete(key);
+    }
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const url = searchParams.get("url");
 
   if (!url) {
     return NextResponse.json({ error: "missing url" }, { status: 400 });
+  }
+
+  // === تحقق من Cache ===
+  cleanExpiredCache();
+  const cached = cache.get(url);
+  if (cached && cached.expiresAt > Date.now()) {
+    // الرابط مخزّن وصالح ← أرجعه فورًا ⚡
+    return NextResponse.json({
+      ok: true,
+      streamUrl: cached.streamUrl,
+      channel: cached.channel,
+      cached: true,
+    });
   }
 
   try {
@@ -58,18 +95,35 @@ export async function GET(req: NextRequest) {
     const playerHtml = await playerRes.text();
 
     // 4. استخرج رابط m3u8 مع token
+    let streamUrl: string | null = null;
+
     const streamMatch = playerHtml.match(/streamUrl:\s*"(https?:\\?\/\\?\/[^"]+\.m3u8[^"]*)"/);
-    if (!streamMatch) {
+    if (streamMatch) {
+      streamUrl = streamMatch[1].replace(/\\\//g, "/");
+    } else {
       const altMatch = playerHtml.match(/https?:\/\/[^"'\s]+\.m3u8\?token=[A-Za-z0-9_.-]+/);
-      if (!altMatch) {
-        return NextResponse.json({ error: "streamUrl not found" }, { status: 502 });
+      if (altMatch) {
+        streamUrl = altMatch[0].replace(/\\\//g, "/");
       }
-      const cleanUrl = altMatch[0].replace(/\\\//g, "/");
-      return NextResponse.json({ ok: true, streamUrl: cleanUrl, channel: channelCode });
     }
 
-    const streamUrl = streamMatch[1].replace(/\\\//g, "/");
-    return NextResponse.json({ ok: true, streamUrl, channel: channelCode });
+    if (!streamUrl) {
+      return NextResponse.json({ error: "streamUrl not found" }, { status: 502 });
+    }
+
+    // === خزّن في Cache لمدة 5 دقائق ===
+    cache.set(url, {
+      streamUrl,
+      channel: channelCode,
+      expiresAt: Date.now() + CACHE_TTL,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      streamUrl,
+      channel: channelCode,
+      cached: false,
+    });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "unknown error" },
