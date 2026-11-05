@@ -7,6 +7,7 @@ import {
   MonitorOff,
   Tv,
   Radio,
+  RotateCcw,
 } from "lucide-react";
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
@@ -87,6 +88,9 @@ export function PlayerView({ channelId }: { channelId: string }) {
   const available = !!channel.streamUrl && channel.streamType !== "none";
   const streamKind: StreamKind = (channel.streamType as StreamKind) ?? "none";
 
+  // === حالة إعادة التحميل اليدوي ===
+  const [reloadNonce, setReloadNonce] = React.useState(0);
+
   // مرّر روابط HLS الخارجية عبر /api/stream لتجاوز حظر CORS/Referer
   // لكن لو كان الرابط صفحة تضمين (freeshot.live)، مرّره كما هو — المشغل سيستخرج الرابط النظيف
   const isEmbed = channel.streamUrl?.includes("freeshot.live/embed") || channel.streamUrl?.includes("wideiptv.top/player");
@@ -100,12 +104,12 @@ export function PlayerView({ channelId }: { channelId: string }) {
       {/* Full-width video player (hls.js) */}
       <div className="relative">
         <StreamPlayer
-          key={`player-${channel.id}`}
+          key={`player-${channel.id}-${reloadNonce}`}
           src={available ? proxiedSrc : null}
           kind={available ? streamKind : "none"}
           poster={channel.logo}
           autoplay
-          reloadNonce={0}
+          reloadNonce={reloadNonce}
         />
         {/* عندما لا يوجد بث، أظهر الشعار كبيرًا في وسط المشغل */}
         {!available && (
@@ -161,6 +165,15 @@ export function PlayerView({ channelId }: { channelId: string }) {
             aria-label={fav ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
           >
             <Star className="h-5 w-5" fill={fav ? "currentColor" : "none"} />
+          </button>
+          {/* زر إعادة تحميل البث */}
+          <button
+            onClick={() => setReloadNonce((n) => n + 1)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-emerald transition-all hover:bg-emerald/10 active:scale-95"
+            aria-label="إعادة تحميل البث"
+            title="إعادة تحميل البث"
+          >
+            <RotateCcw className="h-5 w-5" />
           </button>
         </div>
 

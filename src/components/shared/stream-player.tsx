@@ -91,7 +91,9 @@ export function StreamPlayer({
     setIsBuffering(true);
     resolveStartedRef.current = true;
     let alive = true;
-    fetch(`/api/resolve-stream?url=${encodeURIComponent(src!)}`)
+    // أضف timestamp لتجاوز الكاش — كل فتح يجلب token جديد
+    const bustCache = `&_t=${Date.now()}`;
+    fetch(`/api/resolve-stream?url=${encodeURIComponent(src!)}${bustCache}`)
       .then((r) => r.json())
       .then((data) => {
         if (alive && data.ok && data.streamUrl) {

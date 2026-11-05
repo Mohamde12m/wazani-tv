@@ -46,9 +46,12 @@ export async function GET(req: NextRequest) {
   }
 
   // === تحقق من Cache ===
+  // لو فيه معامل _t (cache-busting)، تجاوز الكاش واحضر token جديد
+  const bypassCache = searchParams.has("_t");
+  
   cleanExpiredCache();
   const cached = cache.get(url);
-  if (cached && cached.expiresAt > Date.now()) {
+  if (cached && cached.expiresAt > Date.now() && !bypassCache) {
     // الرابط مخزّن وصالح ← أرجعه فورًا ⚡
     return NextResponse.json({
       ok: true,
