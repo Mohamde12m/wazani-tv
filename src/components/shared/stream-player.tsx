@@ -62,6 +62,14 @@ export function StreamPlayer({
   const [isBuffering, setIsBuffering] = React.useState(true);
   const [hasStarted, setHasStarted] = React.useState(false);
   const [showControls, setShowControls] = React.useState(true);
+
+  // رابط مُحلَّل: لو كان src عبارة عن صفحة تضمين (freeshot.live)،
+  // نستخرج الرابط النظيف عبر API قبل التشغيل
+  const [resolvedSrc, setResolvedSrc] = React.useState<string | null>(null);
+  const isEmbedUrl = src && (src.includes("freeshot.live/embed") || src.includes("wideiptv.top/player"));
+
+  // أضف حالة لتتبّع هل بدأنا الاستخراج
+  const resolveStartedRef = React.useRef(false);
   // وضع التدوير القسري (force-landscape): يُفعّل تلقائيًا عند الضغط على ملء الشاشة
   // إذا كانت الشاشة عمودية، ليُظهر الفيديو أفقيًا فورًا دون ضغط زر إضافي.
   // على الأجهزة التي لا تدعم screen.orientation.lock (iOS Safari)، هذا هو
@@ -69,16 +77,45 @@ export function StreamPlayer({
   // الوضع تلقائيًا عبر مستمع orientationchange.
   const [forceLandscape, setForceLandscape] = React.useState(false);
 
-  // تهيئة المشغل
+  // === استخراج رابط نظيف من صفحات التضمين (freeshot.live) ===
+  React.useEffect(() => {
+    resolveStartedRef.current = false;
+    if (!isEmbedUrl) {
+      setResolvedSrc(src);
+      return;
+    }
+    setResolvedSrc(null);
+    setIsBuffering(true);
+    resolveStartedRef.current = true;
+    let alive = true;
+    fetch(`/api/resolve-stream?url=${encodeURIComponent(src!)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (alive && data.ok && data.streamUrl) {
+          setResolvedSrc(data.streamUrl);
+        } else if (alive) {
+          setResolvedSrc(src); // fallback للرابط الأصلي
+        }
+      })
+      .catch(() => {
+        if (alive) setResolvedSrc(src); // fallback
+      });
+    return () => { alive = false; };
+  }, [src]);
+
+  // تهيئة المشغل — تنتظر resolvedSrc
   React.useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    if (!resolvedSrc) return; // انتظر حتى يُحلَّ الرابط
+
+    const activeSrc = resolvedSrc;
 
     setIsPlaying(false);
     setHasStarted(false);
     setIsBuffering(true);
 
-    if (!src || kind === "none") {
+    if (!activeSrc || kind === "none") {
       setIsBuffering(false);
       onReady?.();
       return;
@@ -117,7 +154,7 @@ export function StreamPlayer({
         hlsRef.current = hls;
 
         // لو الرابط يمر عبر البروكسي ويفشل، جرّب الرابط الأصلي مباشرة
-        let currentSrc = finalSrc;
+        let currentSrc = activeSrc;
         let triedDirect = false;
 
         const loadStream = (url: string) => {
@@ -161,7 +198,7 @@ export function StreamPlayer({
           }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = finalSrc;
+        video.src = activeSrc;
         onReady?.();
         if (autoplay) {
           video.muted = true;
@@ -175,7 +212,7 @@ export function StreamPlayer({
         onError?.();
       }
     } else if (kind === "mp4" || kind === "dash") {
-      video.src = finalSrc;
+      video.src = activeSrc;
       onReady?.();
       if (autoplay) {
         video.muted = true;
@@ -211,7 +248,7 @@ export function StreamPlayer({
         hlsRef.current = null;
       }
     };
-  }, [src, kind, autoplay, onError, onReady, reloadNonce]);
+  }, [resolvedSrc, kind, autoplay, onError, onReady, reloadNonce]);
 
   // تتبع حالة ملء الشاشة + تفعيل force-landscape تلقائيًا عند الدخول لملء الشاشة
   React.useEffect(() => {
