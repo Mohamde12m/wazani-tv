@@ -61,6 +61,7 @@ export function StreamPlayer({
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [isBuffering, setIsBuffering] = React.useState(true);
   const [hasStarted, setHasStarted] = React.useState(false);
+  const [streamError, setStreamError] = React.useState(false);
   const [showControls, setShowControls] = React.useState(true);
 
   // رابط مُحلَّل: لو كان src عبارة عن صفحة تضمين (freeshot.live)،
@@ -114,6 +115,7 @@ export function StreamPlayer({
     setIsPlaying(false);
     setHasStarted(false);
     setIsBuffering(true);
+    setStreamError(false);
 
     if (!activeSrc || kind === "none") {
       setIsBuffering(false);
@@ -135,7 +137,22 @@ export function StreamPlayer({
     const handleVolume = () => setIsMuted(video.muted);
     const handleEnterPip = () => setIsPip(true);
     const handleLeavePip = () => setIsPip(false);
-    const handleError = () => { setIsBuffering(false); onError?.(); };
+    const handleError = () => { setIsBuffering(false); setStreamError(true); onError?.(); };
+
+    // كشف توقف البث: لو الفيديو متوقف عن التقدم لأكثر من 15 ثانية أثناء التشغيل
+    let stallTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleStallCheck = () => {
+      if (stallTimer) clearTimeout(stallTimer);
+      stallTimer = setTimeout(() => {
+        if (video.readyState < 3 && !video.paused) {
+          setStreamError(true);
+        }
+      }, 15000);
+    };
+    const handleProgress = () => {
+      if (stallTimer) clearTimeout(stallTimer);
+      if (!video.paused) handleStallCheck();
+    };
 
     video.addEventListener("play", handlePlay);
     video.addEventListener("playing", handlePlaying);
@@ -143,6 +160,8 @@ export function StreamPlayer({
     video.addEventListener("ended", handleEnded);
     video.addEventListener("waiting", handleWaiting);
     video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("progress", handleProgress);
+    video.addEventListener("stalled", handleStallCheck);
     video.addEventListener("volumechange", handleVolume);
     video.addEventListener("enterpictureinpicture", handleEnterPip);
     video.addEventListener("leavepictureinpicture", handleLeavePip);
@@ -194,6 +213,7 @@ export function StreamPlayer({
               return;
             }
             setIsBuffering(false);
+            setStreamError(true);
             onError?.();
           }
         });
@@ -239,10 +259,13 @@ export function StreamPlayer({
       video.removeEventListener("ended", handleEnded);
       video.removeEventListener("waiting", handleWaiting);
       video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("progress", handleProgress);
+      video.removeEventListener("stalled", handleStallCheck);
       video.removeEventListener("volumechange", handleVolume);
       video.removeEventListener("enterpictureinpicture", handleEnterPip);
       video.removeEventListener("leavepictureinpicture", handleLeavePip);
       video.removeEventListener("error", handleError);
+      if (stallTimer) clearTimeout(stallTimer);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -629,8 +652,82 @@ export function StreamPlayer({
       {/* العلامة المائية المتحركة — اسم التطبيق يكتب حرفًا بحرف */}
       <AnimatedWatermark />
 
+      {/* === شاشة خطأ البث + زر إعادة التحميل === */}
+      {streamError && resolvedSrc && kind !== "none" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            background: "rgba(2, 20, 16, 0.92)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          {/* أيقونة الخطأ */}
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(135deg, rgba(245, 200, 66, 0.2), rgba(245, 200, 66, 0.08))",
+              border: "1px solid rgba(245, 200, 66, 0.3)",
+            }}
+          >
+            <RotateCcw className="h-8 w-8" style={{ color: "#F5C842" }} />
+          </div>
+
+          {/* النص */}
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#F0F0F0" }}>
+            توقف البث
+          </p>
+          <p style={{ fontSize: 11, color: "rgba(240, 240, 240, 0.5)", textAlign: "center", maxWidth: 200 }}>
+            قد يكون بسبب انقطاع مؤقت في الخادم. اضغط لإعادة المحاولة.
+          </p>
+
+          {/* زر إعادة التحميل */}
+          <button
+            onClick={() => {
+              setStreamError(false);
+              setIsBuffering(true);
+              // أعد إنشاء المشغل بإعادة تعيين resolvedSrc
+              const oldSrc = resolvedSrc;
+              setResolvedSrc(null);
+              setTimeout(() => setResolvedSrc(oldSrc), 100);
+            }}
+            style={{
+              marginTop: 4,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 24px",
+              borderRadius: 999,
+              border: "none",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#0A0A0A",
+              background: "linear-gradient(135deg, #F5C842, #C99A2E)",
+              boxShadow: "0 4px 14px -2px rgba(245, 200, 66, 0.5)",
+              transition: "transform 0.2s",
+            }}
+            className="hover:scale-105 active:scale-95"
+          >
+            <RotateCcw className="h-4 w-4" />
+            إعادة المحاولة
+          </button>
+        </div>
+      )}
+
       {/* زر التشغيل الكبير في المنتصف — احترافي مع توهج نابض */}
-      {showCenterPlay && (
+      {showCenterPlay && !streamError && (
         <button
           onClick={togglePlay}
           aria-label="تشغيل"
