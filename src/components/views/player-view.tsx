@@ -87,9 +87,11 @@ export function PlayerView({ channelId }: { channelId: string }) {
   const available = !!channel.streamUrl && channel.streamType !== "none";
   const streamKind: StreamKind = (channel.streamType as StreamKind) ?? "none";
 
-  // مرّر روابط HLS الخارجية عبر /api/stream لتجاوز حظر CORS/Referer من بعض شبكات CDN
+  // مرّر روابط HLS الخارجية عبر /api/stream لتجاوز حظر CORS/Referer
+  // لكن لو كان الرابط صفحة تضمين (freeshot.live)، مرّره كما هو — المشغل سيستخرج الرابط النظيف
+  const isEmbed = channel.streamUrl?.includes("freeshot.live/embed") || channel.streamUrl?.includes("wideiptv.top/player");
   const proxiedSrc =
-    available && streamKind === "hls" && channel.streamUrl?.startsWith("http")
+    available && streamKind === "hls" && channel.streamUrl?.startsWith("http") && !isEmbed
       ? `/api/stream?url=${encodeURIComponent(channel.streamUrl)}`
       : channel.streamUrl;
 
