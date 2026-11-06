@@ -18,8 +18,9 @@ interface NewsResponse {
  * NewsTicker — شريط إخباري متحرك
  *
  * - "آخر الأخبار" ثابتة في الجهة اليمنى بخلفية ذهبية
- * - النص المتحرك يبدأ من اليسار ويتحرك نحو اليمين ويختفي تحت "آخر الأخبار"
- * - يدعم عدة نصوص (تظهر بالتتابع مفصولة بـ •)
+ * - النص المتحرك يبدأ من اليمين (بعد "آخر الأخبار") ويتحرك نحو اليسار
+ * - يختفي من اليسار ثم يظهر مرة أخرى من اليمين
+ * - النص يظهر بالكامل بدون قطع
  */
 export function NewsTicker() {
   const { data } = useFetch<NewsResponse>("/api/news-ticker");
@@ -29,15 +30,13 @@ export function NewsTicker() {
 
   // ادمج كل النصوص في شريط واحد مفصول بـ •
   const fullText = items.map((i) => i.text).join("   •   ");
-  // كرر النص لضمان حركة سلسة بلا انقطاع
-  const repeatedText = `${fullText}   •   ${fullText}`;
 
   return (
     <div
-      className="relative flex items-center overflow-hidden rounded-xl border border-border"
+      className="relative flex items-stretch overflow-hidden rounded-xl border border-border"
       style={{
         background: "linear-gradient(90deg, var(--card) 0%, color-mix(in srgb, var(--card) 90%, #000) 100%)",
-        height: 36,
+        height: 38,
       }}
     >
       {/* الكلمة الثابتة — الجهة اليمنى */}
@@ -47,14 +46,13 @@ export function NewsTicker() {
           background: "linear-gradient(135deg, var(--accent) 0%, var(--color-gold-deep) 100%)",
           color: "#0A0A0A",
           zIndex: 2,
-          borderRadius: "0 0 0 0",
         }}
       >
         <span className="text-sm">📢</span>
         <span>آخر الأخبار</span>
       </div>
 
-      {/* النص المتحرك — يبدأ من اليسار ويتحرك يمينًا */}
+      {/* النص المتحرك — يبدأ من اليمين ويتحرك نحو اليسار */}
       <div
         className="relative flex-1 overflow-hidden"
         style={{ direction: "rtl" }}
@@ -62,21 +60,23 @@ export function NewsTicker() {
         <div
           className="whitespace-nowrap"
           style={{
-            animation: "wz-ticker-scroll 25s linear infinite",
+            display: "inline-block",
+            animation: "wz-ticker-scroll 20s linear infinite",
             fontSize: 13,
             fontWeight: 600,
             color: "var(--foreground)",
-            paddingLeft: "100%",
+            paddingRight: "100%",
+            paddingLeft: "20px",
           }}
         >
-          {repeatedText}
+          {fullText}
         </div>
       </div>
 
       <style>{`
         @keyframes wz-ticker-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(100%); }
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
         }
       `}</style>
     </div>
