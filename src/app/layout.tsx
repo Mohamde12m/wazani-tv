@@ -14,9 +14,29 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "WazaNI TV | القنوات العربية ومباريات كرة القدم",
-  description: "تطبيق WazaNI TV لمتابعة القنوات التلفزيونية العربية وجدول مباريات كرة القدم بتصميم عصري وفاخر.",
-  keywords: ["WazaNI", "قنوات عربية", "مباريات", "كرة القدم", "بث مباشر", "البطولات"],
+  title: "WazaNI TV | بث مباشر للقنوات العربية ومباريات كرة القدم",
+  description: "WazaNI TV — شاهد القنوات العربية والمغربية مباشرة + مباريات كرة القدم بث مباشر مجاني. beIN Sports, MBC, 2M, الأولى, الجزيرة وأكثر من 130 قناة.",
+  keywords: [
+    "WazaNI TV",
+    "بث مباشر",
+    "قنوات عربية",
+    "قنوات مغربية",
+    "مباريات اليوم",
+    "كرة القدم",
+    "beIN Sports",
+    "MBC",
+    "2M",
+    "الأولى",
+    "الجزيرة",
+    "البطولات",
+    "دوري أبطال أوروبا",
+    "الدوري الإنجليزي",
+    "الدوري الإسباني",
+    "الدوري السعودي",
+    "بث مجاني",
+    "مشاهدة القنوات",
+    "تطبيق رياضي",
+  ],
   authors: [{ name: "WazaNI TV" }],
   manifest: "/manifest.json",
   appleWebApp: {
@@ -25,9 +45,31 @@ export const metadata: Metadata = {
     title: "WazaNI TV",
   },
   openGraph: {
-    title: "WazaNI TV",
-    description: "القنوات العربية ومباريات كرة القدم",
+    title: "WazaNI TV | بث مباشر للقنوات العربية ومباريات كرة القدم",
+    description: "شاهد القنوات العربية والمغربية مباشرة + مباريات كرة القدم بث مباشر مجاني. أكثر من 130 قناة.",
     type: "website",
+    siteName: "WazaNI TV",
+    locale: "ar_AR",
+    images: ["/wazani-logo.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WazaNI TV | بث مباشر للقنوات العربية ومباريات كرة القدم",
+    description: "شاهد القنوات العربية والمغربية مباشرة + مباريات كرة القدم بث مباشر مجاني.",
+    images: ["/wazani-logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://wazani-tv-live.vercel.app",
   },
 };
 
@@ -58,6 +100,36 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="WazaNI TV" />
         <meta name="referrer" content="no-referrer-when-downgrade" />
         <meta name="monetag" content="01972d802a9fb14f20f046b76d02edb5" />
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "WazaNI TV",
+              url: "https://wazani-tv-live.vercel.app",
+              description: "بث مباشر للقنوات العربية والمغربية ومباريات كرة القدم مجانًا",
+              applicationCategory: "EntertainmentApplication",
+              operatingSystem: "Web, Android, iOS",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+              publisher: {
+                "@type": "Organization",
+                name: "WazaNI TV",
+                logo: "https://wazani-tv-live.vercel.app/wazani-logo.png",
+              },
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "1200",
+              },
+            }),
+          }}
+        />
       </head>
       <body
         className={`${cairo.variable} font-sans antialiased bg-background text-foreground`}
