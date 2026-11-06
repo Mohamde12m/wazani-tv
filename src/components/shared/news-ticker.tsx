@@ -33,9 +33,8 @@ export function NewsTicker() {
   // احسب السرعة تلقائيًا حسب طول النص
   React.useEffect(() => {
     if (!fullText) return;
-    // كل حرف يحتاج ~1.5 ثانية للمرور بشكل مقروء
-    // نص 50 حرف = 75 ثانية | نص 100 حرف = 150 ثانية
-    const calculated = Math.max(60, Math.min(300, fullText.length * 1.5));
+    // كل حرف يحتاج ~0.8 ثانية — سرعة قراءة مريحة
+    const calculated = Math.max(30, Math.min(120, fullText.length * 0.8));
     setDuration(calculated);
   }, [fullText]);
 
@@ -62,7 +61,7 @@ export function NewsTicker() {
         <span>آخر الأخبار</span>
       </div>
 
-      {/* النص المتحرك — يبدأ من اليسار ← يتحرك نحو اليمين ← يختفي ← يعود */}
+      {/* النص المتحرك — يبدأ من اليمين (مرئي فورًا) ← يتحرك نحو اليسار ← يعود */}
       <div
         className="relative flex-1 overflow-hidden"
         style={{ direction: "rtl" }}
@@ -76,7 +75,6 @@ export function NewsTicker() {
             fontSize: 13,
             fontWeight: 600,
             color: "var(--foreground)",
-            paddingLeft: "100%",
             paddingRight: "20px",
           }}
         >
@@ -86,8 +84,8 @@ export function NewsTicker() {
 
       <style>{`
         @keyframes wz-ticker-auto {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
         }
       `}</style>
     </div>
