@@ -15,36 +15,31 @@ interface NewsResponse {
 }
 
 /**
- * NewsTicker — شريط إخباري متحرك
+ * NewsTicker — شريط إخباري احترافي مثل القنوات الفضائية
  *
- * - "آخر الأخبار" ثابتة في الجهة اليمنى بخلفية ذهبية
- * - النص يظهر من اليسار ← يتحرك نحو اليمين ← يختفي ← يعود من اليسار
- * - السرعة تلقائية: تحسب حسب طول النص (نص طويل = أبطأ، نص قصير = أسرع)
- *   لتضمن أن النص يُقرأ بالكامل
+ * تصميم مثل الجزيرة / Sky News Arabia:
+ * - "📢 آخر الأخبار" ثابتة يمين بخلفية ذهبية
+ * - النص يمر بسلاسة من اليمين إلى اليسار (طبيعي للعربية)
+ * - حلقة سلسة بلا انقطاع (النص مكرر)
+ * - سرعة ثابتة هادئة ومناسبة للقراءة
  */
 export function NewsTicker() {
   const { data } = useFetch<NewsResponse>("/api/news-ticker");
   const items = (data?.items ?? []).filter((i) => i.active);
-  const textRef = React.useRef<HTMLDivElement>(null);
-  const [duration, setDuration] = React.useState(30); // افتراضي 30 ثانية
-
-  const fullText = items.map((i) => i.text).join("   •   ");
-
-  // احسب السرعة تلقائيًا حسب طول النص
-  React.useEffect(() => {
-    if (!fullText) return;
-    // كل حرف يحتاج ~0.8 ثانية — سرعة قراءة مريحة
-    const calculated = Math.max(30, Math.min(120, fullText.length * 0.8));
-    setDuration(calculated);
-  }, [fullText]);
 
   if (items.length === 0) return null;
+
+  // ادمج كل النصوص
+  const fullText = items.map((i) => i.text).join("    •    ");
+
+  // كرر النص مرتين للحلقة السلسة
+  const repeatedText = `${fullText}    •    ${fullText}    •    `;
 
   return (
     <div
       className="relative flex items-stretch overflow-hidden rounded-xl border border-border"
       style={{
-        background: "linear-gradient(90deg, var(--card) 0%, color-mix(in srgb, var(--card) 90%, #000) 100%)",
+        background: "linear-gradient(90deg, var(--card) 0%, color-mix(in srgb, var(--card) 92%, #000) 100%)",
         height: 38,
       }}
     >
@@ -61,34 +56,30 @@ export function NewsTicker() {
         <span>آخر الأخبار</span>
       </div>
 
-      {/* النص المتحرك — يبدأ من اليمين (مرئي فورًا) ← يتحرك نحو اليسار ← يعود */}
+      {/* النص المتحرك — يمر من اليمين إلى اليسار بسلاسة */}
       <div
         className="relative flex-1 overflow-hidden"
         style={{ direction: "rtl" }}
       >
         <div
-          ref={textRef}
           className="whitespace-nowrap"
           style={{
             display: "inline-block",
-            animation: `wz-ticker-auto ${duration}s linear infinite`,
+            animation: "wz-ticker-pro 35s linear infinite",
             fontSize: 13,
             fontWeight: 600,
             color: "var(--foreground)",
-            paddingRight: "20px",
+            willChange: "transform",
           }}
         >
-          {fullText}
+          {repeatedText}
         </div>
       </div>
 
       <style>{`
-        @keyframes wz-ticker-auto {
-          0% { transform: translateX(100%); opacity: 0; }
-          5% { opacity: 1; }
-          90% { transform: translateX(-100%); opacity: 1; }
-          95% { opacity: 0; }
-          100% { transform: translateX(100%); opacity: 0; }
+        @keyframes wz-ticker-pro {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(50%); }
         }
       `}</style>
     </div>
