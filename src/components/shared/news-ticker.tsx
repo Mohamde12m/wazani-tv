@@ -18,18 +18,28 @@ interface NewsResponse {
  * NewsTicker — شريط إخباري متحرك
  *
  * - "آخر الأخبار" ثابتة في الجهة اليمنى بخلفية ذهبية
- * - النص المتحرك يبدأ من اليمين (بعد "آخر الأخبار") ويتحرك نحو اليسار
- * - يختفي من اليسار ثم يظهر مرة أخرى من اليمين
- * - النص يظهر بالكامل بدون قطع
+ * - النص يظهر من اليسار ← يتحرك نحو اليمين ← يختفي ← يعود من اليسار
+ * - السرعة تلقائية: تحسب حسب طول النص (نص طويل = أبطأ، نص قصير = أسرع)
+ *   لتضمن أن النص يُقرأ بالكامل
  */
 export function NewsTicker() {
   const { data } = useFetch<NewsResponse>("/api/news-ticker");
   const items = (data?.items ?? []).filter((i) => i.active);
+  const textRef = React.useRef<HTMLDivElement>(null);
+  const [duration, setDuration] = React.useState(30); // افتراضي 30 ثانية
+
+  const fullText = items.map((i) => i.text).join("   •   ");
+
+  // احسب السرعة تلقائيًا حسب طول النص
+  React.useEffect(() => {
+    if (!fullText) return;
+    // كل حرف يحتاج ~0.4 ثانية للمرور بشكل مقروء
+    // نص 50 حرف = 20 ثانية | نص 100 حرف = 40 ثانية
+    const calculated = Math.max(15, Math.min(90, fullText.length * 0.4));
+    setDuration(calculated);
+  }, [fullText]);
 
   if (items.length === 0) return null;
-
-  // ادمج كل النصوص في شريط واحد مفصول بـ •
-  const fullText = items.map((i) => i.text).join("   •   ");
 
   return (
     <div
@@ -52,21 +62,22 @@ export function NewsTicker() {
         <span>آخر الأخبار</span>
       </div>
 
-      {/* النص المتحرك — يبدأ من اليمين ويتحرك نحو اليسار */}
+      {/* النص المتحرك — يبدأ من اليسار ← يتحرك نحو اليمين ← يختفي ← يعود */}
       <div
         className="relative flex-1 overflow-hidden"
         style={{ direction: "rtl" }}
       >
         <div
+          ref={textRef}
           className="whitespace-nowrap"
           style={{
             display: "inline-block",
-            animation: "wz-ticker-scroll 40s linear infinite",
+            animation: `wz-ticker-auto ${duration}s linear infinite`,
             fontSize: 13,
             fontWeight: 600,
             color: "var(--foreground)",
-            paddingRight: "100%",
-            paddingLeft: "20px",
+            paddingLeft: "100%",
+            paddingRight: "20px",
           }}
         >
           {fullText}
@@ -74,9 +85,9 @@ export function NewsTicker() {
       </div>
 
       <style>{`
-        @keyframes wz-ticker-scroll {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
+        @keyframes wz-ticker-auto {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </div>
