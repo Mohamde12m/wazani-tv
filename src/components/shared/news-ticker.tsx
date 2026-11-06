@@ -84,8 +84,11 @@ export function NewsTicker() {
 
       <style>{`
         @keyframes wz-ticker-auto {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-100%); }
+          0% { transform: translateX(100%); opacity: 0; }
+          5% { opacity: 1; }
+          90% { transform: translateX(-100%); opacity: 1; }
+          95% { opacity: 0; }
+          100% { transform: translateX(100%); opacity: 0; }
         }
       `}</style>
     </div>
