@@ -61,7 +61,7 @@ export function NewsTicker() {
           className="whitespace-nowrap"
           style={{
             display: "inline-block",
-            animation: "wz-ticker-scroll 20s linear infinite",
+            animation: "wz-ticker-scroll 40s linear infinite",
             fontSize: 13,
             fontWeight: 600,
             color: "var(--foreground)",
