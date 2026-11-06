@@ -100,6 +100,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="WazaNI TV" />
         <meta name="referrer" content="no-referrer-when-downgrade" />
         <meta name="monetag" content="01972d802a9fb14f20f046b76d02edb5" />
+        <meta name="google-site-verification" content="kGN5FFW_n_f5FC_6ArfiZWysPeFyAU0sISmaZV4TRcQ" />
         {/* Structured Data for SEO */}
         <script
           type="application/ld+json"
