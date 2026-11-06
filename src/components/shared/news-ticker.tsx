@@ -33,9 +33,9 @@ export function NewsTicker() {
   // احسب السرعة تلقائيًا حسب طول النص
   React.useEffect(() => {
     if (!fullText) return;
-    // كل حرف يحتاج ~0.4 ثانية للمرور بشكل مقروء
-    // نص 50 حرف = 20 ثانية | نص 100 حرف = 40 ثانية
-    const calculated = Math.max(15, Math.min(90, fullText.length * 0.4));
+    // كل حرف يحتاج ~1.5 ثانية للمرور بشكل مقروء
+    // نص 50 حرف = 75 ثانية | نص 100 حرف = 150 ثانية
+    const calculated = Math.max(60, Math.min(300, fullText.length * 1.5));
     setDuration(calculated);
   }, [fullText]);
 
