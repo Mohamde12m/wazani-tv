@@ -6,15 +6,17 @@ import { NextRequest, NextResponse } from "next/server";
  *  ✅ Hotlink protection (Referer-based blocking)
  *  ✅ Token-protected HLS (الـ token يُمرّر عبر الـ proxy)
  *  ✅ User-Agent based blocking
+ *  ✅ wideiptv.top: تجديد الـ token تلقائيًا عند انتهائه (5 دقائق)
  *
  * كيف يعمل:
  *  1. يجلب ملف m3u8 من الخادم برؤوس متصفح حقيقية
- *  2. لو نجح، يُعيد كتابة روابط الـ segments النسبية لتصبح مطلقة
- *  3. يُعيد كتابة روابط الـ segments لتمر عبر /api/stream?url=...
- *  4. يُعيد الملف مع content-type الصحيح
+ *  2. يكتشف نوع المصدر (wideiptv / hdm1 / عام) ويختار Referer الصحيح
+ *  3. لو حصل 403 من wideiptv (token منتهي)، يجدد الـ token ويعيد المحاولة
+ *  4. يُعيد كتابة روابط الـ segments النسبية لتصبح مطلقة وتمر عبر الـ proxy
+ *  5. يُعيد الملف مع content-type الصحيح
  *
  * Usage:
- *  /api/stream?url=https://example.com/stream.m3u8
+ *  /api/stream?url=https://cdn.wideiptv.top/beINARNEWS/index.m3u8?token=...
  *  /api/stream?url=https://example.com/segment.ts  (للـ segments)
  */
 
@@ -24,6 +26,97 @@ const BROWSER_HEADERS = {
   Accept: "*/*",
   "Accept-Language": "en-US,en;q=0.9,ar;q=0.8",
 };
+
+/** يحدد Referer الصحيح حسب نطاق الـ stream */
+function pickReferer(url: URL): string {
+  const host = url.hostname;
+
+  // wideiptv CDN يتطلب Referer من صفحة المشغل (ليس من الـ CDN نفسه)
+  if (host.includes("wideiptv.top") || host.includes("cdn.wideiptv")) {
+    return "https://wideiptv.top/";
+  }
+  // hdm1.net يستخدم Referer من same-origin غالبًا
+  if (host.includes("hdm1.net")) {
+    return `https://${url.host}/`;
+  }
+  // افتراضي: same-origin
+  return `${url.protocol}//${url.host}/`;
+}
+
+/** يكتشف إن كان الرابط لـ wideiptv CDN (يحتاج تجديد token) */
+function isWideiptvCdn(url: URL): boolean {
+  return (
+    url.hostname.includes("cdn.wideiptv.top") ||
+    url.hostname.includes("wideiptv.top")
+  );
+}
+
+/** يستخرج اسم القناة من رابط wideiptv CDN */
+function extractWideiptvChannel(url: URL): string | null {
+  // /beINARNEWS/index.m3u8 → beINARNEWS
+  const m = url.pathname.match(/^\/([A-Za-z0-9]+)\//);
+  return m ? m[1] : null;
+}
+
+/** يستخرج الـ token الحالي من الرابط */
+function extractToken(url: URL): string | null {
+  return url.searchParams.get("token");
+}
+
+// === Cache لتجديد الـ tokens (لتجنب طلب refresh متكرر) ===
+interface TokenCacheEntry {
+  token: string;
+  expiresAt: number;
+}
+const tokenCache = new Map<string, TokenCacheEntry>();
+const TOKEN_CACHE_TTL = 4 * 60 * 1000; // 4 دقائق (أقل من 5 دقائق صلاحية الـ token)
+
+/** يجدد token من wideiptv عبر refresh_token.php */
+async function refreshWideiptvToken(channel: string, currentToken: string): Promise<string | null> {
+  // تحقق من cache أولًا
+  const cached = tokenCache.get(channel);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.token;
+  }
+
+  try {
+    const res = await fetch(`https://wideiptv.top/api/refresh_token.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...BROWSER_HEADERS,
+        Referer: "https://wideiptv.top/",
+      },
+      body: JSON.stringify({
+        channel,
+        current_token: currentToken,
+      }),
+      // @ts-expect-error — next cache options
+      next: { revalidate: 0 },
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (data.success && data.token) {
+      tokenCache.set(channel, {
+        token: data.token,
+        expiresAt: Date.now() + TOKEN_CACHE_TTL,
+      });
+      return data.token as string;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** يبني رابط m3u8 جديد بـ token محدّث */
+function rebuildUrlWithToken(url: URL, newToken: string): URL {
+  const newUrl = new URL(url.toString());
+  newUrl.searchParams.set("token", newToken);
+  return newUrl;
+}
 
 /** يتحقق إن كان المحتوى m3u8 أو segment */
 function isHlsContent(contentType: string, url: string): boolean {
@@ -114,19 +207,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "protocol not allowed" }, { status: 400 });
   }
 
-  // Referer من نفس نطاق الـ stream
-  const sameOriginReferer = `${parsed.protocol}//${parsed.host}/`;
+  const referer = pickReferer(parsed);
+  const isWideiptv = isWideiptvCdn(parsed);
 
-  // قائمة المحاولات برؤوس مختلفة
-  const attempts: Record<string, string>[] = [
-    { ...BROWSER_HEADERS, Referer: sameOriginReferer },
-    { ...BROWSER_HEADERS, Referer: "" },
-    { "User-Agent": BROWSER_HEADERS["User-Agent"], Accept: "*/*" },
-  ];
+  // المحاولة الأولى: بالـ token الحالي + Referer الصحيح
+  let currentUrl = parsed;
+  let tokenRefreshed = false;
 
-  for (const headers of attempts) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const headers = { ...BROWSER_HEADERS, Referer: referer };
+
     try {
-      const res = await fetch(parsed.toString(), {
+      const res = await fetch(currentUrl.toString(), {
         headers,
         credentials: "omit",
         redirect: "follow",
@@ -134,73 +226,38 @@ export async function GET(req: NextRequest) {
         next: { revalidate: 0 },
       });
 
-      if (!res.ok) continue;
+      // لو 403 و wideiptv ولم نجدّد الـ token بعد ← جدّده وأعد المحاولة
+      if (res.status === 403 && isWideiptv && !tokenRefreshed) {
+        const channel = extractWideiptvChannel(currentUrl);
+        const currentToken = extractToken(currentUrl);
+        if (channel && currentToken) {
+          const newToken = await refreshWideiptvToken(channel, currentToken);
+          if (newToken && newToken !== currentToken) {
+            currentUrl = rebuildUrlWithToken(currentUrl, newToken);
+            tokenRefreshed = true;
+            continue; // أعد المحاولة بالـ token الجديد
+          }
+        }
+      }
 
-      const contentType = res.headers.get("content-type") || "";
-      const text = await res.text();
-
-      // 🚫 اكتشاف HTML (redirect فاشل أو hotlink protection)
-      // لو النص يحتوي على <html أو <DOCTYPE، فهو ليس m3u8
-      const trimmed = text.trimStart();
-      const isHtml =
-        contentType.includes("text/html") ||
-        trimmed.toLowerCase().startsWith("<!doctype") ||
-        trimmed.toLowerCase().startsWith("<html") ||
-        (trimmed.includes("<title>") && trimmed.includes("</title>"));
-
-      if (isHtml) {
-        // جرّب المحاولة التالية
+      if (!res.ok) {
+        // لو فشل، جرّب بدون Referer
+        if (attempt === 0) {
+          const res2 = await fetch(currentUrl.toString(), {
+            headers: { ...BROWSER_HEADERS, Referer: "" },
+            credentials: "omit",
+            redirect: "follow",
+            // @ts-expect-error
+            next: { revalidate: 0 },
+          });
+          if (res2.ok) {
+            return await respondWith(res2, currentUrl);
+          }
+        }
         continue;
       }
 
-      // لو m3u8 — أعد كتابته
-      if (
-        contentType.includes("mpegurl") ||
-        contentType.includes("m3u8") ||
-        parsed.pathname.endsWith(".m3u8") ||
-        trimmed.startsWith("#EXTM3U")
-      ) {
-        const rewritten = rewriteM3u8(text, parsed.toString());
-        return new NextResponse(rewritten, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/vnd.apple.mpegurl",
-            "Cache-Control": "no-store",
-            "Access-Control-Allow-Origin": "*",
-            "X-Stream-Source": "proxy-m3u8",
-          },
-        });
-      }
-
-      // لو segment (ts/m4s/mp4) — أعد المحتوى كـ ArrayBuffer
-      if (isHlsContent(contentType, parsed.toString())) {
-        const segRes = await fetch(parsed.toString(), {
-          headers,
-          credentials: "omit",
-        });
-        const body = await segRes.arrayBuffer();
-        return new NextResponse(body, {
-          status: 200,
-          headers: {
-            "Content-Type": contentType || "video/mp2t",
-            "Cache-Control": "public, max-age=86400, immutable",
-            "Access-Control-Allow-Origin": "*",
-            "X-Stream-Source": "proxy-segment",
-          },
-        });
-      }
-
-      // لو HTML (redirect فاشل) — جرّب المحاولة التالية
-      if (contentType.includes("text/html")) continue;
-
-      // نوع غير معروف — أعد المحتوى
-      return new NextResponse(text, {
-        status: 200,
-        headers: {
-          "Content-Type": contentType || "application/octet-stream",
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
+      return await respondWith(res, currentUrl);
     } catch {
       continue;
     }
@@ -212,6 +269,76 @@ export async function GET(req: NextRequest) {
       error: "Failed to fetch stream",
       hint: "The stream may be IP-locked, geo-blocked, or require specific credentials.",
     },
-    { status: 502 },
+    { status: 502 }
   );
+}
+
+/** يبني الاستجابة النهائية حسب نوع المحتوى (m3u8 / segment / غيره) */
+async function respondWith(res: Response, sourceUrl: URL): Promise<NextResponse> {
+  const contentType = res.headers.get("content-type") || "";
+  const text = await res.text();
+  const trimmed = text.trimStart();
+
+  // 🚫 اكتشاف HTML (redirect فاشل أو hotlink protection)
+  const isHtml =
+    contentType.includes("text/html") ||
+    trimmed.toLowerCase().startsWith("<!doctype") ||
+    trimmed.toLowerCase().startsWith("<html") ||
+    (trimmed.includes("<title>") && trimmed.includes("</title>"));
+
+  if (isHtml) {
+    // أرمِ خطأ ليُجرّب المتصل حلًّا آخر
+    return NextResponse.json(
+      { error: "HTML returned instead of stream (hotlink protection)" },
+      { status: 502 }
+    );
+  }
+
+  // لو m3u8 — أعد كتابته
+  if (
+    contentType.includes("mpegurl") ||
+    contentType.includes("m3u8") ||
+    contentType.includes("vnd.apple.mpegurl") ||
+    sourceUrl.pathname.endsWith(".m3u8") ||
+    trimmed.startsWith("#EXTM3U")
+  ) {
+    const rewritten = rewriteM3u8(text, sourceUrl.toString());
+    return new NextResponse(rewritten, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/vnd.apple.mpegurl",
+        "Cache-Control": "no-store",
+        "Access-Control-Allow-Origin": "*",
+        "X-Stream-Source": "proxy-m3u8",
+      },
+    });
+  }
+
+  // لو segment (ts/m4s/mp4)
+  if (isHlsContent(contentType, sourceUrl.toString())) {
+    // النص أصلاً محمّل كـ text — أعد الجلب كـ ArrayBuffer للـ segments الثنائية
+    const segRes = await fetch(sourceUrl.toString(), {
+      headers: { ...BROWSER_HEADERS, Referer: pickReferer(sourceUrl) },
+      credentials: "omit",
+    });
+    const body = await segRes.arrayBuffer();
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType || "video/mp2t",
+        "Cache-Control": "public, max-age=86400, immutable",
+        "Access-Control-Allow-Origin": "*",
+        "X-Stream-Source": "proxy-segment",
+      },
+    });
+  }
+
+  // نوع غير معروف — أعد المحتوى
+  return new NextResponse(text, {
+    status: 200,
+    headers: {
+      "Content-Type": contentType || "application/octet-stream",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
 }

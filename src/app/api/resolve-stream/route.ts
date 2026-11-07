@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * GET /api/resolve-stream?url=https://freeshot.live/embed/beINSPORTSAR7.php
  *
- * يأخذ رابط صفحة تضمين (freeshot.live/embed/...) ويستخرج منه رابط m3u8 النظيف بدون إعلانات.
+ * يأخذ رابط صفحة تضمين (freeshot.live/embed/...) ويستخرج منه رابط m3u8 النظيف.
  *
- * + تخزين مؤقت (Cache) لمدة 5 دقائق:
- *   أول مستخدم ينتظر 2-3 ثوانٍ (يستخرج الرابط)
- *   بقية المستخدمين خلال 5 دقائق → 0.3 ثانية ⚡ (الرابط مخزّن)
+ * النتيجة تُرجع رابطين:
+ *  - streamUrl: الرابط المباشر للـ CDN (للفالباك)
+ *  - proxyUrl:  رابط عبر /api/stream (موصى به — يحل CORS + Referer + تجديد الـ token)
+ *
+ * + تخزين مؤقت (Cache) لمدة 4 دقائق (أقل من صلاحية الـ token البالغة 5 دقائق)
+ *   لتجنب تقديم token قارب على الانتهاء.
  */
 
 const HEADERS = {
@@ -20,11 +23,12 @@ const HEADERS = {
 // === Cache في الذاكرة ===
 interface CacheEntry {
   streamUrl: string;
+  proxyUrl: string;
   channel: string;
   expiresAt: number;
 }
 
-const CACHE_TTL = 5 * 60 * 1000; // 5 دقائق
+const CACHE_TTL = 4 * 60 * 1000; // 4 دقائق (الـ token صالح 5 دقائق)
 const cache = new Map<string, CacheEntry>();
 
 // تنظيف دوري للـ cache المنتهي
@@ -48,7 +52,7 @@ export async function GET(req: NextRequest) {
   // === تحقق من Cache ===
   // لو فيه معامل _t (cache-busting)، تجاوز الكاش واحضر token جديد
   const bypassCache = searchParams.has("_t");
-  
+
   cleanExpiredCache();
   const cached = cache.get(url);
   if (cached && cached.expiresAt > Date.now() && !bypassCache) {
@@ -56,6 +60,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       streamUrl: cached.streamUrl,
+      proxyUrl: cached.proxyUrl,
       channel: cached.channel,
       cached: true,
     });
@@ -78,59 +83,89 @@ export async function GET(req: NextRequest) {
     // 2. استخرج رابط wideiptv.top/player/XXX من الـ iframe
     const iframeMatch = freeshotHtml.match(/wideiptv\.top\/player\/([A-Za-z0-9]+)/i);
     if (!iframeMatch) {
-      return NextResponse.json({ error: "wideiptv iframe not found" }, { status: 502 });
-    }
-
-    const channelCode = iframeMatch[1];
-    const playerUrl = `https://wideiptv.top/player/${channelCode}`;
-
-    // 3. اجلب صفحة المشغل
-    const playerRes = await fetch(playerUrl, {
-      headers: { ...HEADERS, Referer: "https://freeshot.live/" },
-      // @ts-expect-error - next cache
-      next: { revalidate: 0 },
-    });
-
-    if (!playerRes.ok) {
-      return NextResponse.json({ error: `player fetch failed: ${playerRes.status}` }, { status: 502 });
-    }
-
-    const playerHtml = await playerRes.text();
-
-    // 4. استخرج رابط m3u8 مع token
-    let streamUrl: string | null = null;
-
-    const streamMatch = playerHtml.match(/streamUrl:\s*"(https?:\\?\/\\?\/[^"]+\.m3u8[^"]*)"/);
-    if (streamMatch) {
-      streamUrl = streamMatch[1].replace(/\\\//g, "/");
-    } else {
-      const altMatch = playerHtml.match(/https?:\/\/[^"'\s]+\.m3u8\?token=[A-Za-z0-9_.-]+/);
-      if (altMatch) {
-        streamUrl = altMatch[0].replace(/\\\//g, "/");
+      // قد يكون الرابط مباشرًا لـ wideiptv player
+      const directPlayerMatch = url.match(/wideiptv\.top\/player\/([A-Za-z0-9]+)/i);
+      if (!directPlayerMatch) {
+        return NextResponse.json({ error: "wideiptv iframe not found" }, { status: 502 });
       }
+      return await resolveFromPlayer(directPlayerMatch[1], url, bypassCache);
     }
 
-    if (!streamUrl) {
-      return NextResponse.json({ error: "streamUrl not found" }, { status: 502 });
-    }
-
-    // === خزّن في Cache لمدة 5 دقائق ===
-    cache.set(url, {
-      streamUrl,
-      channel: channelCode,
-      expiresAt: Date.now() + CACHE_TTL,
-    });
-
-    return NextResponse.json({
-      ok: true,
-      streamUrl,
-      channel: channelCode,
-      cached: false,
-    });
+    return await resolveFromPlayer(iframeMatch[1], url, bypassCache);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "unknown error" },
       { status: 500 }
     );
   }
+}
+
+/** يجلب صفحة المشغل من wideiptv ويستخرج رابط m3u8 + token */
+async function resolveFromPlayer(
+  channelCode: string,
+  originalUrl: string,
+  bypassCache: boolean
+): Promise<NextResponse> {
+  // تحقق من cache أيضًا هنا (بعد استخراج الكود)
+  const cached = cache.get(originalUrl);
+  if (cached && cached.expiresAt > Date.now() && !bypassCache) {
+    return NextResponse.json({
+      ok: true,
+      streamUrl: cached.streamUrl,
+      proxyUrl: cached.proxyUrl,
+      channel: cached.channel,
+      cached: true,
+    });
+  }
+
+  const playerUrl = `https://wideiptv.top/player/${channelCode}`;
+
+  // 3. اجلب صفحة المشغل
+  const playerRes = await fetch(playerUrl, {
+    headers: { ...HEADERS, Referer: "https://freeshot.live/" },
+    // @ts-expect-error - next cache
+    next: { revalidate: 0 },
+  });
+
+  if (!playerRes.ok) {
+    return NextResponse.json({ error: `player fetch failed: ${playerRes.status}` }, { status: 502 });
+  }
+
+  const playerHtml = await playerRes.text();
+
+  // 4. استخرج رابط m3u8 مع token
+  let streamUrl: string | null = null;
+
+  const streamMatch = playerHtml.match(/streamUrl:\s*"(https?:\\?\/\\?\/[^"]+\.m3u8[^"]*)"/);
+  if (streamMatch) {
+    streamUrl = streamMatch[1].replace(/\\\//g, "/");
+  } else {
+    const altMatch = playerHtml.match(/https?:\/\/[^"'\s]+\.m3u8\?token=[A-Za-z0-9_.-]+/);
+    if (altMatch) {
+      streamUrl = altMatch[0].replace(/\\\//g, "/");
+    }
+  }
+
+  if (!streamUrl) {
+    return NextResponse.json({ error: "streamUrl not found" }, { status: 502 });
+  }
+
+  // 5. ابنِ proxyUrl — يمر عبر /api/stream الذي يتعامل مع Referer + تجديد الـ token
+  const proxyUrl = `/api/stream?url=${encodeURIComponent(streamUrl)}`;
+
+  // === خزّن في Cache لمدة 4 دقائق ===
+  cache.set(originalUrl, {
+    streamUrl,
+    proxyUrl,
+    channel: channelCode,
+    expiresAt: Date.now() + CACHE_TTL,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    streamUrl,
+    proxyUrl,
+    channel: channelCode,
+    cached: false,
+  });
 }

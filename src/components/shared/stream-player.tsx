@@ -96,8 +96,10 @@ export function StreamPlayer({
     fetch(`/api/resolve-stream?url=${encodeURIComponent(src!)}${bustCache}`)
       .then((r) => r.json())
       .then((data) => {
-        if (alive && data.ok && data.streamUrl) {
-          setResolvedSrc(data.streamUrl);
+        if (alive && data.ok && (data.proxyUrl || data.streamUrl)) {
+          // استخدم proxyUrl أولًا (يتعامل مع Referer + تجديد الـ token تلقائيًا)
+          // وإلا استخدم streamUrl المباشر مع الفالباك للبروكسي عند الخطأ
+          setResolvedSrc(data.proxyUrl || data.streamUrl);
         } else if (alive) {
           setResolvedSrc(src); // fallback للرابط الأصلي
         }
