@@ -16,8 +16,8 @@ import { cache } from "@/lib/cache";
  * دون أي تدخل يدوي من المسؤول.
  */
 
-/** مدة المباراة بالمللي ثانية (100 دقيقة). */
-export const MATCH_DURATION_MS = 100 * 60 * 1000;
+/** مدة المباراة بالمللي ثانية (130 دقيقة = 90 دقيقة + استراحة + وقت ضائع + هامش أمان). */
+export const MATCH_DURATION_MS = 130 * 60 * 1000;
 
 /** الحالات المسموح بها. */
 export type MatchStatus = "scheduled" | "live" | "finished" | "postponed";
