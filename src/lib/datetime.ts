@@ -5,61 +5,66 @@ import * as React from "react";
 /**
  * Client-side Arabic date/time helpers.
  *
- * 🔒 سياسة التوقيت (literal / no-conversion):
- *   - الأوقات تُخزَّن كما أدخلها المشرف حرفيًا (بدون تحويل UTC أو إزاحة منطقة زمنية).
- *   - العرض يستخدم دوال getUTC* دائمًا → ما يراه المستخدم = ما أدخله المشرف بالضبط.
- *   - لا نستخدم Intl مع timeZone محددة (لا Africa/Casablanca ولا منطقة المتصفح).
- *   - للمقارنات (isToday/isTomorrow/isSameDay) نستخدم تاريخ UTC للجانبين.
+ * 🕐 سياسة التوقيت:
+ *   - المشرف يُدخل الأوقات بتوقيت المغرب (Morocco Time) — يتم تحويلها إلى UTC عند الحفظ.
+ *   - العرض يستخدم توقيت جهاز المستخدم تلقائيًا (بدون تحديد timeZone في Intl،
+ *     وبدون دوال getUTC* — بل دوال محلية get* التي تعكس توقيت الجهاز).
+ *   - مثال: مباراة 21:30 بتوقيت المغرب (UTC+1) تُخزَّن 20:30 UTC:
+ *       • مستخدم في المغرب (UTC+1) يرى: 21:30 ✓
+ *       • مستخدم في مصر (UTC+2) يرى: 22:30 ✓
+ *       • مستخدم في السعودية (UTC+3) يرى: 23:30 ✓
  */
 
-/** يُنسق الوقت كـ HH:MM (24 ساعة) من قيم UTC الحرفية للوقت المخزَّن. */
+/** يُنسق الوقت كـ HH:MM (24 ساعة) بتوقيت جهاز المستخدم. */
 export function formatTime(iso: string): string {
   try {
-    const d = new Date(iso);
-    const h = d.getUTCHours().toString().padStart(2, "0");
-    const m = d.getUTCMinutes().toString().padStart(2, "0");
-    return `${h}:${m}`;
-  } catch {
-    return "";
-  }
-}
-
-/** يُنسق التاريخ بالعربية (يوم الأسبوع + اليوم + الشهر) من قيم UTC الحرفية. */
-export function formatDate(iso: string): string {
-  try {
-    return new Intl.DateTimeFormat("ar", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      timeZone: "UTC",
+    return new Intl.DateTimeFormat("ar-MA", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      // لا نحدد timeZone ← يستخدم توقيت جهاز المستخدم تلقائيًا
     }).format(new Date(iso));
   } catch {
     return "";
   }
 }
 
-/** هل يقع التاريخان في نفس اليوم التقويمي (UTC)؟ */
+/** يُنسق التاريخ بالعربية (يوم الأسبوع + اليوم + الشهر) بتوقيت جهاز المستخدم. */
+export function formatDate(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat("ar", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      // لا نحدد timeZone ← توقيت الجهاز
+    }).format(new Date(iso));
+  } catch {
+    return "";
+  }
+}
+
+/** هل يقع التاريخان في نفس اليوم التقويمي (حسب توقيت جهاز المستخدم)؟ */
 export function isSameDay(a: Date, b: Date): boolean {
   return (
-    a.getUTCFullYear() === b.getUTCFullYear() &&
-    a.getUTCMonth() === b.getUTCMonth() &&
-    a.getUTCDate() === b.getUTCDate()
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
   );
 }
 
-/** هل يقع iso في "اليوم" (حسب تاريخ UTC)؟ */
+/** هل يقع iso في "اليوم" (حسب توقيت جهاز المستخدم)؟ */
 export function isToday(iso: string): boolean {
   return isSameDay(new Date(iso), new Date());
 }
 
-/** هل يقع iso في "غدًا" (حسب تاريخ UTC)؟ */
+/** هل يقع iso في "غدًا" (حسب توقيت جهاز المستخدم)؟ */
 export function isTomorrow(iso: string): boolean {
   const t = new Date();
-  t.setUTCDate(t.getUTCDate() + 1);
+  t.setDate(t.getDate() + 1);
   return isSameDay(new Date(iso), t);
 }
 
-/** وصف موجز لليوم: "اليوم" / "غدًا" / تاريخ مختصر. */
+/** وصف موجز لليوم: "اليوم" / "غدًا" / تاريخ مختصر — حسب توقيت جهاز المستخدم. */
 export function dayLabel(iso: string): string {
   const d = new Date(iso);
   if (isToday(iso)) return "اليوم";
@@ -68,7 +73,7 @@ export function dayLabel(iso: string): string {
     weekday: "long",
     day: "numeric",
     month: "short",
-    timeZone: "UTC",
+    // لا نحدد timeZone ← توقيت الجهاز
   }).format(d);
 }
 

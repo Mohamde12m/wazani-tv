@@ -893,7 +893,8 @@ function emptyMatchForm(): MatchFormState {
     homeLogo: "",
     awayLogo: "",
     tournamentId: "",
-    kickoff: toLocalDatetime(new Date(Date.now() + 3600000)),
+    // الافتراضي: بعد ساعة من الآن، معبّأ بتوقيت المغرب (المشرف يُدخل بتوقيت المغرب دائمًا)
+    kickoff: utcToMoroccoLocal(new Date(Date.now() + 3600000).toISOString()),
     status: "scheduled",
     homeScore: "",
     awayScore: "",
@@ -904,34 +905,81 @@ function emptyMatchForm(): MatchFormState {
   };
 }
 
-function toLocalDatetime(d: Date): string {
-  // 🔒 استخدم دوال getUTC* لاستخراج الوقت الحرفي المخزَّن (بدون تحويل منطقة المتصفح).
-  // هذا يضمن أن قيمة حقل datetime-local تعرض بالضبط ما أدخله المشرف سابقًا.
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+// ============================================================
+//  🕐 تحويلات توقيت المغرب ↔ UTC
+//
+//  المشرف يُدخل أوقات المباريات بتوقيت المغرب (Africa/Casablanca).
+//  المغرب يستخدم GMT+1 عادةً، ويتحول إلى GMT+0 أثناء رمضان وبعض فترات الصيف.
+//  نستخدم Intl.DateTimeFormat مع timeZone:"Africa/Casablanca" لتحديد الإزاحة
+//  تلقائيًا لأي تاريخ — بلا حساب يدوي للـ DST/رمضان.
+// ============================================================
+
+/** يحسب إزاحة المغرب (بالدقائق) عند لحظة UTC معينة — يتعامل مع DST/رمضان تلقائيًا. */
+function getMoroccoOffsetMinutes(d: Date): number {
+  try {
+    // ننسق اللحظة نفسها بتوقيت المغرب، ثم نقارن الناتج بقيم UTC الخام
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Africa/Casablanca",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(d);
+    const get = (t: string) => parseInt(parts.find((p) => p.type === t)?.value ?? "0", 10);
+    let h = get("hour");
+    if (h === 24) h = 0; // بعض البيئات تُرجع 24 لمنتصف الليل
+    // أنشئ طابعًا زمنيًا كأن القيم المغربية هي UTC (مرجع للمقارنة)
+    const moroccoAsUtc = Date.UTC(get("year"), get("month") - 1, get("day"), h, get("minute"), get("second"));
+    // الفرق = الإزاحة (موجب = المغرب أمام UTC)
+    return Math.round((moroccoAsUtc - d.getTime()) / 60000);
+  } catch {
+    return 60; // افتراضي: المغرب GMT+1
+  }
 }
 
 /**
- * يحوّل قيمة حقل datetime-local ("YYYY-MM-DDTHH:MM") إلى ISO حرفي بتسمية UTC.
- * 🔒 لا يطبّق تحويل منطقة المتصفح الزمنية — الوقت يُخزَّن كما هو بالضبط.
- * مثال: "2024-12-31T20:00" → "2024-12-31T20:00:00.000Z" (نفس الساعة، بلا إزاحة).
+ * يحوّل وقتًا محليًا بالمغرب (Morocco wall-clock، كما يُدخله المشرف) إلى ISO UTC.
+ * مثال: "2024-12-31T21:30" (شتاء، GMT+1) → "2024-12-31T20:30:00.000Z"
+ *        "2024-07-15T21:30" (رمضان/صيف، GMT+0) → "2024-07-15T21:30:00.000Z"
  */
-function toLiteralISO(localInput: string): string {
-  // datetime-local يعطي "YYYY-MM-DDTHH:MM" (16 حرفًا)
-  if (localInput.length === 16) {
-    return localInput + ":00.000Z";
-  }
-  // لو كانت القيمة تحتوي ثواني بالفعل "YYYY-MM-DDTHH:MM:SS"
-  if (localInput.length === 19) {
-    return localInput + ".000Z";
-  }
-  // لو كانت تحمل لاحقة زمنية بالفعل، أعِد تحليلها كـ UTC حرفي
+function moroccoLocalToUTC(moroccoLocalStr: string): string {
+  // 1. أنشئ تاريخًا مرشحًا بتفسير السلسلة كأنها UTC (مرجع مؤقت لمعرفة إزاحة ذلك اليوم)
+  const candidate = new Date(moroccoLocalStr + ":00.000Z");
+  // 2. اعرف إزاحة المغرب عند تلك اللحظة (تتعامل تلقائيًا مع DST/رمضان)
+  const offsetMin = getMoroccoOffsetMinutes(candidate);
+  // 3. الوقت المحلي بالمغرب = UTC + الإزاحة ← UTC = المحلي − الإزاحة
+  const utc = new Date(candidate.getTime() - offsetMin * 60 * 1000);
+  return utc.toISOString();
+}
+
+/**
+ * يحوّل ISO UTC إلى وقت محلي بالمغرب بصيغة datetime-local "YYYY-MM-DDTHH:MM".
+ * يُستخدم لتعبئة حقل المحرر عند التحرير — ليرى المشرف الوقت بتوقيت المغرب.
+ * مثال: "2024-12-31T20:30:00.000Z" → "2024-12-31T21:30"
+ */
+function utcToMoroccoLocal(utcIso: string): string {
+  const d = new Date(utcIso);
   try {
-    const d = new Date(localInput);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.000Z`;
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Casablanca",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(d);
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+    let h = get("hour");
+    if (h === "24") h = "00";
+    return `${get("year")}-${get("month")}-${get("day")}T${h}:${get("minute")}`;
   } catch {
-    return localInput;
+    // fallback: استخدم قيم UTC الخام
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
   }
 }
 
@@ -957,14 +1005,13 @@ function MatchDialog({
   React.useEffect(() => {
     if (open) {
       if (match) {
-        const d = new Date(match.kickoff);
         setForm({
           homeName: match.homeName || "",
           awayName: match.awayName || "",
           homeLogo: match.homeLogo || "",
           awayLogo: match.awayLogo || "",
           tournamentId: match.tournamentId || "",
-          kickoff: toLocalDatetime(d),
+          kickoff: utcToMoroccoLocal(match.kickoff),
           status: match.status || "scheduled",
           homeScore:
             match.homeScore !== null && match.homeScore !== undefined
@@ -1005,7 +1052,7 @@ function MatchDialog({
         homeLogo: form.homeLogo || null,
         awayLogo: form.awayLogo || null,
         tournamentId: form.tournamentId || null,
-        kickoff: toLiteralISO(form.kickoff),
+        kickoff: moroccoLocalToUTC(form.kickoff),
         status: form.status,
         homeScore: form.homeScore === "" ? null : Number(form.homeScore),
         awayScore: form.awayScore === "" ? null : Number(form.awayScore),

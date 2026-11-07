@@ -107,16 +107,14 @@ export function MatchesView({ tab }: { tab?: string }) {
       { key: "tomorrow", label: "غدًا", offset: 1 },
     ];
     for (let i = 2; i <= 4; i++) {
-      // 🔒 استخدم UTC للموافقة مع سياسة الوقت الحرفي
       const d = new Date();
-      d.setUTCDate(d.getUTCDate() + i);
+      d.setDate(d.getDate() + i);
       arr.push({
         key: `d${i}`,
         label: new Intl.DateTimeFormat("ar", {
           weekday: "short",
           day: "numeric",
           month: "short",
-          timeZone: "UTC",
         }).format(d),
         offset: i,
       });
@@ -171,9 +169,8 @@ export function MatchesView({ tab }: { tab?: string }) {
     if (fDate !== "all") {
       const chip = dateChips.find((c) => c.key === fDate);
       if (chip && chip.offset !== null) {
-        // 🔒 استخدم دوال UTC للموافقة مع سياسة الوقت الحرفي
         const target = new Date();
-        target.setUTCDate(target.getUTCDate() + chip.offset);
+        target.setDate(target.getDate() + chip.offset);
         list = list.filter((m) => isSameDay(new Date(m.kickoff), target));
       }
     }
