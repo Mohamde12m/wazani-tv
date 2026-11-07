@@ -35,7 +35,6 @@ import {
 import { useFetch } from "@/hooks/use-fetch";
 import { useNav } from "@/stores/nav";
 import { formatTime, dayLabel, useCountdown, isToday } from "@/lib/datetime";
-import { useTimezone, formatLocalTime, formatLocalDay } from "@/stores/timezone";
 import { cn } from "@/lib/utils";
 import { imgUrl } from "@/lib/img";
 import { useWatchHistory } from "@/stores/watch-history";
@@ -66,13 +65,6 @@ export function HomeView() {
   const watchHistory = useWatchHistory((s) => s.items);
   const loadHistory = useWatchHistory((s) => s.load);
   const clearHistory = useWatchHistory((s) => s.clear);
-  const tzOffset = useTimezone((s) => s.offset);
-  const tzLoad = useTimezone((s) => s.load);
-  const tzLoaded = useTimezone((s) => s.loaded);
-
-  React.useEffect(() => {
-    tzLoad();
-  }, [tzLoad]);
 
   const { data: channelsData, loading: channelsLoading } =
     useFetch<ChannelsResponse>("/api/channels");
@@ -418,7 +410,7 @@ export function HomeView() {
         ) : (
           <ChannelRow>
             {todaysMatches.map((m) => (
-              <TodayMatchCard key={m.id} match={m} tzOffset={tzOffset} />
+              <TodayMatchCard key={m.id} match={m} />
             ))}
           </ChannelRow>
         )}
@@ -552,7 +544,7 @@ export function HomeView() {
 }
 
 // ============ Compact today match card (horizontal, minimal height) ============
-function TodayMatchCard({ match, tzOffset = 0 }: { match: Match; tzOffset?: number }) {
+function TodayMatchCard({ match }: { match: Match }) {
   const setView = useNav((s) => s.setView);
   const live = match.status === "live";
   const finished = match.status === "finished";
@@ -587,7 +579,7 @@ function TodayMatchCard({ match, tzOffset = 0 }: { match: Match; tzOffset?: numb
           </span>
         ) : (
           <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[8px] font-bold text-emerald">
-            {formatLocalTime(match.kickoff, tzOffset)}
+            {formatTime(match.kickoff)}
           </span>
         )}
       </div>
@@ -603,7 +595,7 @@ function TodayMatchCard({ match, tzOffset = 0 }: { match: Match; tzOffset?: numb
               <span>{match.awayScore ?? 0}</span>
             </div>
           ) : (
-            <span className="text-sm font-extrabold text-emerald">{formatLocalTime(match.kickoff, tzOffset)}</span>
+            <span className="text-sm font-extrabold text-emerald">{formatTime(match.kickoff)}</span>
           )}
         </div>
         <TeamMini name={match.awayName} logo={match.awayLogo} />
@@ -647,7 +639,7 @@ function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
 }
 
 // ============ Featured Hero ============
-function FeaturedHero({ match, tzOffset = 0 }: { match: Match; tzOffset?: number }) {
+function FeaturedHero({ match }: { match: Match }) {
   const setView = useNav((s) => s.setView);
   const live = match.status === "live";
   const finished = match.status === "finished";
@@ -682,7 +674,7 @@ function FeaturedHero({ match, tzOffset = 0 }: { match: Match; tzOffset?: number
         ) : (
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-white/15 px-1.5 py-0.5 text-[9px] font-bold text-white">
             <Clock className="h-2.5 w-2.5" />
-            {formatLocalTime(match.kickoff, tzOffset)}
+            {formatTime(match.kickoff)}
           </span>
         )}
       </div>
@@ -710,10 +702,10 @@ function FeaturedHero({ match, tzOffset = 0 }: { match: Match; tzOffset?: number
           ) : (
             <div className="flex flex-col items-center rounded-lg bg-white/15 px-2 py-1 backdrop-blur-sm">
               <span className="text-sm font-extrabold tabular-nums text-white">
-                {formatLocalTime(match.kickoff, tzOffset)}
+                {formatTime(match.kickoff)}
               </span>
               <span className="text-[8px] font-semibold text-white/80">
-                {formatLocalDay(match.kickoff, tzOffset)}
+                {dayLabel(match.kickoff)}
               </span>
             </div>
           )}

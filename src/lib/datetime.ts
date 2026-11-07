@@ -2,52 +2,64 @@
 
 import * as React from "react";
 
-/** Client-side Arabic date/time helpers using Intl. */
+/**
+ * Client-side Arabic date/time helpers.
+ *
+ * 🔒 سياسة التوقيت (literal / no-conversion):
+ *   - الأوقات تُخزَّن كما أدخلها المشرف حرفيًا (بدون تحويل UTC أو إزاحة منطقة زمنية).
+ *   - العرض يستخدم دوال getUTC* دائمًا → ما يراه المستخدم = ما أدخله المشرف بالضبط.
+ *   - لا نستخدم Intl مع timeZone محددة (لا Africa/Casablanca ولا منطقة المتصفح).
+ *   - للمقارنات (isToday/isTomorrow/isSameDay) نستخدم تاريخ UTC للجانبين.
+ */
 
+/** يُنسق الوقت كـ HH:MM (24 ساعة) من قيم UTC الحرفية للوقت المخزَّن. */
 export function formatTime(iso: string): string {
   try {
-    return new Intl.DateTimeFormat("ar-MA", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "Africa/Casablanca",
-    }).format(new Date(iso));
+    const d = new Date(iso);
+    const h = d.getUTCHours().toString().padStart(2, "0");
+    const m = d.getUTCMinutes().toString().padStart(2, "0");
+    return `${h}:${m}`;
   } catch {
     return "";
   }
 }
 
+/** يُنسق التاريخ بالعربية (يوم الأسبوع + اليوم + الشهر) من قيم UTC الحرفية. */
 export function formatDate(iso: string): string {
   try {
     return new Intl.DateTimeFormat("ar", {
       weekday: "long",
       day: "numeric",
       month: "long",
-      timeZone: "Africa/Casablanca",
+      timeZone: "UTC",
     }).format(new Date(iso));
   } catch {
     return "";
   }
 }
 
+/** هل يقع التاريخان في نفس اليوم التقويمي (UTC)؟ */
 export function isSameDay(a: Date, b: Date): boolean {
   return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
+    a.getUTCFullYear() === b.getUTCFullYear() &&
+    a.getUTCMonth() === b.getUTCMonth() &&
+    a.getUTCDate() === b.getUTCDate()
   );
 }
 
+/** هل يقع iso في "اليوم" (حسب تاريخ UTC)؟ */
 export function isToday(iso: string): boolean {
   return isSameDay(new Date(iso), new Date());
 }
 
+/** هل يقع iso في "غدًا" (حسب تاريخ UTC)؟ */
 export function isTomorrow(iso: string): boolean {
   const t = new Date();
-  t.setDate(t.getDate() + 1);
+  t.setUTCDate(t.getUTCDate() + 1);
   return isSameDay(new Date(iso), t);
 }
 
+/** وصف موجز لليوم: "اليوم" / "غدًا" / تاريخ مختصر. */
 export function dayLabel(iso: string): string {
   const d = new Date(iso);
   if (isToday(iso)) return "اليوم";
@@ -56,7 +68,7 @@ export function dayLabel(iso: string): string {
     weekday: "long",
     day: "numeric",
     month: "short",
-    timeZone: "Africa/Casablanca",
+    timeZone: "UTC",
   }).format(d);
 }
 

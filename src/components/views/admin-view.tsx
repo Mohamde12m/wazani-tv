@@ -905,8 +905,34 @@ function emptyMatchForm(): MatchFormState {
 }
 
 function toLocalDatetime(d: Date): string {
+  // 🔒 استخدم دوال getUTC* لاستخراج الوقت الحرفي المخزَّن (بدون تحويل منطقة المتصفح).
+  // هذا يضمن أن قيمة حقل datetime-local تعرض بالضبط ما أدخله المشرف سابقًا.
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+/**
+ * يحوّل قيمة حقل datetime-local ("YYYY-MM-DDTHH:MM") إلى ISO حرفي بتسمية UTC.
+ * 🔒 لا يطبّق تحويل منطقة المتصفح الزمنية — الوقت يُخزَّن كما هو بالضبط.
+ * مثال: "2024-12-31T20:00" → "2024-12-31T20:00:00.000Z" (نفس الساعة، بلا إزاحة).
+ */
+function toLiteralISO(localInput: string): string {
+  // datetime-local يعطي "YYYY-MM-DDTHH:MM" (16 حرفًا)
+  if (localInput.length === 16) {
+    return localInput + ":00.000Z";
+  }
+  // لو كانت القيمة تحتوي ثواني بالفعل "YYYY-MM-DDTHH:MM:SS"
+  if (localInput.length === 19) {
+    return localInput + ".000Z";
+  }
+  // لو كانت تحمل لاحقة زمنية بالفعل، أعِد تحليلها كـ UTC حرفي
+  try {
+    const d = new Date(localInput);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.000Z`;
+  } catch {
+    return localInput;
+  }
 }
 
 function MatchDialog({
@@ -979,7 +1005,7 @@ function MatchDialog({
         homeLogo: form.homeLogo || null,
         awayLogo: form.awayLogo || null,
         tournamentId: form.tournamentId || null,
-        kickoff: new Date(form.kickoff).toISOString(),
+        kickoff: toLiteralISO(form.kickoff),
         status: form.status,
         homeScore: form.homeScore === "" ? null : Number(form.homeScore),
         awayScore: form.awayScore === "" ? null : Number(form.awayScore),
