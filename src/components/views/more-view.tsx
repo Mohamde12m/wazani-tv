@@ -12,11 +12,13 @@ import {
   Settings,
   Download,
   Star,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 import { useNav } from "@/stores/nav";
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
+import { useTimezone, COUNTRY_TIMEZONES } from "@/stores/timezone";
 import { AppLogo } from "@/components/shared/app-logo";
 import { InstallAppButton } from "@/components/shared/install-app-button";
 import { toast } from "sonner";
@@ -119,6 +121,10 @@ export function MoreView() {
       {/* Settings */}
       <section className="space-y-3">
         <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">الإعدادات</h2>
+        
+        {/* توقيت الدولة */}
+        <TimezoneSelector />
+
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald/10 text-emerald">
@@ -238,5 +244,73 @@ function MenuCard({
       </div>
       <ChevronLeft className="h-5 w-5 shrink-0 text-muted-foreground" />
     </button>
+  );
+}
+
+/**
+ * TimezoneSelector — اختيار توقيت الدولة
+ */
+function TimezoneSelector() {
+  const { selected, setCountry, load, loaded } = useTimezone();
+  const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    load();
+  }, [load]);
+
+  if (!loaded) return null;
+
+  const current = COUNTRY_TIMEZONES.find((c) => c.code === selected);
+  const offsetLabel = useTimezone.getState().offset >= 0
+    ? `UTC+${useTimezone.getState().offset}`
+    : `UTC${useTimezone.getState().offset}`;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald/10 text-emerald">
+          <Globe className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-foreground">توقيت الدولة</p>
+          <p className="text-[11px] text-muted-foreground">
+            {current ? `${current.flag} ${current.name} (${offsetLabel})` : "اختر دولتك"}
+          </p>
+        </div>
+        <button
+          onClick={() => setOpen(!open)}
+          className="rounded-lg border border-border px-3 py-1.5 text-[11px] font-bold text-emerald transition-colors hover:bg-emerald/10"
+        >
+          {open ? "إغلاق" : "تغيير"}
+        </button>
+      </div>
+
+      {/* قائمة الدول */}
+      {open && (
+        <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-border bg-background/50 p-1">
+          {COUNTRY_TIMEZONES.map((c) => (
+            <button
+              key={c.code}
+              onClick={() => {
+                setCountry(c.code);
+                setOpen(false);
+                toast.success(`تم تحديد التوقيت: ${c.flag} ${c.name}`);
+              }}
+              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-right text-sm transition-colors ${
+                selected === c.code
+                  ? "bg-emerald/15 font-bold text-emerald"
+                  : "text-foreground hover:bg-muted"
+              }`}
+            >
+              <span className="text-lg">{c.flag}</span>
+              <span className="flex-1 truncate">{c.name}</span>
+              <span className="text-[10px] text-muted-foreground">
+                UTC{c.offset >= 0 ? "+" : ""}{c.offset}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
