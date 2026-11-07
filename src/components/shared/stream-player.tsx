@@ -17,6 +17,23 @@ import {
 
 export type StreamKind = "hls" | "dash" | "mp4" | "youtube" | "iframe" | "none";
 
+/**
+ * يحوّل ارتفاع الفيديو (بالبيكسل) إلى وصف جودة مختصر واحترافي.
+ * مثال: 720 → "720p HD"، 1080 → "1080p FHD"، 2160 → "4K"
+ */
+function formatQuality(height: number): string {
+  if (!height || height <= 0) return "";
+  if (height >= 2160) return "4K UHD";
+  if (height >= 1440) return "2K QHD";
+  if (height >= 1080) return "1080p FHD";
+  if (height >= 720) return "720p HD";
+  if (height >= 576) return "576p";
+  if (height >= 480) return "480p SD";
+  if (height >= 360) return "360p";
+  if (height >= 240) return "240p";
+  return `${height}p`;
+}
+
 interface StreamPlayerProps {
   src: string | null;
   kind: StreamKind;
@@ -64,6 +81,10 @@ export function StreamPlayer({
   const [streamError, setStreamError] = React.useState(false);
   const [retryCount, setRetryCount] = React.useState(0);
   const [showControls, setShowControls] = React.useState(true);
+
+  // === جودة الفيديو المستخرجة تلقائيًا من البث ===
+  // تُحدَّث من hls.js (MANIFEST_PARSED + LEVEL_SWITCHED) أو من video.videoHeight
+  const [videoQuality, setVideoQuality] = React.useState<string>("");
 
   // رابط مُحلَّل: لو كان src عبارة عن صفحة تضمين (freeshot.live)،
   // نستخرج الرابط النظيف عبر API قبل التشغيل
@@ -124,6 +145,7 @@ export function StreamPlayer({
     setStreamError(false);
     retryRef.current = 0;
     setRetryCount(0);
+    setVideoQuality(""); // أعد ضبط الجودة عند تغيير المصدر
 
     if (!activeSrc || kind === "none") {
       setIsBuffering(false);
@@ -145,6 +167,18 @@ export function StreamPlayer({
     const handleVolume = () => setIsMuted(video.muted);
     const handleEnterPip = () => setIsPip(true);
     const handleLeavePip = () => setIsPip(false);
+
+    // === استخراج الجودة من video.videoHeight (للـ native HLS / mp4 / fallback) ===
+    // hls.js يُحدّث الجودة عبر LEVEL_SWITCHED، لكن هذا الـ handler يغطي:
+    // - Safari (native HLS بدون hls.js)
+    // - mp4 / dash
+    // - أي حالة لا يصل فيها حدث hls.js
+    const handleVideoResize = () => {
+      if (video.videoHeight > 0) {
+        const q = formatQuality(video.videoHeight);
+        if (q) setVideoQuality((prev) => (prev !== q ? q : prev));
+      }
+    };
 
     // === نظام إعادة المحاولة التلقائي ===
     // لو فشل البث، يحاول 3 مرات تلقائيًا قبل إظهار رسالة الخطأ
@@ -199,6 +233,9 @@ export function StreamPlayer({
     video.addEventListener("enterpictureinpicture", handleEnterPip);
     video.addEventListener("leavepictureinpicture", handleLeavePip);
     video.addEventListener("error", handleError);
+    // استخراج الجودة من الأبعاد الفعلية للفيديو (fallback + native HLS + mp4)
+    video.addEventListener("loadedmetadata", handleVideoResize);
+    video.addEventListener("resize", handleVideoResize);
 
     if (kind === "hls") {
       if (Hls.isSupported()) {
@@ -216,7 +253,20 @@ export function StreamPlayer({
 
         loadStream(currentSrc);
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        // === استخراج الجودة من hls.js ===
+        // MANIFEST_PARSED: قائمة المستويات متاحة الآن — اضبط الجودة الأولية
+        hls.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
+          // data.levels مصفوفة المستويات المتاحة (لكل منها height, bitrate)
+          if (data.levels && data.levels.length > 0) {
+            // لو hls في وضع auto (currentLevel = -1)، استخدم أعلى مستوى كافتراضي للعرض
+            // الواقع سيأتي عبر LEVEL_SWITCHED فور بدء التشغيل
+            const idx = hls.currentLevel >= 0 ? hls.currentLevel : data.levels.length - 1;
+            const lvl = data.levels[idx];
+            if (lvl?.height) {
+              const q = formatQuality(lvl.height);
+              if (q) setVideoQuality(q);
+            }
+          }
           onReady?.();
           if (autoplay) {
             video.muted = true;
@@ -226,6 +276,17 @@ export function StreamPlayer({
             setIsBuffering(false);
           }
         });
+
+        // LEVEL_SWITCHED: hls.js بدّل المستوى النشط (يدويًا أو تلقائيًا عبر ABR)
+        // هذا هو المصدر الأدق للجودة الفعلية قيد التشغيل
+        hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => {
+          const lvl = hls.levels[data.level];
+          if (lvl?.height) {
+            const q = formatQuality(lvl.height);
+            if (q) setVideoQuality(q);
+          }
+        });
+
         hls.on(Hls.Events.ERROR, (_event, data) => {
           if (data.fatal) {
             // لو فشل البروكسي، جرّب الرابط الأصلي مباشرة (بعض الروابط تدعم CORS)
@@ -296,6 +357,8 @@ export function StreamPlayer({
       video.removeEventListener("enterpictureinpicture", handleEnterPip);
       video.removeEventListener("leavepictureinpicture", handleLeavePip);
       video.removeEventListener("error", handleError);
+      video.removeEventListener("loadedmetadata", handleVideoResize);
+      video.removeEventListener("resize", handleVideoResize);
       if (stallTimer) clearTimeout(stallTimer);
       if (hlsRef.current) {
         hlsRef.current.destroy();
@@ -690,6 +753,61 @@ export function StreamPlayer({
 
       {/* العلامة المائية المتحركة — اسم التطبيق يكتب حرفًا بحرف */}
       <AnimatedWatermark />
+
+      {/* === شارة الجودة المستخرجة تلقائيًا من البث ===
+          تظهر في أعلى اليمين، وتختفي/تظهر مع شريط التحكم.
+          تتدنى للأسفل قليلًا لو كان زر "إنهاء التدوير" ظاهرًا (وضع force-landscape). */}
+      {controlsVisible && videoQuality && !streamError && (
+        <div
+          aria-label={`جودة البث: ${videoQuality}`}
+          style={{
+            position: "absolute",
+            top: forceLandscape && !isFullscreen
+              ? "calc(max(12px, env(safe-area-inset-top)) + 52px)"
+              : "max(12px, env(safe-area-inset-top))",
+            right: "max(12px, env(safe-area-inset-right))",
+            zIndex: 4,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 10px",
+            borderRadius: 10,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            border: "1px solid rgba(245, 200, 66, 0.35)",
+            color: "#F5C842",
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: 0.3,
+            direction: "ltr",
+            pointerEvents: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            transition: "opacity 0.3s ease",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {/* مؤشر موجات الإشارة (signal bars) — ينبض خفيفًا */}
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            style={{ flexShrink: 0 }}
+            aria-hidden
+          >
+            <path d="M2 20h.01" />
+            <path d="M7 20v-4" />
+            <path d="M12 20v-8" />
+            <path d="M17 20V8" />
+            <path d="M22 4v16" />
+          </svg>
+          {videoQuality}
+        </div>
+      )}
 
       {/* === شاشة خطأ البث + زر إعادة التحميل === */}
       {streamError && resolvedSrc && kind !== "none" && (
