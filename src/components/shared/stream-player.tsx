@@ -112,9 +112,11 @@ export function StreamPlayer({
     setIsBuffering(true);
     resolveStartedRef.current = true;
     let alive = true;
-    // أضف timestamp لتجاوز الكاش — كل فتح يجلب token جديد
-    const bustCache = `&_t=${Date.now()}`;
-    fetch(`/api/resolve-stream?url=${encodeURIComponent(src!)}${bustCache}`)
+    // ⚡ استخدم الكاش (4 دقائق) للفتحات العادية — الـ token صالح 5 دقائق
+    // والبروكسي يتجدد تلقائيًا عند 403، فلا داعي لجلب token جديد في كل فتح.
+    // لو مرّ reloadNonce (ضغط المستخدم زر إعادة التحميل)، تجاوز الكاش.
+    const cacheBust = reloadNonce > 0 ? `&_t=${reloadNonce}` : "";
+    fetch(`/api/resolve-stream?url=${encodeURIComponent(src!)}${cacheBust}`)
       .then((r) => r.json())
       .then((data) => {
         if (alive && data.ok && (data.proxyUrl || data.streamUrl)) {
@@ -129,7 +131,7 @@ export function StreamPlayer({
         if (alive) setResolvedSrc(src); // fallback
       });
     return () => { alive = false; };
-  }, [src]);
+  }, [src, reloadNonce]);
 
   // تهيئة المشغل — تنتظر resolvedSrc
   React.useEffect(() => {
@@ -239,7 +241,26 @@ export function StreamPlayer({
 
     if (kind === "hls") {
       if (Hls.isSupported()) {
-        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        // ⚡ إعدادات محسّنة لبدء التشغيل السريع:
+        // - maxBufferLength أقل = hls.js يبدأ التشغيل بـ buffer أقل (أسرع وصولًا لأول إطار)
+        // - maxMaxBufferLength حد أعلى معقول
+        // - backBufferLength: احتفظ بـ 30 ثانية خلف المؤشر
+        // - enableWorker: فك التشفير في thread منفصل (أكثر سلاسة)
+        // - lowLatencyMode: وضع التأخير المنخفض للبث المباشر
+        // - startLevel: -1 = اختيار تلقائي (ABR يختار أنسب مستوى)
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          maxBufferLength: 10,        // default 30 → أسرع بدء
+          maxMaxBufferLength: 30,     // default 600
+          backBufferLength: 30,
+          startLevel: -1,
+          // تحسينات إعادة المحاولة (أسرع استرداد عند الأخطاء العابرة)
+          manifestLoadingMaxRetry: 2,
+          manifestLoadingRetryDelay: 500,
+          levelLoadingMaxRetry: 2,
+          levelLoadingRetryDelay: 500,
+        });
         hlsRef.current = hls;
 
         // لو الرابط يمر عبر البروكسي ويفشل، جرّب الرابط الأصلي مباشرة

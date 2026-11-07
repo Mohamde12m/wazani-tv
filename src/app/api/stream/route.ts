@@ -118,21 +118,25 @@ function rebuildUrlWithToken(url: URL, newToken: string): URL {
   return newUrl;
 }
 
-/** يتحقق إن كان المحتوى m3u8 أو segment */
-function isHlsContent(contentType: string, url: string): boolean {
-  const ct = contentType.toLowerCase();
-  const u = url.toLowerCase();
-  return (
-    ct.includes("mpegurl") ||
-    ct.includes("m3u8") ||
-    ct.includes("vnd.apple.mpegurl") ||
-    u.endsWith(".m3u8") ||
-    u.endsWith(".ts") ||
-    u.endsWith(".m4s") ||
-    u.endsWith(".mp4") ||
-    ct.startsWith("video/") ||
-    ct.includes("application/octet-stream")
-  );
+// === Cache لـ master playlist (index.m3u8) ===
+// الـ master playlist ثابت لكل قناة (يحتوي فقط على رابط sub-playlist)
+// تخزينه يُسرّع الفتح المتكرر للقناة (يتجنب TLS handshake + fetch في كل مرة)
+interface M3u8CacheEntry {
+  body: string;
+  contentType: string;
+  expiresAt: number;
+}
+const m3u8Cache = new Map<string, M3u8CacheEntry>();
+const MASTER_M3U8_TTL = 2 * 60 * 1000; // دقيقتان
+
+/** مفتاح الكاش: نطاق+قناة (يتجاهل الـ token لأن المحتوى لا يعتمد عليه) */
+function getM3u8CacheKey(url: URL): string | null {
+  // فقط للـ master playlist (index.m3u8) من wideiptv CDN
+  if (url.hostname.includes("wideiptv.top") && url.pathname.endsWith("/index.m3u8")) {
+    const channel = extractWideiptvChannel(url);
+    return channel ? `master:${channel}` : null;
+  }
+  return null;
 }
 
 /** يعيد كتابة m3u8: يحوّل الروابط النسبية لمطلقة، ويجعلها تمر عبر الـ proxy */
@@ -273,36 +277,96 @@ export async function GET(req: NextRequest) {
   );
 }
 
-/** يبني الاستجابة النهائية حسب نوع المحتوى (m3u8 / segment / غيره) */
+/** يبني الاستجابة النهائية حسب نوع المحتوى (m3u8 / segment / غيره)
+ *
+ *  ⚡ تحسين الأداء:
+ *  - نفحص content-type من headers أولًا (بدون استهلاك body)
+ *  - للـ segments (ts/m4s/mp4): نُمرّر res.body مباشرة (streaming) — صفر نسخ، صفر إعادة جلب
+ *  - للـ m3u8 فقط: نستهلك body كـ text ونُعيد كتابة الروابط
+ *  - هذا يلغي الجلب المزدوج السابق ويُسرّع بدء التشغيل بشكل كبير
+ */
 async function respondWith(res: Response, sourceUrl: URL): Promise<NextResponse> {
-  const contentType = res.headers.get("content-type") || "";
-  const text = await res.text();
-  const trimmed = text.trimStart();
+  const contentType = (res.headers.get("content-type") || "").toLowerCase();
+  const urlLower = sourceUrl.toString().toLowerCase();
 
-  // 🚫 اكتشاف HTML (redirect فاشل أو hotlink protection)
-  const isHtml =
-    contentType.includes("text/html") ||
-    trimmed.toLowerCase().startsWith("<!doctype") ||
-    trimmed.toLowerCase().startsWith("<html") ||
-    (trimmed.includes("<title>") && trimmed.includes("</title>"));
-
-  if (isHtml) {
-    // أرمِ خطأ ليُجرّب المتصل حلًّا آخر
-    return NextResponse.json(
-      { error: "HTML returned instead of stream (hotlink protection)" },
-      { status: 502 }
-    );
-  }
-
-  // لو m3u8 — أعد كتابته
-  if (
+  // === تصنيف نوع المحتوى من headers + امتداد الرابط (بدون استهلاك body) ===
+  const isVideo = contentType.startsWith("video/");
+  const isMpegurl =
     contentType.includes("mpegurl") ||
     contentType.includes("m3u8") ||
-    contentType.includes("vnd.apple.mpegurl") ||
-    sourceUrl.pathname.endsWith(".m3u8") ||
-    trimmed.startsWith("#EXTM3U")
-  ) {
+    contentType.includes("vnd.apple.mpegurl");
+  const isHtml = contentType.includes("text/html");
+  const isM3u8ByExt = urlLower.endsWith(".m3u8") || urlLower.includes(".m3u8?");
+  const isSegmentByExt =
+    urlLower.endsWith(".ts") ||
+    urlLower.endsWith(".m4s") ||
+    urlLower.endsWith(".mp4") ||
+    urlLower.includes(".ts?") ||
+    urlLower.includes(".m4s?") ||
+    urlLower.includes(".mp4?");
+
+  // segment = فيديو (ليس m3u8) أو امتداد .ts/.m4s/.mp4 (وليس .m3u8)
+  const isSegment =
+    !isMpegurl && !isM3u8ByExt && !isHtml && (isVideo || isSegmentByExt);
+
+  // === 1) segment (ts/m4s/mp4) — STREAM مباشر ===
+  if (isSegment && res.body) {
+    return new NextResponse(res.body, {
+      status: 200,
+      headers: {
+        "Content-Type": contentType || "video/mp2t",
+        "Cache-Control": "public, max-age=86400, immutable",
+        "Access-Control-Allow-Origin": "*",
+        "X-Stream-Source": "proxy-segment-stream",
+      },
+    });
+  }
+
+  // === 2) m3u8 — اقرأ كـ text وأعد كتابة الروابط ===
+  if (isMpegurl || isM3u8ByExt) {
+    // ⚡ تحقق من كاش الـ master playlist أولًا
+    const cacheKey = getM3u8CacheKey(sourceUrl);
+    if (cacheKey) {
+      const cached = m3u8Cache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return new NextResponse(cached.body, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/vnd.apple.mpegurl",
+            "Cache-Control": "no-store",
+            "Access-Control-Allow-Origin": "*",
+            "X-Stream-Source": "proxy-m3u8-cached",
+          },
+        });
+      }
+    }
+
+    const text = await res.text();
+    const trimmed = text.trimStart();
+
+    // 🚫 لو HTML بدل m3u8 (hotlink protection فاشل)
+    if (
+      isHtml ||
+      trimmed.toLowerCase().startsWith("<!doctype") ||
+      trimmed.toLowerCase().startsWith("<html")
+    ) {
+      return NextResponse.json(
+        { error: "HTML returned instead of stream (hotlink protection)" },
+        { status: 502 }
+      );
+    }
+
     const rewritten = rewriteM3u8(text, sourceUrl.toString());
+
+    // ⚡ خزّن الـ master playlist في الكاش (يتجنب TLS handshake في الفتح القادم)
+    if (cacheKey) {
+      m3u8Cache.set(cacheKey, {
+        body: rewritten,
+        contentType: "application/vnd.apple.mpegurl",
+        expiresAt: Date.now() + MASTER_M3U8_TTL,
+      });
+    }
+
     return new NextResponse(rewritten, {
       status: 200,
       headers: {
@@ -314,27 +378,29 @@ async function respondWith(res: Response, sourceUrl: URL): Promise<NextResponse>
     });
   }
 
-  // لو segment (ts/m4s/mp4)
-  if (isHlsContent(contentType, sourceUrl.toString())) {
-    // النص أصلاً محمّل كـ text — أعد الجلب كـ ArrayBuffer للـ segments الثنائية
-    const segRes = await fetch(sourceUrl.toString(), {
-      headers: { ...BROWSER_HEADERS, Referer: pickReferer(sourceUrl) },
-      credentials: "omit",
-    });
-    const body = await segRes.arrayBuffer();
-    return new NextResponse(body, {
+  // === 3) HTML (خطأ hotlink) ===
+  if (isHtml) {
+    return NextResponse.json(
+      { error: "HTML returned instead of stream (hotlink protection)" },
+      { status: 502 }
+    );
+  }
+
+  // === 4) نوع آخر — مرّر الـ body مباشرة (streaming) ===
+  if (res.body) {
+    return new NextResponse(res.body, {
       status: 200,
       headers: {
-        "Content-Type": contentType || "video/mp2t",
-        "Cache-Control": "public, max-age=86400, immutable",
+        "Content-Type": contentType || "application/octet-stream",
         "Access-Control-Allow-Origin": "*",
-        "X-Stream-Source": "proxy-segment",
+        "X-Stream-Source": "proxy-unknown-stream",
       },
     });
   }
 
-  // نوع غير معروف — أعد المحتوى
-  return new NextResponse(text, {
+  // fallback: لو body null (نادر)
+  const buf = await res.arrayBuffer();
+  return new NextResponse(buf, {
     status: 200,
     headers: {
       "Content-Type": contentType || "application/octet-stream",
