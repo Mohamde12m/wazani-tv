@@ -543,9 +543,9 @@ export function HomeView() {
   );
 }
 
-// ============ Compact today match card (horizontal, minimal height) ============
-// 🎨 تصميم احترافي: خلفية متدرجة داكنة + شريط جانبي زاهٍ حسب الحالة + كبسولات ذهبية
-// نفس الأبعاد السابقة تماماً (w-[210px], نفس الصفوف)
+// ============ Compact today match card — 🎨 تصميم خرافي احترافي ============
+// خلفية mesh-gradient داكنة + حدود متدرجة متحركة + شعارات بتوهج مزدوج
+// نفس الأبعاد تماماً (w-[210px], 3 صفوف)
 function TodayMatchCard({ match }: { match: Match }) {
   const setView = useNav((s) => s.setView);
   const live = match.status === "live";
@@ -553,74 +553,119 @@ function TodayMatchCard({ match }: { match: Match }) {
   const tournamentName =
     match.tournamentName ?? match.tournament?.nameAr ?? match.tournament?.name ?? "بطولة";
 
-  // 🎨 لوحة الألوان حسب الحالة — شريط جانبي + توهج خلفي
-  const palette = live
+  // 🎨 لوحات ألوان زاهية متناسقة — لكل حالة هويتها البصرية الكاملة
+  const theme = live
     ? {
-        bar: "linear-gradient(180deg, #F43F5E 0%, #DC2626 50%, #B91C1C 100%)",
-        glow: "radial-gradient(circle at 50% 0%, rgba(244,63,94,0.18) 0%, transparent 60%)",
-        ring: "rgba(244,63,94,0.5)",
+        // 🔴 مباشر: أحمر-برتقالي-وردي ناري
+        meshA: "#7F1D1D", meshB: "#9F1239", meshC: "#0C0A09",
+        accent: "#FB7185", accentDeep: "#E11D48", accent2: "#F97316",
+        glow: "rgba(244,63,94,0.35)", glowSoft: "rgba(251,113,133,0.18)",
+        border: "rgba(251,113,133,0.55)", borderInner: "rgba(244,63,94,0.25)",
+        text: "#FECDD3", textScore: "#FFE4E6",
+        badgeGrad: "linear-gradient(135deg, #FB7185 0%, #E11D48 50%, #BE123C 100%)",
+        midGrad: "linear-gradient(135deg, rgba(251,113,133,0.28), rgba(225,29,72,0.14))",
+        midBorder: "rgba(251,113,133,0.5)",
+        sideBar: "linear-gradient(180deg, #F97316 0%, #E11D48 40%, #BE123C 70%, #881337 100%)",
+        shimmer: "rgba(251,113,133,0.14)",
       }
     : finished
       ? {
-          bar: "linear-gradient(180deg, #64748B 0%, #475569 50%, #334155 100%)",
-          glow: "radial-gradient(circle at 50% 0%, rgba(100,116,139,0.12) 0%, transparent 60%)",
-          ring: "rgba(100,116,139,0.3)",
+          // ⚪ منتهية: بنفسجي-أزرق-رمادي هادئ فاخر
+          meshA: "#1E1B4B", meshB: "#312E81", meshC: "#0C0A09",
+          accent: "#A78BFA", accentDeep: "#7C3AED", accent2: "#6366F1",
+          glow: "rgba(167,139,250,0.22)", glowSoft: "rgba(99,102,241,0.12)",
+          border: "rgba(167,139,250,0.45)", borderInner: "rgba(124,58,237,0.2)",
+          text: "#DDD6FE", textScore: "#E0E7FF",
+          badgeGrad: "linear-gradient(135deg, #818CF8 0%, #6366F1 100%)",
+          midGrad: "linear-gradient(135deg, rgba(167,139,250,0.22), rgba(99,102,241,0.12))",
+          midBorder: "rgba(167,139,250,0.4)",
+          sideBar: "linear-gradient(180deg, #818CF8 0%, #6366F1 40%, #4F46E5 70%, #3730A3 100%)",
+          shimmer: "rgba(167,139,250,0.12)",
         }
       : {
-          bar: "linear-gradient(180deg, #F5C842 0%, #C99A2E 50%, #00B377 100%)",
-          glow: "radial-gradient(circle at 50% 0%, rgba(245,200,66,0.14) 0%, transparent 60%)",
-          ring: "rgba(0,179,119,0.35)",
+          // 🟡 مجدولة: ذهبي-زمردي-تركوازي خرافي
+          meshA: "#064E3B", meshB: "#0E7490", meshC: "#0C0A09",
+          accent: "#34D399", accentDeep: "#10B981", accent2: "#06B6D4",
+          glow: "rgba(16,185,129,0.28)", glowSoft: "rgba(6,182,212,0.16)",
+          border: "rgba(52,211,153,0.5)", borderInner: "rgba(16,185,129,0.22)",
+          text: "#A7F3D0", textScore: "#D1FAE5",
+          badgeGrad: "linear-gradient(135deg, #34D399 0%, #10B981 50%, #059669 100%)",
+          midGrad: "linear-gradient(135deg, rgba(245,200,66,0.28), rgba(16,185,129,0.14))",
+          midBorder: "rgba(245,200,66,0.55)",
+          sideBar: "linear-gradient(180deg, #F5C842 0%, #F59E0B 25%, #10B981 60%, #06B6D4 100%)",
+          shimmer: "rgba(52,211,153,0.14)",
         };
 
   return (
     <button
       onClick={() => setView({ name: "matches" })}
-      className="group relative w-[210px] shrink-0 overflow-hidden rounded-xl p-2.5 text-right transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+      className="group relative w-[210px] shrink-0 overflow-hidden rounded-xl p-2.5 text-right transition-all duration-300 hover:-translate-y-1 active:scale-[0.97]"
       style={{
-        background: "linear-gradient(145deg, #0a1622 0%, #0f1f2e 45%, #0a1622 100%)",
-        boxShadow: `0 4px 16px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)`,
+        background: `
+          radial-gradient(circle at 85% 0%, ${theme.meshA} 0%, transparent 55%),
+          radial-gradient(circle at 15% 100%, ${theme.meshB} 0%, transparent 55%),
+          linear-gradient(135deg, ${theme.meshC} 0%, #131316 100%)
+        `,
+        boxShadow: `
+          0 8px 24px -8px ${theme.glow},
+          0 4px 12px -4px rgba(0,0,0,0.6),
+          inset 0 1px 0 rgba(255,255,255,0.06)
+        `,
       }}
     >
-      {/* 🎨 الشريط الجانبي الزاهي - يميز الحالة */}
+      {/* 🎨 شبكة توهج خلفية (mesh glow blobs) */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl"
+        style={{ background: theme.glowSoft }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -left-4 bottom-0 h-16 w-16 rounded-full blur-2xl"
+        style={{ background: theme.glowSoft }}
+      />
+
+      {/* 🎨 الشريط الجانبي المتدرج الزاهي */}
       <span
         aria-hidden
         className="absolute inset-y-0 right-0 w-1"
-        style={{ background: palette.bar }}
+        style={{ background: theme.sideBar, boxShadow: `0 0 12px ${theme.glow}` }}
       />
-      {/* 🎨 التوهج الخلفي العلوي */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-90"
-        style={{ background: palette.glow }}
-      />
-      {/* 🎨 حدود ناعمة بتدرج */}
+
+      {/* 🎨 حدود متدرجة مزدوجة */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-xl"
-        style={{ border: `1px solid ${palette.ring}`, boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.03)` }}
+        style={{
+          border: `1px solid ${theme.border}`,
+          boxShadow: `inset 0 0 0 1px ${theme.borderInner}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+        }}
       />
-      {/* 🎨 لمعان يمر عند hover */}
+
+      {/* 🎨 لمعان يمر (shimmer) عند hover */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          background:
-            "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%)",
+          background: `linear-gradient(115deg, transparent 35%, ${theme.shimmer} 50%, transparent 65%)`,
         }}
       />
 
       {/* === الصف 1: البطولة + شارة الحالة === */}
-      <div className="relative mb-1.5 flex items-center justify-between gap-1.5">
+      <div className="relative mb-1.5 flex items-center justify-between gap-1">
         <div className="flex min-w-0 items-center gap-1">
-          {/* أيقونة كأس ذهبية مصغرة */}
-          <Trophy className="h-2.5 w-2.5 shrink-0" style={{ color: "#F5C842" }} />
+          <Trophy
+            className="h-2.5 w-2.5 shrink-0"
+            style={{ color: theme.accent, filter: `drop-shadow(0 0 3px ${theme.glow})` }}
+          />
           <span
-            className="truncate text-[10px] font-extrabold"
+            className="truncate text-[10px] font-black"
             style={{
-              background: "linear-gradient(90deg, #F5C842, #FFD700)",
+              background: `linear-gradient(90deg, ${theme.accent}, #FFFFFF 50%, ${theme.accent2})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
+              filter: `drop-shadow(0 1px 2px rgba(0,0,0,0.4))`,
             }}
           >
             {tournamentName}
@@ -630,31 +675,34 @@ function TodayMatchCard({ match }: { match: Match }) {
         {/* شارة الحالة */}
         {live ? (
           <span
-            className="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white"
+            className="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-black text-white"
             style={{
-              background: "linear-gradient(135deg, #F43F5E 0%, #DC2626 100%)",
-              boxShadow: "0 2px 8px -1px rgba(244,63,94,0.6)",
+              background: theme.badgeGrad,
+              boxShadow: `0 2px 10px -1px ${theme.glow}, inset 0 1px 0 rgba(255,255,255,0.25)`,
             }}
           >
             <span
               className="h-1 w-1 rounded-full bg-white"
-              style={{ animation: "wazani-match-pulse 1.4s ease-in-out infinite" }}
+              style={{ animation: "wazani-match-pulse 1.3s ease-in-out infinite" }}
             />
             مباشر
           </span>
         ) : finished ? (
           <span
-            className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white/80"
-            style={{ background: "rgba(100,116,139,0.4)", backdropFilter: "blur(4px)" }}
+            className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-black text-white"
+            style={{
+              background: theme.badgeGrad,
+              boxShadow: `0 2px 8px -1px ${theme.glow}`,
+            }}
           >
             انتهت
           </span>
         ) : (
           <span
-            className="flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white"
+            className="flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8px] font-black text-white"
             style={{
-              background: "linear-gradient(135deg, #00B377 0%, #00916B 100%)",
-              boxShadow: "0 2px 8px -1px rgba(0,179,119,0.5)",
+              background: theme.badgeGrad,
+              boxShadow: `0 2px 10px -1px ${theme.glow}, inset 0 1px 0 rgba(255,255,255,0.25)`,
             }}
           >
             <Clock className="h-2 w-2" />
@@ -665,55 +713,60 @@ function TodayMatchCard({ match }: { match: Match }) {
 
       {/* === الصف 2: الفريقان + النتيجة/VS === */}
       <div className="relative flex items-center justify-between gap-1">
-        <TeamMini name={match.homeName} logo={match.homeLogo} />
+        <TeamMini name={match.homeName} logo={match.homeLogo} accent={theme.accent} glow={theme.glow} />
 
-        {/* المنتصف: VS أو النتيجة في كبسولة احترافية */}
+        {/* المنتصف: كبسولة VS أو النتيجة */}
         <div className="flex shrink-0 flex-col items-center">
           {live || finished ? (
             <div
-              className="flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm font-extrabold tabular-nums"
+              className="flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm font-black tabular-nums"
               style={{
-                background: live
-                  ? "linear-gradient(135deg, rgba(244,63,94,0.25), rgba(220,38,38,0.15))"
-                  : "linear-gradient(135deg, rgba(100,116,139,0.25), rgba(71,85,105,0.15))",
-                border: `1px solid ${live ? "rgba(244,63,94,0.4)" : "rgba(100,116,139,0.35)"}`,
-                color: live ? "#FCA5A5" : "#CBD5E1",
-                textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                background: theme.midGrad,
+                border: `1px solid ${theme.midBorder}`,
+                color: theme.textScore,
+                textShadow: `0 1px 3px rgba(0,0,0,0.6), 0 0 8px ${theme.glowSoft}`,
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08)`,
               }}
             >
               <span>{match.homeScore ?? 0}</span>
-              <span className="text-[10px] opacity-60">-</span>
+              <span className="text-[10px] opacity-50">-</span>
               <span>{match.awayScore ?? 0}</span>
             </div>
           ) : (
             <div
-              className="flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-[10px] font-black tracking-wider"
+              className="relative flex items-center justify-center rounded-lg px-2 py-0.5 text-[10px] font-black tracking-widest"
               style={{
-                background: "linear-gradient(135deg, #F5C842 0%, #C99A2E 100%)",
+                background: "linear-gradient(135deg, #F5C842 0%, #F59E0B 50%, #D97706 100%)",
                 color: "#0A0A0A",
-                boxShadow: "0 2px 10px -2px rgba(245,200,66,0.55), inset 0 1px 0 rgba(255,255,255,0.3)",
+                boxShadow: `0 3px 12px -2px rgba(245,200,66,0.6), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.15)`,
               }}
             >
-              VS
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-lg opacity-70"
+                style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)", backgroundSize: "200% 100%", animation: "wazani-vs-shimmer 3s ease-in-out infinite" }}
+              />
+              <span className="relative">VS</span>
             </div>
           )}
         </div>
 
-        <TeamMini name={match.awayName} logo={match.awayLogo} />
+        <TeamMini name={match.awayName} logo={match.awayLogo} accent={theme.accent} glow={theme.glow} />
       </div>
 
       {/* === الصف 3: القناة === */}
       {match.channel && (
         <div
           className="relative mt-1.5 flex items-center justify-center gap-1 pt-1.5 text-[9px]"
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-          }}
+          style={{ borderTop: `1px solid ${theme.borderInner}` }}
         >
-          <Radio className="h-2.5 w-2.5 shrink-0" style={{ color: "#F5C842" }} />
+          <Radio
+            className="h-2.5 w-2.5 shrink-0"
+            style={{ color: theme.accent, filter: `drop-shadow(0 0 3px ${theme.glow})` }}
+          />
           <span
             className="truncate font-bold"
-            style={{ color: "rgba(255,255,255,0.85)" }}
+            style={{ color: theme.text }}
           >
             {match.channel.nameAr ?? match.channel.name}
           </span>
@@ -722,32 +775,35 @@ function TodayMatchCard({ match }: { match: Match }) {
 
       <style>{`
         @keyframes wazani-match-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.6); }
-          50% { opacity: 0.6; transform: scale(1.2); box-shadow: 0 0 0 3px rgba(255,255,255,0); }
+          0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+          50% { opacity: 0.5; transform: scale(1.3); box-shadow: 0 0 0 4px rgba(255,255,255,0); }
+        }
+        @keyframes wazani-vs-shimmer {
+          0%, 100% { background-position: 200% 0; }
+          50% { background-position: -100% 0; }
         }
       `}</style>
     </button>
   );
 }
 
-function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
+function TeamMini({ name, logo, accent, glow }: { name: string; logo?: string | null; accent: string; glow: string }) {
   const [err, setErr] = React.useState(false);
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 text-center">
       <div className="relative flex h-9 w-9 items-center justify-center">
-        {/* توهج خلفي للشعار */}
+        {/* توهج خلفي مزدوج */}
         <span
           aria-hidden
-          className="absolute inset-0 rounded-lg opacity-60"
-          style={{
-            background: "radial-gradient(circle, rgba(245,200,66,0.22) 0%, transparent 70%)",
-          }}
+          className="absolute -inset-1 rounded-xl opacity-70"
+          style={{ background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`, filter: "blur(4px)" }}
         />
         <div
           className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg p-0.5"
           style={{
-            background: "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+            border: `1px solid ${accent}40`,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 8px -2px ${glow}`,
           }}
         >
           {logo && !err ? (
@@ -762,7 +818,7 @@ function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
             <span
               className="text-sm font-black"
               style={{
-                background: "linear-gradient(135deg, #F5C842, #C99A2E)",
+                background: `linear-gradient(135deg, ${accent}, #FFFFFF)`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -775,7 +831,7 @@ function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
       </div>
       <span
         className="line-clamp-1 max-w-[72px] text-[9px] font-bold leading-tight"
-        style={{ color: "rgba(255,255,255,0.92)" }}
+        style={{ color: "rgba(255,255,255,0.95)", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
       >
         {name}
       </span>
