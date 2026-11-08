@@ -557,8 +557,8 @@ function TodayMatchCard({ match }: { match: Match }) {
   // الهدف: تباين واضح (داكن + زاهي) = راحة نفسية للمستخدم
   const theme = live
     ? {
-        // 🔴 مباشر: كحلي + توهج أحمر/برتقالي زاهي
-        meshA: "rgba(255, 71, 87, 0.45)", meshB: "rgba(255, 107, 107, 0.3)", meshC: "#0F1F38",
+        // 🔴 مباشر: أسود غامق + توهج أحمر/برتقالي زاهي
+        meshA: "rgba(255, 71, 87, 0.45)", meshB: "rgba(255, 107, 107, 0.3)", meshC: "#000000",
         accent: "#FF4757", accentDeep: "#FF1744", accent2: "#FF8A65",
         glow: "rgba(255, 71, 87, 0.45)", glowSoft: "rgba(255, 138, 101, 0.3)",
         border: "rgba(255, 71, 87, 0.55)", borderInner: "rgba(255, 71, 87, 0.2)",
@@ -571,8 +571,8 @@ function TodayMatchCard({ match }: { match: Match }) {
       }
     : finished
       ? {
-          // ⚪ منتهية: كحلي + توهج بنفسجي/أزرق زاهي
-          meshA: "rgba(124, 92, 255, 0.4)", meshB: "rgba(79, 195, 247, 0.3)", meshC: "#0F1F38",
+          // ⚪ منتهية: أسود غامق + توهج بنفسجي/أزرق زاهي
+          meshA: "rgba(124, 92, 255, 0.4)", meshB: "rgba(79, 195, 247, 0.3)", meshC: "#000000",
           accent: "#A78BFA", accentDeep: "#7C4DFF", accent2: "#4FC3F7",
           glow: "rgba(124, 92, 255, 0.4)", glowSoft: "rgba(167, 139, 250, 0.3)",
           border: "rgba(167, 139, 250, 0.55)", borderInner: "rgba(124, 92, 255, 0.2)",
@@ -584,8 +584,8 @@ function TodayMatchCard({ match }: { match: Match }) {
           shimmer: "rgba(167, 139, 250, 0.25)",
         }
       : {
-          // 🟡 مجدولة: كحلي + توهج زمردي/ذهبي/سماوي زاهي
-          meshA: "rgba(0, 217, 163, 0.4)", meshB: "rgba(255, 214, 10, 0.3)", meshC: "#0F1F38",
+          // 🟡 مجدولة: أسود غامق + توهج زمردي/ذهبي/سماوي زاهي
+          meshA: "rgba(0, 217, 163, 0.4)", meshB: "rgba(255, 214, 10, 0.3)", meshC: "#000000",
           accent: "#00D9A3", accentDeep: "#00BFA5", accent2: "#4FC3F7",
           glow: "rgba(0, 217, 163, 0.45)", glowSoft: "rgba(255, 214, 10, 0.3)",
           border: "rgba(0, 217, 163, 0.6)", borderInner: "rgba(0, 217, 163, 0.2)",
@@ -605,7 +605,7 @@ function TodayMatchCard({ match }: { match: Match }) {
         background: `
           radial-gradient(circle at 85% 0%, ${theme.meshA} 0%, transparent 55%),
           radial-gradient(circle at 15% 100%, ${theme.meshB} 0%, transparent 55%),
-          linear-gradient(135deg, ${theme.meshC} 0%, #0A1628 100%)
+          linear-gradient(135deg, ${theme.meshC} 0%, #000000 100%)
         `,
         boxShadow: `
           0 8px 24px -8px ${theme.glow},
