@@ -128,19 +128,12 @@
     @apply text-foreground;
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
-    background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 255, 136, 0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(255, 215, 0, 0.08) 0%, transparent 60%),
-      linear-gradient(180deg, #000000 0%, #0A0A0A 50%, #000000 100%);
-    background-attachment: fixed;
+    /* ⚡ خلفية بسيطة بدون fixed attachment — تمرير أنعم بكثير */
+    background: #000000;
     min-height: 100vh;
   }
   .dark body {
-    background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 255, 136, 0.14) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(255, 215, 0, 0.10) 0%, transparent 55%),
-      linear-gradient(180deg, #000000 0%, #0A0A0A 50%, #000000 100%);
-    background-attachment: fixed;
+    background: #000000;
   }
   /* RTL niceties */
   [dir="rtl"] {
@@ -175,20 +168,13 @@
 
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
-  background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(0, 255, 136, 0.14), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(255, 215, 0, 0.10), transparent 55%),
-    linear-gradient(180deg, #000000 0%, #0A0A0A 50%, #000000 100%);
-  background-attachment: fixed;
+  /* ⚡ خلفية بسيطة بدون fixed attachment — تمرير أنعم */
+  background: #000000;
   min-height: 100vh;
 }
 
 .dark .bg-app {
-  background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(0, 255, 136, 0.16), transparent 55%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(255, 215, 0, 0.12), transparent 55%),
-    linear-gradient(180deg, #000000 0%, #0A0A0A 50%, #000000 100%);
-  background-attachment: fixed;
+  background: #000000;
   min-height: 100vh;
 }
 
@@ -504,18 +490,15 @@
     rgba(255, 255, 255, 0.7) 0%,
     rgba(255, 255, 255, 0.5) 100%
   );
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  /* ⚡ أزلنا backdrop-filter — أخف للمترير */
 }
 
 .dark .wazani-glass {
   background: linear-gradient(
     135deg,
-    rgba(10, 34, 24, 0.75) 0%,
-    rgba(13, 42, 31, 0.65) 100%
+    rgba(10, 34, 24, 0.95) 0%,
+    rgba(13, 42, 31, 0.92) 100%
   );
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .wazani-gold-text {
@@ -666,16 +649,16 @@
     color-mix(in srgb, var(--card) 96%, transparent) 0%,
     color-mix(in srgb, var(--card) 88%, transparent) 100%
   );
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  /* ⚡ أزلنا backdrop-filter — كان السبب الرئيسي لثقل التمرير */
   border: 1px solid rgba(245, 200, 66, 0.35);
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
     0 8px 24px -8px rgba(2, 20, 16, 0.18),
     0 2px 6px -2px rgba(2, 20, 16, 0.08);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.35s ease;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+  contain: layout style paint;
 }
 
 .wz-cine-card:hover {
@@ -812,9 +795,8 @@
 
 /* --- شارة زجاجية فاخرة --- */
 .wz-glass-chip {
-  background: color-mix(in srgb, var(--card) 70%, transparent);
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  /* ⚡ أزلنا backdrop-filter — أخف للمترير */
   border: 1px solid rgba(245, 200, 66, 0.30);
   box-shadow: 0 2px 8px -2px rgba(2, 20, 16, 0.15);
 }

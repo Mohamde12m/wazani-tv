@@ -600,7 +600,7 @@ function TodayMatchCard({ match }: { match: Match }) {
   return (
     <button
       onClick={() => setView({ name: "matches" })}
-      className="group relative w-[210px] shrink-0 overflow-hidden rounded-xl p-2.5 text-right transition-all duration-300 hover:-translate-y-1 active:scale-[0.97]"
+      className="group relative w-[210px] shrink-0 overflow-hidden rounded-xl p-2.5 text-right transition-transform duration-200 will-change-transform active:scale-[0.97] hover:-translate-y-1"
       style={{
         background: `
           radial-gradient(circle at 85% 0%, ${theme.meshA} 0%, transparent 55%),
@@ -612,18 +612,14 @@ function TodayMatchCard({ match }: { match: Match }) {
           0 4px 12px -4px rgba(0,0,0,0.5),
           inset 0 1px 0 rgba(255,255,255,0.08)
         `,
+        contain: "layout style paint",
       }}
     >
-      {/* 🎨 شبكة توهج خلفية (mesh glow blobs) */}
+      {/* 🎨 توهج رادياري خفيف (بلا blur — أخف للمترير) */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl"
-        style={{ background: theme.glowSoft }}
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -left-4 bottom-0 h-16 w-16 rounded-full blur-2xl"
-        style={{ background: theme.glowSoft }}
+        className="pointer-events-none absolute inset-0 rounded-xl"
+        style={{ background: `radial-gradient(circle at 85% 0%, ${theme.glowSoft} 0%, transparent 50%)` }}
       />
 
       {/* 🎨 الشريط الجانبي المتدرج الزاهي */}
@@ -793,11 +789,11 @@ function TeamMini({ name, logo, accent, glow }: { name: string; logo?: string | 
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 text-center">
       <div className="relative flex h-9 w-9 items-center justify-center">
-        {/* توهج خلفي مزدوج */}
+        {/* توهج خلفي (بلا blur — أخف) */}
         <span
           aria-hidden
-          className="absolute -inset-1 rounded-xl opacity-70"
-          style={{ background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`, filter: "blur(4px)" }}
+          className="absolute -inset-1 rounded-xl opacity-80"
+          style={{ background: `radial-gradient(circle, ${glow} 0%, transparent 65%)` }}
         />
         <div
           className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg p-0.5"

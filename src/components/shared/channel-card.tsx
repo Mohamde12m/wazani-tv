@@ -125,11 +125,12 @@ export function ChannelCard({ channel }: { channel: Channel }) {
   return (
     <button
       onClick={() => setView({ name: "player", channelId: channel.id })}
-      className="group relative flex w-[150px] shrink-0 flex-col gap-2 rounded-2xl p-3 text-right transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
+      className="group relative flex w-[150px] shrink-0 flex-col gap-2 rounded-2xl p-3 text-right transition-transform duration-200 will-change-transform active:scale-[0.98] hover:-translate-y-1"
       style={{
         background: palette.bg,
         border: `1px solid ${palette.border}`,
         boxShadow: palette.shadow,
+        contain: "layout style paint",
       }}
     >
       {/* توهج رادياري علوي ملوّن */}
