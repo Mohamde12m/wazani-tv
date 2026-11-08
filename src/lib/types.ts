@@ -69,6 +69,9 @@ export interface Match {
   tournament?: Tournament | null;
   tournamentName?: string | null;
   kickoff: string;
+  /// 🕐 وقت المباراة بتوقيت المغرب (سلسلة naive "YYYY-MM-DDTHH:MM")
+  /// يُحسَب على الخادم ويُرسل للوحة الإدارة لاستخدامه في حقل التحرير
+  kickoffLocal?: string;
   status: string;
   homeScore?: number | null;
   awayScore?: number | null;

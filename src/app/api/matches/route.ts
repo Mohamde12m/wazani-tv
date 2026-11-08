@@ -5,6 +5,7 @@ import { requireAdmin, getCurrentAdmin } from "@/lib/auth";
 import { cache, CACHE_TTL } from "@/lib/cache";
 import { applyComputedStatus } from "@/lib/match-status";
 import { notifyNewMatch } from "@/lib/onesignal";
+import { moroccoLocalToUTC, utcToMoroccoLocal } from "@/lib/morocco-time";
 
 export async function GET() {
   const admin = await getCurrentAdmin();
@@ -18,9 +19,13 @@ export async function GET() {
         orderBy: { kickoff: "asc" },
       }),
   );
-  // طبّق الحالة المحسوبة تلقائيًا (scheduled → live → finished بعد 100 دقيقة)
+  // طبّق الحالة المحسوبة تلقائيًا (scheduled → live → finished بعد 130 دقيقة)
   // هذا يضمن أن الزوار يرون الحالة الصحيحة فورًا دون انتظار المهمة الخلفية
-  const matches = applyComputedStatus(rawMatches);
+  const matches = applyComputedStatus(rawMatches).map((m) => ({
+    ...m,
+    // 🕐 أضف kickoffLocal (بتوقيت المغرب) محسوبًا على الخادم لاستخدامه في لوحة الإدارة
+    kickoffLocal: utcToMoroccoLocal(m.kickoff instanceof Date ? m.kickoff.toISOString() : m.kickoff),
+  }));
   return NextResponse.json({ matches, admin: admin ? { name: admin.name } : null });
 }
 
@@ -33,7 +38,11 @@ const createSchema = z.object({
   awayTeamId: z.string().nullable().optional(),
   tournamentId: z.string().nullable().optional(),
   tournamentName: z.string().optional(),
-  kickoff: z.string(),
+  /// 🕐 وقت المباراة بتوقيت المغرب (سلسلة naive: "YYYY-MM-DDTHH:MM")
+  /// يُحوَّل إلى UTC على الخادم لضمان الدقة (قاعدة ICU الخادم محدّثة)
+  kickoffLocal: z.string().optional(),
+  /// fallback: ISO string جاهز (للتوافق مع الإصدارات السابقة)
+  kickoff: z.string().optional(),
   status: z.enum(["scheduled", "live", "finished", "postponed"]).default("scheduled"),
   homeScore: z.number().nullable().optional(),
   awayScore: z.number().nullable().optional(),
@@ -48,7 +57,21 @@ export async function POST(req: NextRequest) {
     await requireAdmin();
     const body = await req.json();
     const data = createSchema.parse(body);
-    const match = await db.match.create({ data: { ...data, kickoff: new Date(data.kickoff) } });
+
+    // 🕐 حدد قيمة kickoff النهائية:
+    // - لو وصل kickoffLocal (سلسلة بتوقيت المغرب) → حوّلها على الخادم
+    // - وإلا استخدم kickoff مباشرة (ISO string جاهز)
+    let kickoffISO: string;
+    if (data.kickoffLocal) {
+      kickoffISO = moroccoLocalToUTC(data.kickoffLocal);
+    } else if (data.kickoff) {
+      kickoffISO = data.kickoff;
+    } else {
+      return NextResponse.json({ error: "وقت المباراة مطلوب (kickoffLocal أو kickoff)" }, { status: 400 });
+    }
+
+    const { kickoffLocal: _kl, kickoff: _k, ...rest } = data;
+    const match = await db.match.create({ data: { ...rest, kickoff: new Date(kickoffISO) } });
     cache.invalidatePrefix("matches:");
     // أرسل إشعارًا فوريًا لكل المشتركين
     notifyNewMatch(match.homeName, match.awayName).catch(() => {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { cache } from "@/lib/cache";
+import { moroccoLocalToUTC } from "@/lib/morocco-time";
 
 const updateSchema = z.object({
   homeName: z.string().optional(),
@@ -13,6 +14,9 @@ const updateSchema = z.object({
   awayTeamId: z.string().nullable().optional(),
   tournamentId: z.string().nullable().optional(),
   tournamentName: z.string().optional(),
+  /// 🕐 وقت المباراة بتوقيت المغرب (سلسلة naive) — يُحوَّل على الخادم
+  kickoffLocal: z.string().optional(),
+  /// fallback: ISO string جاهز
   kickoff: z.string().optional(),
   status: z.enum(["scheduled", "live", "finished", "postponed"]).optional(),
   homeScore: z.number().nullable().optional(),
@@ -36,7 +40,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json();
     const data = updateSchema.parse(body);
     const payload: Record<string, unknown> = { ...data };
-    if (data.kickoff) payload.kickoff = new Date(data.kickoff);
+
+    // 🕐 لو وصل kickoffLocal (بتوقيت المغرب) → حوّله على الخادم إلى UTC
+    // لو وصل kickoff فقط (ISO جاهز) → استخدمه مباشرة
+    if (data.kickoffLocal) {
+      payload.kickoff = new Date(moroccoLocalToUTC(data.kickoffLocal));
+      delete payload.kickoffLocal;
+    } else if (data.kickoff) {
+      payload.kickoff = new Date(data.kickoff);
+    }
+
     const match = await db.match.update({ where: { id }, data: payload });
     cache.invalidatePrefix("matches:");
     return NextResponse.json({ match });
