@@ -56,68 +56,68 @@
 
 :root {
   --radius: 1rem;
-  /* الوضع الفاتح: أسود سينمائي فاخر */
-  --background: #0A0A0A;
-  --foreground: #F0F0F0;
-  --card: #161616;
-  --card-foreground: #F0F0F0;
-  --popover: #161616;
-  --popover-foreground: #F0F0F0;
+  /* الوضع الفاتح: أبيض مشرق زاهٍ مع لمسات زمردية وذهبية */
+  --background: #F0F9F4;
+  --foreground: #0A1F14;
+  --card: #FFFFFF;
+  --card-foreground: #0A1F14;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A1F14;
   --primary: #00B377;
-  --primary-foreground: #0A0A0A;
-  --secondary: #1E1E1E;
-  --secondary-foreground: #F0F0F0;
-  --muted: #1A1A1A;
-  --muted-foreground: #888888;
+  --primary-foreground: #FFFFFF;
+  --secondary: #DCFCE7;
+  --secondary-foreground: #064E3B;
+  --muted: #F0FDF4;
+  --muted-foreground: #15803D;
   --accent: #F5C842;
-  --accent-foreground: #0A0A0A;
+  --accent-foreground: #1A1404;
   --destructive: #EF4444;
-  --border: rgba(245, 200, 66, 0.20);
-  --input: #1E1E1E;
-  --ring: #F5C842;
+  --border: rgba(0, 179, 119, 0.18);
+  --input: #F0FDF4;
+  --ring: #00B377;
   --chart-1: #00B377;
   --chart-2: #F5C842;
   --chart-3: #1FE07A;
   --chart-4: #FFE08A;
-  --chart-5: #022B1C;
-  --sidebar: #161616;
-  --sidebar-foreground: #F0F0F0;
+  --chart-5: #06B6D4;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0A1F14;
   --sidebar-primary: #00B377;
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #F0F0F0;
-  --sidebar-border: rgba(245, 200, 66, 0.20);
-  --sidebar-ring: #F5C842;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #DCFCE7;
+  --sidebar-accent-foreground: #064E3B;
+  --sidebar-border: rgba(0, 179, 119, 0.18);
+  --sidebar-ring: #00B377;
 }
 
 .dark {
-  /* الوضع الليلي: زمردي سينمائي عميق (the cinematic premium look) */
-  --background: #021410;
-  --foreground: #E8F0EA;
-  --card: #0A2418;
-  --card-foreground: #E8F0EA;
-  --popover: #0A2418;
-  --popover-foreground: #E8F0EA;
-  --primary: #1FE07A;
-  --primary-foreground: #021410;
-  --secondary: #0E2C1E;
-  --secondary-foreground: #E8F0EA;
-  --muted: #0E2C1E;
-  --muted-foreground: #7E9588;
-  --accent: #F5C842;
+  /* الوضع الليلي: زمردي متوسط مشرق (ليس أسود عميق) */
+  --background: #0F3D2C;
+  --foreground: #ECFDF5;
+  --card: #134E3A;
+  --card-foreground: #ECFDF5;
+  --popover: #134E3A;
+  --popover-foreground: #ECFDF5;
+  --primary: #34D399;
+  --primary-foreground: #022C22;
+  --secondary: #1A5E44;
+  --secondary-foreground: #ECFDF5;
+  --muted: #1A5E44;
+  --muted-foreground: #6EE7B7;
+  --accent: #FBBF24;
   --accent-foreground: #1A1404;
-  --destructive: #EF4444;
-  --border: #1A3A2A;
-  --input: #1A3A2A;
-  --ring: #F5C842;
-  --sidebar: #0A2418;
-  --sidebar-foreground: #E8F0EA;
-  --sidebar-primary: #1FE07A;
-  --sidebar-primary-foreground: #021410;
-  --sidebar-accent: #0E2C1E;
-  --sidebar-accent-foreground: #E8F0EA;
-  --sidebar-border: #1A3A2A;
-  --sidebar-ring: #F5C842;
+  --destructive: #F87171;
+  --border: rgba(52, 211, 153, 0.3);
+  --input: #1A5E44;
+  --ring: #34D399;
+  --sidebar: #134E3A;
+  --sidebar-foreground: #ECFDF5;
+  --sidebar-primary: #34D399;
+  --sidebar-primary-foreground: #022C22;
+  --sidebar-accent: #1A5E44;
+  --sidebar-accent-foreground: #ECFDF5;
+  --sidebar-border: rgba(52, 211, 153, 0.3);
+  --sidebar-ring: #34D399;
 }
 
 @layer base {
@@ -129,18 +129,18 @@
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.08) 0%, transparent 60%),
-      linear-gradient(180deg, #0A0A0A 0%, #0F0F0F 50%, #0A0A0A 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.14) 0%, transparent 60%),
+      linear-gradient(180deg, #F0F9F4 0%, #FFFFFF 50%, #F0F9F4 100%);
     background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(31, 224, 122, 0.14) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 30% at 50% 50%, rgba(2, 43, 28, 0.6) 0%, transparent 70%),
-      linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(52, 211, 153, 0.28) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(251, 191, 36, 0.16) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 30% at 50% 50%, rgba(15, 61, 44, 0.5) 0%, transparent 70%),
+      linear-gradient(180deg, #0F3D2C 0%, #134E3A 50%, #0F3D2C 100%);
     background-attachment: fixed;
   }
   /* RTL niceties */
@@ -177,19 +177,19 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.12), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.10), transparent 55%),
-    linear-gradient(180deg, #0A0A0A 0%, #0F0F0F 50%, #0A0A0A 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.16), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.12), transparent 55%),
+    linear-gradient(180deg, #F0F9F4 0%, #FFFFFF 50%, #F0F9F4 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
 .dark .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(31, 224, 122, 0.18), transparent 55%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.13), transparent 55%),
-    radial-gradient(ellipse 60% 30% at 50% 50%, rgba(2, 43, 28, 0.5) 0%, transparent 70%),
-    linear-gradient(180deg, #021410 0%, #04190F 50%, #021410 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(52, 211, 153, 0.28), transparent 55%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(251, 191, 36, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 30% at 50% 50%, rgba(15, 61, 44, 0.4) 0%, transparent 70%),
+    linear-gradient(180deg, #0F3D2C 0%, #134E3A 50%, #0F3D2C 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
