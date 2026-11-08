@@ -9,6 +9,110 @@ import { ChannelLogo } from "./channel-logo";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+// ============================================================
+//  🎨 لوحات ألوان مدمجة فريدة لكل بطاقة قناة
+//  نختار اللون بناءً على تصنيف القناة + معرفها (ثابت لكل قناة)
+// ============================================================
+
+interface CardPalette {
+  /// التدرج الرئيسي للخلفية (طبقة سفلية)
+  bg: string;
+  /// توهج راديالي علوي
+  glow: string;
+  /// لون الحدود
+  border: string;
+  /// ظل ملوّن
+  shadow: string;
+  /// لون نص الإضافة (أبيض دائمًا للتباين على الخلفيات الداكنة)
+}
+
+/// 12 لوحة ألوان مدمجة زاهية على خلفية سوداء غامقة
+const PALETTES: CardPalette[] = [
+  { // 1. زمردي ذهبي
+    bg: "linear-gradient(145deg, #0a3324 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(0,255,136,0.18) 0%, transparent 55%)",
+    border: "rgba(0,255,136,0.35)",
+    shadow: "0 6px 18px -6px rgba(0,255,136,0.25)",
+  },
+  { // 2. ذهبي برتقالي
+    bg: "linear-gradient(145deg, #3d2607 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(255,215,0,0.18) 0%, transparent 55%)",
+    border: "rgba(255,215,0,0.35)",
+    shadow: "0 6px 18px -6px rgba(255,165,0,0.25)",
+  },
+  { // 3. أحمر وردي ناري
+    bg: "linear-gradient(145deg, #3d0a1e 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(255,71,87,0.18) 0%, transparent 55%)",
+    border: "rgba(255,71,87,0.35)",
+    shadow: "0 6px 18px -6px rgba(255,71,87,0.25)",
+  },
+  { // 4. بنفسجي ملكي
+    bg: "linear-gradient(145deg, #1e0a3d 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(124,92,255,0.18) 0%, transparent 55%)",
+    border: "rgba(124,92,255,0.35)",
+    shadow: "0 6px 18px -6px rgba(124,92,255,0.25)",
+  },
+  { // 5. أزرق سماوي
+    bg: "linear-gradient(145deg, #0a1e3d 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(79,195,247,0.18) 0%, transparent 55%)",
+    border: "rgba(79,195,247,0.35)",
+    shadow: "0 6px 18px -6px rgba(79,195,247,0.25)",
+  },
+  { // 6. تركوازي
+    bg: "linear-gradient(145deg, #07303d 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(0,229,255,0.18) 0%, transparent 55%)",
+    border: "rgba(0,229,255,0.35)",
+    shadow: "0 6px 18px -6px rgba(0,229,255,0.25)",
+  },
+  { // 7. برتقالي ذهبي
+    bg: "linear-gradient(145deg, #3d1e0a 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(255,138,101,0.18) 0%, transparent 55%)",
+    border: "rgba(255,138,101,0.35)",
+    shadow: "0 6px 18px -6px rgba(255,138,101,0.25)",
+  },
+  { // 8. وردي فوشيا
+    bg: "linear-gradient(145deg, #3d0a2e 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(255,68,170,0.18) 0%, transparent 55%)",
+    border: "rgba(255,68,170,0.35)",
+    shadow: "0 6px 18px -6px rgba(255,68,170,0.25)",
+  },
+  { // 9. أخضر ليموني
+    bg: "linear-gradient(145deg, #1e3d0a 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(170,255,0,0.18) 0%, transparent 55%)",
+    border: "rgba(170,255,0,0.35)",
+    shadow: "0 6px 18px -6px rgba(170,255,0,0.25)",
+  },
+  { // 10. نيلي ملكي
+    bg: "linear-gradient(145deg, #0a0a3d 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(99,102,241,0.18) 0%, transparent 55%)",
+    border: "rgba(99,102,241,0.35)",
+    shadow: "0 6px 18px -6px rgba(99,102,241,0.25)",
+  },
+  { // 11. فيروزي
+    bg: "linear-gradient(145deg, #073d3d 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(45,212,191,0.18) 0%, transparent 55%)",
+    border: "rgba(45,212,191,0.35)",
+    shadow: "0 6px 18px -6px rgba(45,212,191,0.25)",
+  },
+  { // 12. عنابي خمري
+    bg: "linear-gradient(145deg, #2e072e 0%, #0a0a0a 60%)",
+    glow: "radial-gradient(circle at 80% 0%, rgba(217,70,239,0.18) 0%, transparent 55%)",
+    border: "rgba(217,70,239,0.35)",
+    shadow: "0 6px 18px -6px rgba(217,70,239,0.25)",
+  },
+];
+
+/** يختار لوحة ألوان ثابتة لكل قناة بناءً على معرفها */
+function pickPalette(channelId: string): CardPalette {
+  // اجمع أحرف المعرف لتحويلها لرقم ثابت
+  let hash = 0;
+  for (let i = 0; i < channelId.length; i++) {
+    hash = ((hash << 5) - hash + channelId.charCodeAt(i)) | 0;
+  }
+  const idx = Math.abs(hash) % PALETTES.length;
+  return PALETTES[idx];
+}
+
 export function ChannelCard({ channel }: { channel: Channel }) {
   const setView = useNav((s) => s.setView);
   const has = useFavorites((s) => s.has);
@@ -16,12 +120,39 @@ export function ChannelCard({ channel }: { channel: Channel }) {
   const fav = has("channel", channel.id);
 
   const available = !!channel.streamUrl && channel.streamType !== "none";
+  const palette = pickPalette(channel.id);
 
   return (
     <button
       onClick={() => setView({ name: "player", channelId: channel.id })}
-      className="wz-cine-card group relative flex w-[150px] shrink-0 flex-col gap-2 rounded-2xl p-3 text-right active:scale-[0.98]"
+      className="group relative flex w-[150px] shrink-0 flex-col gap-2 rounded-2xl p-3 text-right transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
+      style={{
+        background: palette.bg,
+        border: `1px solid ${palette.border}`,
+        boxShadow: palette.shadow,
+      }}
     >
+      {/* توهج رادياري علوي ملوّن */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl"
+        style={{ background: palette.glow }}
+      />
+      {/* لمعة علوية داخلية */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
+      />
+      {/* لمعان يمر عند hover */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)",
+        }}
+      />
+
       <div className="relative">
         <ChannelLogo src={channel.logo} name={channel.nameAr ?? channel.name} size={128} className="mx-auto !rounded-xl" />
         <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-emerald-dark/0 opacity-0 transition-all group-hover:bg-emerald-dark/40 group-hover:opacity-100">
@@ -62,7 +193,7 @@ export function ChannelCard({ channel }: { channel: Channel }) {
           </span>
         )}
       </div>
-      <div className="min-w-0">
+      <div className="relative min-w-0">
         <p className="truncate text-sm font-bold text-foreground">{channel.nameAr ?? channel.name}</p>
         <p className="truncate text-[11px] text-muted-foreground">
           {channel.country?.name ?? "عربية"} · {channel.category?.name ?? "عامة"}
