@@ -553,47 +553,48 @@ function TodayMatchCard({ match }: { match: Match }) {
   const tournamentName =
     match.tournamentName ?? match.tournament?.nameAr ?? match.tournament?.name ?? "بطولة";
 
-  // 🎨 لوحات ألوان مشرقة زاهية — خلفية فاتحة + ألوان زاهية واضحة
+  // 🎨 لوحات ألوان: خلفية كحلية غامقة + توهجات زاهية مشرقة لكل حالة
+  // الهدف: تباين واضح (داكن + زاهي) = راحة نفسية للمستخدم
   const theme = live
     ? {
-        // 🔴 مباشر: خلفية وردية فاتحة + أحمر زاهي
-        meshA: "#FECDD3", meshB: "#FED7AA", meshC: "#FFFFFF",
-        accent: "#E11D48", accentDeep: "#BE123C", accent2: "#F97316",
-        glow: "rgba(244,63,94,0.4)", glowSoft: "rgba(251,113,133,0.3)",
-        border: "rgba(225,29,72,0.5)", borderInner: "rgba(244,63,94,0.2)",
-        text: "#9F1239", textScore: "#881337",
-        badgeGrad: "linear-gradient(135deg, #FB7185 0%, #E11D48 50%, #BE123C 100%)",
-        midGrad: "linear-gradient(135deg, rgba(251,113,133,0.35), rgba(225,29,72,0.2))",
-        midBorder: "rgba(225,29,72,0.55)",
-        sideBar: "linear-gradient(180deg, #F97316 0%, #E11D48 40%, #BE123C 70%, #881337 100%)",
-        shimmer: "rgba(244,63,94,0.25)",
+        // 🔴 مباشر: كحلي + توهج أحمر/برتقالي زاهي
+        meshA: "rgba(255, 71, 87, 0.45)", meshB: "rgba(255, 107, 107, 0.3)", meshC: "#0F1F38",
+        accent: "#FF4757", accentDeep: "#FF1744", accent2: "#FF8A65",
+        glow: "rgba(255, 71, 87, 0.45)", glowSoft: "rgba(255, 138, 101, 0.3)",
+        border: "rgba(255, 71, 87, 0.55)", borderInner: "rgba(255, 71, 87, 0.2)",
+        text: "#FFCDD2", textScore: "#FFEB3B",
+        badgeGrad: "linear-gradient(135deg, #FF4757 0%, #FF1744 50%, #D50000 100%)",
+        midGrad: "linear-gradient(135deg, rgba(255, 71, 87, 0.35), rgba(255, 23, 68, 0.2))",
+        midBorder: "rgba(255, 71, 87, 0.6)",
+        sideBar: "linear-gradient(180deg, #FF8A65 0%, #FF4757 40%, #FF1744 70%, #C62828 100%)",
+        shimmer: "rgba(255, 138, 101, 0.3)",
       }
     : finished
       ? {
-          // ⚪ منتهية: خلفية بنفسجية فاتحة + بنفسجي زاهي
-          meshA: "#DDD6FE", meshB: "#C7D2FE", meshC: "#FFFFFF",
-          accent: "#7C3AED", accentDeep: "#6D28D9", accent2: "#6366F1",
-          glow: "rgba(124,58,237,0.3)", glowSoft: "rgba(167,139,250,0.3)",
-          border: "rgba(124,58,237,0.45)", borderInner: "rgba(99,102,241,0.2)",
-          text: "#5B21B6", textScore: "#4C1D95",
-          badgeGrad: "linear-gradient(135deg, #818CF8 0%, #6366F1 100%)",
-          midGrad: "linear-gradient(135deg, rgba(167,139,250,0.35), rgba(99,102,241,0.2))",
-          midBorder: "rgba(124,58,237,0.45)",
-          sideBar: "linear-gradient(180deg, #818CF8 0%, #6366F1 40%, #4F46E5 70%, #3730A3 100%)",
-          shimmer: "rgba(124,58,237,0.2)",
+          // ⚪ منتهية: كحلي + توهج بنفسجي/أزرق زاهي
+          meshA: "rgba(124, 92, 255, 0.4)", meshB: "rgba(79, 195, 247, 0.3)", meshC: "#0F1F38",
+          accent: "#A78BFA", accentDeep: "#7C4DFF", accent2: "#4FC3F7",
+          glow: "rgba(124, 92, 255, 0.4)", glowSoft: "rgba(167, 139, 250, 0.3)",
+          border: "rgba(167, 139, 250, 0.55)", borderInner: "rgba(124, 92, 255, 0.2)",
+          text: "#DDD6FE", textScore: "#E1BEE7",
+          badgeGrad: "linear-gradient(135deg, #9575CD 0%, #7C4DFF 100%)",
+          midGrad: "linear-gradient(135deg, rgba(167, 139, 250, 0.35), rgba(124, 92, 255, 0.2))",
+          midBorder: "rgba(167, 139, 250, 0.55)",
+          sideBar: "linear-gradient(180deg, #4FC3F7 0%, #7C4DFF 40%, #5E35B1 70%, #4527A0 100%)",
+          shimmer: "rgba(167, 139, 250, 0.25)",
         }
       : {
-          // 🟡 مجدولة: خلفية خضراء فاتحة + زمردي وذهبي زاهي
-          meshA: "#A7F3D0", meshB: "#FDE68A", meshC: "#FFFFFF",
-          accent: "#059669", accentDeep: "#047857", accent2: "#0891B2",
-          glow: "rgba(16,185,129,0.35)", glowSoft: "rgba(52,211,153,0.3)",
-          border: "rgba(5,150,105,0.45)", borderInner: "rgba(16,185,129,0.2)",
-          text: "#065F46", textScore: "#064E3B",
-          badgeGrad: "linear-gradient(135deg, #34D399 0%, #10B981 50%, #059669 100%)",
-          midGrad: "linear-gradient(135deg, rgba(245,200,66,0.4), rgba(16,185,129,0.2))",
-          midBorder: "rgba(217,119,6,0.55)",
-          sideBar: "linear-gradient(180deg, #F5C842 0%, #F59E0B 25%, #10B981 60%, #06B6D4 100%)",
-          shimmer: "rgba(16,185,129,0.25)",
+          // 🟡 مجدولة: كحلي + توهج زمردي/ذهبي/سماوي زاهي
+          meshA: "rgba(0, 217, 163, 0.4)", meshB: "rgba(255, 214, 10, 0.3)", meshC: "#0F1F38",
+          accent: "#00D9A3", accentDeep: "#00BFA5", accent2: "#4FC3F7",
+          glow: "rgba(0, 217, 163, 0.45)", glowSoft: "rgba(255, 214, 10, 0.3)",
+          border: "rgba(0, 217, 163, 0.6)", borderInner: "rgba(0, 217, 163, 0.2)",
+          text: "#B2DFDB", textScore: "#FFF59D",
+          badgeGrad: "linear-gradient(135deg, #00D9A3 0%, #00BFA5 50%, #00897B 100%)",
+          midGrad: "linear-gradient(135deg, rgba(255, 214, 10, 0.4), rgba(0, 217, 163, 0.2))",
+          midBorder: "rgba(255, 214, 10, 0.65)",
+          sideBar: "linear-gradient(180deg, #FFD60A 0%, #FFA000 25%, #00D9A3 60%, #4FC3F7 100%)",
+          shimmer: "rgba(0, 217, 163, 0.3)",
         };
 
   return (
@@ -604,12 +605,12 @@ function TodayMatchCard({ match }: { match: Match }) {
         background: `
           radial-gradient(circle at 85% 0%, ${theme.meshA} 0%, transparent 55%),
           radial-gradient(circle at 15% 100%, ${theme.meshB} 0%, transparent 55%),
-          linear-gradient(135deg, ${theme.meshC} 0%, #FFFFFF 100%)
+          linear-gradient(135deg, ${theme.meshC} 0%, #0A1628 100%)
         `,
         boxShadow: `
           0 8px 24px -8px ${theme.glow},
-          0 4px 12px -4px rgba(0,0,0,0.12),
-          inset 0 1px 0 rgba(255,255,255,0.8)
+          0 4px 12px -4px rgba(0,0,0,0.5),
+          inset 0 1px 0 rgba(255,255,255,0.08)
         `,
       }}
     >
@@ -638,7 +639,7 @@ function TodayMatchCard({ match }: { match: Match }) {
         className="pointer-events-none absolute inset-0 rounded-xl"
         style={{
           border: `1px solid ${theme.border}`,
-          boxShadow: `inset 0 0 0 1px ${theme.borderInner}, inset 0 1px 0 rgba(255,255,255,0.6)`,
+          boxShadow: `inset 0 0 0 1px ${theme.borderInner}, inset 0 1px 0 rgba(255,255,255,0.08)`,
         }}
       />
 
@@ -831,7 +832,7 @@ function TeamMini({ name, logo, accent, glow }: { name: string; logo?: string | 
       </div>
       <span
         className="line-clamp-1 max-w-[72px] text-[9px] font-bold leading-tight"
-        style={{ color: "#1F2937", textShadow: "0 1px 2px rgba(255,255,255,0.6)" }}
+        style={{ color: "rgba(255,255,255,0.95)", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
       >
         {name}
       </span>

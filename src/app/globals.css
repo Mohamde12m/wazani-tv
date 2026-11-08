@@ -56,68 +56,69 @@
 
 :root {
   --radius: 1rem;
-  /* الوضع الفاتح: أبيض مشرق زاهٍ مع لمسات زمردية وذهبية */
-  --background: #F0F9F4;
-  --foreground: #0A1F14;
+  /* الوضع الفاتح: كحلي غامق احترافي + بطاقات بيضاء + ألوان زاهية مشرقة
+     الهدف: راحة نفسية عبر تباين واضح (داكن + فاتح زاهي) */
+  --background: #0A1628;
+  --foreground: #F0F9FF;
   --card: #FFFFFF;
-  --card-foreground: #0A1F14;
+  --card-foreground: #0A1628;
   --popover: #FFFFFF;
-  --popover-foreground: #0A1F14;
-  --primary: #00B377;
-  --primary-foreground: #FFFFFF;
-  --secondary: #DCFCE7;
-  --secondary-foreground: #064E3B;
-  --muted: #F0FDF4;
-  --muted-foreground: #15803D;
-  --accent: #F5C842;
-  --accent-foreground: #1A1404;
-  --destructive: #EF4444;
-  --border: rgba(0, 179, 119, 0.18);
-  --input: #F0FDF4;
-  --ring: #00B377;
-  --chart-1: #00B377;
-  --chart-2: #F5C842;
-  --chart-3: #1FE07A;
-  --chart-4: #FFE08A;
-  --chart-5: #06B6D4;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #0A1F14;
-  --sidebar-primary: #00B377;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #DCFCE7;
-  --sidebar-accent-foreground: #064E3B;
-  --sidebar-border: rgba(0, 179, 119, 0.18);
-  --sidebar-ring: #00B377;
+  --popover-foreground: #0A1628;
+  --primary: #00D9A3;
+  --primary-foreground: #04261D;
+  --secondary: #E0F2FE;
+  --secondary-foreground: #0C4A6E;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;
+  --accent: #FFD60A;
+  --accent-foreground: #422006;
+  --destructive: #FF4757;
+  --border: rgba(0, 217, 163, 0.22);
+  --input: #F8FAFC;
+  --ring: #00D9A3;
+  --chart-1: #00D9A3;
+  --chart-2: #FFD60A;
+  --chart-3: #FF6B9D;
+  --chart-4: #4FC3F7;
+  --chart-5: #FF8A65;
+  --sidebar: #0F1F38;
+  --sidebar-foreground: #F0F9FF;
+  --sidebar-primary: #00D9A3;
+  --sidebar-primary-foreground: #04261D;
+  --sidebar-accent: #1A2942;
+  --sidebar-accent-foreground: #F0F9FF;
+  --sidebar-border: rgba(0, 217, 163, 0.22);
+  --sidebar-ring: #00D9A3;
 }
 
 .dark {
-  /* الوضع الليلي: زمردي متوسط مشرق (ليس أسود عميق) */
-  --background: #0F3D2C;
-  --foreground: #ECFDF5;
-  --card: #134E3A;
-  --card-foreground: #ECFDF5;
-  --popover: #134E3A;
-  --popover-foreground: #ECFDF5;
-  --primary: #34D399;
-  --primary-foreground: #022C22;
-  --secondary: #1A5E44;
-  --secondary-foreground: #ECFDF5;
-  --muted: #1A5E44;
-  --muted-foreground: #6EE7B7;
-  --accent: #FBBF24;
-  --accent-foreground: #1A1404;
-  --destructive: #F87171;
-  --border: rgba(52, 211, 153, 0.3);
-  --input: #1A5E44;
-  --ring: #34D399;
-  --sidebar: #134E3A;
-  --sidebar-foreground: #ECFDF5;
-  --sidebar-primary: #34D399;
-  --sidebar-primary-foreground: #022C22;
-  --sidebar-accent: #1A5E44;
-  --sidebar-accent-foreground: #ECFDF5;
-  --sidebar-border: rgba(52, 211, 153, 0.3);
-  --sidebar-ring: #34D399;
+  /* الوضع الليلي: كحلي غامق عميق + ألوان زاهية مشرقة */
+  --background: #050D1F;
+  --foreground: #E0F7FA;
+  --card: #0F2240;
+  --card-foreground: #E0F7FA;
+  --popover: #0F2240;
+  --popover-foreground: #E0F7FA;
+  --primary: #00FFC8;
+  --primary-foreground: #04261D;
+  --secondary: #1A3358;
+  --secondary-foreground: #E0F7FA;
+  --muted: #1A3358;
+  --muted-foreground: #82B3C9;
+  --accent: #FFE54A;
+  --accent-foreground: #422006;
+  --destructive: #FF5252;
+  --border: rgba(0, 255, 200, 0.28);
+  --input: #1A3358;
+  --ring: #00FFC8;
+  --sidebar: #0F2240;
+  --sidebar-foreground: #E0F7FA;
+  --sidebar-primary: #00FFC8;
+  --sidebar-primary-foreground: #04261D;
+  --sidebar-accent: #1A3358;
+  --sidebar-accent-foreground: #E0F7FA;
+  --sidebar-border: rgba(0, 255, 200, 0.28);
+  --sidebar-ring: #00FFC8;
 }
 
 @layer base {
@@ -129,18 +130,19 @@
     font-feature-settings: "kern";
     -webkit-tap-highlight-color: transparent;
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 179, 119, 0.18) 0%, transparent 60%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(245, 200, 66, 0.14) 0%, transparent 60%),
-      linear-gradient(180deg, #F0F9F4 0%, #FFFFFF 50%, #F0F9F4 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 217, 163, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(255, 214, 10, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 50%, rgba(79, 195, 247, 0.08) 0%, transparent 70%),
+      linear-gradient(180deg, #0A1628 0%, #0F1F38 50%, #0A1628 100%);
     background-attachment: fixed;
     min-height: 100vh;
   }
   .dark body {
     background:
-      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(52, 211, 153, 0.28) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(251, 191, 36, 0.16) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 30% at 50% 50%, rgba(15, 61, 44, 0.5) 0%, transparent 70%),
-      linear-gradient(180deg, #0F3D2C 0%, #134E3A 50%, #0F3D2C 100%);
+      radial-gradient(ellipse 80% 50% at 100% 0%, rgba(0, 255, 200, 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 40% at 0% 100%, rgba(255, 229, 74, 0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 40% at 50% 50%, rgba(79, 195, 247, 0.08) 0%, transparent 70%),
+      linear-gradient(180deg, #050D1F 0%, #0A1428 50%, #050D1F 100%);
     background-attachment: fixed;
   }
   /* RTL niceties */
@@ -177,19 +179,20 @@
 /* Subtle gradient backgrounds used across the app */
 .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(0, 179, 119, 0.16), transparent 60%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(245, 200, 66, 0.12), transparent 55%),
-    linear-gradient(180deg, #F0F9F4 0%, #FFFFFF 50%, #F0F9F4 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(0, 217, 163, 0.2), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(255, 214, 10, 0.14), transparent 55%),
+    radial-gradient(900px 500px at 50% 50%, rgba(79, 195, 247, 0.08), transparent 70%),
+    linear-gradient(180deg, #0A1628 0%, #0F1F38 50%, #0A1628 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 
 .dark .bg-app {
   background:
-    radial-gradient(1400px 700px at 100% -10%, rgba(52, 211, 153, 0.28), transparent 55%),
-    radial-gradient(1000px 500px at -10% 110%, rgba(251, 191, 36, 0.16), transparent 55%),
-    radial-gradient(ellipse 60% 30% at 50% 50%, rgba(15, 61, 44, 0.4) 0%, transparent 70%),
-    linear-gradient(180deg, #0F3D2C 0%, #134E3A 50%, #0F3D2C 100%);
+    radial-gradient(1400px 700px at 100% -10%, rgba(0, 255, 200, 0.22), transparent 55%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(255, 229, 74, 0.14), transparent 55%),
+    radial-gradient(900px 500px at 50% 50%, rgba(79, 195, 247, 0.1), transparent 70%),
+    linear-gradient(180deg, #050D1F 0%, #0A1428 50%, #050D1F 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
