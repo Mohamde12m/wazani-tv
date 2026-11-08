@@ -544,6 +544,8 @@ export function HomeView() {
 }
 
 // ============ Compact today match card (horizontal, minimal height) ============
+// 🎨 تصميم احترافي: خلفية متدرجة داكنة + شريط جانبي زاهٍ حسب الحالة + كبسولات ذهبية
+// نفس الأبعاد السابقة تماماً (w-[210px], نفس الصفوف)
 function TodayMatchCard({ match }: { match: Match }) {
   const setView = useNav((s) => s.setView);
   const live = match.status === "live";
@@ -551,65 +553,179 @@ function TodayMatchCard({ match }: { match: Match }) {
   const tournamentName =
     match.tournamentName ?? match.tournament?.nameAr ?? match.tournament?.name ?? "بطولة";
 
+  // 🎨 لوحة الألوان حسب الحالة — شريط جانبي + توهج خلفي
+  const palette = live
+    ? {
+        bar: "linear-gradient(180deg, #F43F5E 0%, #DC2626 50%, #B91C1C 100%)",
+        glow: "radial-gradient(circle at 50% 0%, rgba(244,63,94,0.18) 0%, transparent 60%)",
+        ring: "rgba(244,63,94,0.5)",
+      }
+    : finished
+      ? {
+          bar: "linear-gradient(180deg, #64748B 0%, #475569 50%, #334155 100%)",
+          glow: "radial-gradient(circle at 50% 0%, rgba(100,116,139,0.12) 0%, transparent 60%)",
+          ring: "rgba(100,116,139,0.3)",
+        }
+      : {
+          bar: "linear-gradient(180deg, #F5C842 0%, #C99A2E 50%, #00B377 100%)",
+          glow: "radial-gradient(circle at 50% 0%, rgba(245,200,66,0.14) 0%, transparent 60%)",
+          ring: "rgba(0,179,119,0.35)",
+        };
+
   return (
     <button
       onClick={() => setView({ name: "matches" })}
-      className={cn(
-        "relative w-[210px] shrink-0 overflow-hidden rounded-xl border bg-card p-2.5 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
-        live ? "border-emerald/40 ring-1 ring-emerald/20" : "border-border",
-      )}
+      className="group relative w-[210px] shrink-0 overflow-hidden rounded-xl p-2.5 text-right transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+      style={{
+        background: "linear-gradient(145deg, #0a1622 0%, #0f1f2e 45%, #0a1622 100%)",
+        boxShadow: `0 4px 16px -4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)`,
+      }}
     >
-      {/* Row 1: tournament + status (single line) */}
-      <div className="mb-1.5 flex items-center justify-between gap-1.5">
-        <span className="truncate text-[10px] font-bold text-emerald">{tournamentName}</span>
+      {/* 🎨 الشريط الجانبي الزاهي - يميز الحالة */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 right-0 w-1"
+        style={{ background: palette.bar }}
+      />
+      {/* 🎨 التوهج الخلفي العلوي */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-90"
+        style={{ background: palette.glow }}
+      />
+      {/* 🎨 حدود ناعمة بتدرج */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-xl"
+        style={{ border: `1px solid ${palette.ring}`, boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.03)` }}
+      />
+      {/* 🎨 لمعان يمر عند hover */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%)",
+        }}
+      />
+
+      {/* === الصف 1: البطولة + شارة الحالة === */}
+      <div className="relative mb-1.5 flex items-center justify-between gap-1.5">
+        <div className="flex min-w-0 items-center gap-1">
+          {/* أيقونة كأس ذهبية مصغرة */}
+          <Trophy className="h-2.5 w-2.5 shrink-0" style={{ color: "#F5C842" }} />
+          <span
+            className="truncate text-[10px] font-extrabold"
+            style={{
+              background: "linear-gradient(90deg, #F5C842, #FFD700)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            {tournamentName}
+          </span>
+        </div>
+
+        {/* شارة الحالة */}
         {live ? (
           <span
             className="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white"
             style={{
-              background: "linear-gradient(135deg, #DC2626 0%, #EF4444 100%)",
-              animation: "wazani-live-pulse 1.8s ease-in-out infinite",
+              background: "linear-gradient(135deg, #F43F5E 0%, #DC2626 100%)",
+              boxShadow: "0 2px 8px -1px rgba(244,63,94,0.6)",
             }}
           >
-            <span className="h-1 w-1 rounded-full bg-white" />
+            <span
+              className="h-1 w-1 rounded-full bg-white"
+              style={{ animation: "wazani-match-pulse 1.4s ease-in-out infinite" }}
+            />
             مباشر
           </span>
         ) : finished ? (
-          <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold text-muted-foreground">
+          <span
+            className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white/80"
+            style={{ background: "rgba(100,116,139,0.4)", backdropFilter: "blur(4px)" }}
+          >
             انتهت
           </span>
         ) : (
-          <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[8px] font-bold text-emerald">
+          <span
+            className="flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold text-white"
+            style={{
+              background: "linear-gradient(135deg, #00B377 0%, #00916B 100%)",
+              boxShadow: "0 2px 8px -1px rgba(0,179,119,0.5)",
+            }}
+          >
+            <Clock className="h-2 w-2" />
             {formatTime(match.kickoff)}
           </span>
         )}
       </div>
 
-      {/* Row 2: teams + score/time (single row) */}
-      <div className="flex items-center justify-between gap-1.5">
+      {/* === الصف 2: الفريقان + النتيجة/VS === */}
+      <div className="relative flex items-center justify-between gap-1">
         <TeamMini name={match.homeName} logo={match.homeLogo} />
+
+        {/* المنتصف: VS أو النتيجة في كبسولة احترافية */}
         <div className="flex shrink-0 flex-col items-center">
           {live || finished ? (
-            <div className="flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-sm font-extrabold text-emerald-dark">
+            <div
+              className="flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm font-extrabold tabular-nums"
+              style={{
+                background: live
+                  ? "linear-gradient(135deg, rgba(244,63,94,0.25), rgba(220,38,38,0.15))"
+                  : "linear-gradient(135deg, rgba(100,116,139,0.25), rgba(71,85,105,0.15))",
+                border: `1px solid ${live ? "rgba(244,63,94,0.4)" : "rgba(100,116,139,0.35)"}`,
+                color: live ? "#FCA5A5" : "#CBD5E1",
+                textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+              }}
+            >
               <span>{match.homeScore ?? 0}</span>
-              <span className="text-[10px] text-muted-foreground">-</span>
+              <span className="text-[10px] opacity-60">-</span>
               <span>{match.awayScore ?? 0}</span>
             </div>
           ) : (
-            <span className="text-sm font-extrabold text-emerald">{formatTime(match.kickoff)}</span>
+            <div
+              className="flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-[10px] font-black tracking-wider"
+              style={{
+                background: "linear-gradient(135deg, #F5C842 0%, #C99A2E 100%)",
+                color: "#0A0A0A",
+                boxShadow: "0 2px 10px -2px rgba(245,200,66,0.55), inset 0 1px 0 rgba(255,255,255,0.3)",
+              }}
+            >
+              VS
+            </div>
           )}
         </div>
+
         <TeamMini name={match.awayName} logo={match.awayLogo} />
       </div>
 
-      {/* Row 3: channel (single line, optional) */}
+      {/* === الصف 3: القناة === */}
       {match.channel && (
-        <div className="mt-1.5 flex items-center gap-1 border-t border-border pt-1.5 text-[9px] text-muted-foreground">
-          <Radio className="h-2.5 w-2.5 shrink-0 text-gold" />
-          <span className="truncate font-semibold text-emerald">
+        <div
+          className="relative mt-1.5 flex items-center justify-center gap-1 pt-1.5 text-[9px]"
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <Radio className="h-2.5 w-2.5 shrink-0" style={{ color: "#F5C842" }} />
+          <span
+            className="truncate font-bold"
+            style={{ color: "rgba(255,255,255,0.85)" }}
+          >
             {match.channel.nameAr ?? match.channel.name}
           </span>
         </div>
       )}
+
+      <style>{`
+        @keyframes wazani-match-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.6); }
+          50% { opacity: 0.6; transform: scale(1.2); box-shadow: 0 0 0 3px rgba(255,255,255,0); }
+        }
+      `}</style>
     </button>
   );
 }
@@ -618,20 +734,49 @@ function TeamMini({ name, logo }: { name: string; logo?: string | null }) {
   const [err, setErr] = React.useState(false);
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 text-center">
-      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-secondary p-0.5">
-        {logo && !err ? (
-          <img
-            src={imgUrl(logo)}
-            alt={name}
-            referrerPolicy="no-referrer"
-            onError={() => setErr(true)}
-            className="h-full w-full rounded object-cover"
-          />
-        ) : (
-          <span className="text-sm font-extrabold text-emerald">{name.slice(0, 1)}</span>
-        )}
+      <div className="relative flex h-9 w-9 items-center justify-center">
+        {/* توهج خلفي للشعار */}
+        <span
+          aria-hidden
+          className="absolute inset-0 rounded-lg opacity-60"
+          style={{
+            background: "radial-gradient(circle, rgba(245,200,66,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg p-0.5"
+          style={{
+            background: "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          {logo && !err ? (
+            <img
+              src={imgUrl(logo)}
+              alt={name}
+              referrerPolicy="no-referrer"
+              onError={() => setErr(true)}
+              className="h-full w-full rounded object-cover"
+            />
+          ) : (
+            <span
+              className="text-sm font-black"
+              style={{
+                background: "linear-gradient(135deg, #F5C842, #C99A2E)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {name.slice(0, 1)}
+            </span>
+          )}
+        </div>
       </div>
-      <span className="line-clamp-1 max-w-[72px] text-[9px] font-bold leading-tight text-foreground">
+      <span
+        className="line-clamp-1 max-w-[72px] text-[9px] font-bold leading-tight"
+        style={{ color: "rgba(255,255,255,0.92)" }}
+      >
         {name}
       </span>
     </div>
