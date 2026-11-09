@@ -34,6 +34,8 @@ export interface Channel {
   featured: boolean;
   verified: boolean;
   demo: boolean;
+  /// عدد مرات مشاهدة القناة
+  viewCount?: number;
   order: number;
 }
 

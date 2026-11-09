@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Play, Star, BadgeCheck } from "lucide-react";
+import { Play, Star, BadgeCheck, Eye, TrendingUp } from "lucide-react";
 import type { Channel } from "@/lib/types";
 import { useNav } from "@/stores/nav";
 import { useFavorites } from "@/stores/favorites";
@@ -113,6 +113,17 @@ function pickPalette(channelId: string): CardPalette {
   return PALETTES[idx];
 }
 
+/** ينسّق عدد المشاهدات بشكل مختصر: 1234 → "1.2K"، 1500000 → "1.5M" */
+function formatViews(count: number): string {
+  if (count >= 1_000_000) {
+    return (count / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (count >= 1_000) {
+    return (count / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return String(count);
+}
+
 export function ChannelCard({ channel }: { channel: Channel }) {
   const setView = useNav((s) => s.setView);
   const has = useFavorites((s) => s.has);
@@ -196,9 +207,25 @@ export function ChannelCard({ channel }: { channel: Channel }) {
       </div>
       <div className="relative min-w-0">
         <p className="truncate text-sm font-bold text-foreground">{channel.nameAr ?? channel.name}</p>
-        <p className="truncate text-[11px] text-muted-foreground">
-          {channel.country?.name ?? "عربية"} · {channel.category?.name ?? "عامة"}
-        </p>
+        <div className="flex items-center justify-between gap-1">
+          <p className="truncate text-[11px] text-muted-foreground">
+            {channel.country?.name ?? "عربية"} · {channel.category?.name ?? "عامة"}
+          </p>
+          {/* 📊 شارة نسبة المشاهدة */}
+          {typeof channel.viewCount === "number" && channel.viewCount > 0 && (
+            <span
+              className="flex shrink-0 items-center gap-0.5 rounded-full px-1 py-0.5 text-[9px] font-bold"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05))",
+                border: "1px solid rgba(0,255,136,0.3)",
+                color: "#00FF88",
+              }}
+            >
+              <Eye className="h-2.5 w-2.5" />
+              {formatViews(channel.viewCount)}
+            </span>
+          )}
+        </div>
       </div>
       <span
         role="button"

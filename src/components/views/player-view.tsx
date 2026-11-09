@@ -52,12 +52,18 @@ export function PlayerView({ channelId }: { channelId: string }) {
     [channels, channelId],
   );
 
-  // سجّل القناة في سجل المشاهدة عند فتحها
+  // سجّل القناة في سجل المشاهدة عند فتحها + زيادة عداد المشاهدات
   React.useEffect(() => {
     if (channel) {
       addToHistory(channel);
+      // 📊 أرسل طلب زيادة المشاهدات للخادم (fire-and-forget، لا ننتظر النتيجة)
+      fetch(`/api/channels/track-view?channelId=${encodeURIComponent(channel.id)}`, {
+        method: "POST",
+      }).catch(() => {
+        // تجاهل الأخطاء — لا نعرقل المشاهدة
+      });
     }
-  }, [channel, addToHistory]);
+  }, [channel?.id, addToHistory]);
 
   const fav = channel ? has("channel", channel.id) : false;
 

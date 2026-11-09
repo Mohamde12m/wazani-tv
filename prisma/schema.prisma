@@ -61,6 +61,8 @@ model Channel {
   order      Int       @default(0)
   verified   Boolean   @default(false) // stream confirmed working
   demo       Boolean   @default(false)
+  /// عدد مرات مشاهدة القناة — يُزاد عند فتح المشغل
+  viewCount  Int       @default(0)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   favorites  Favorite[]
