@@ -52,16 +52,10 @@ export function PlayerView({ channelId }: { channelId: string }) {
     [channels, channelId],
   );
 
-  // سجّل القناة في سجل المشاهدة عند فتحها + زيادة عداد المشاهدات
+  // سجّل القناة في سجل المشاهدة عند فتحها
   React.useEffect(() => {
     if (channel) {
       addToHistory(channel);
-      // 📊 أرسل طلب زيادة المشاهدات للخادم (fire-and-forget، لا ننتظر النتيجة)
-      fetch(`/api/channels/track-view?channelId=${encodeURIComponent(channel.id)}`, {
-        method: "POST",
-      }).catch(() => {
-        // تجاهل الأخطاء — لا نعرقل المشاهدة
-      });
     }
   }, [channel?.id, addToHistory]);
 

@@ -124,6 +124,26 @@ function formatViews(count: number): string {
   return String(count);
 }
 
+/**
+ * 📊 يولّد عدد مشاهدة ديكوري ثابت لكل قناة (من معرّفها).
+ * النطاق: 500 → 6500 (أرقام غير مستديرة لتبدو واقعية).
+ * نفس القناة = نفس الرقم دائمًا (حتمي).
+ *
+ * ملاحظة: هذه أرقام تجميلية للعرض فقط، ليست مشاهدات حقيقية.
+ */
+function generateDecorativeViews(channelId: string): number {
+  let hash = 0;
+  for (let i = 0; i < channelId.length; i++) {
+    hash = ((hash << 5) - hash + channelId.charCodeAt(i)) | 0;
+  }
+  const absHash = Math.abs(hash);
+  // النطاق الأساسي: 500 → 6500
+  const base = 500 + (absHash % 6000);
+  // تذبذب لجعل الرقم غير مستدير (0 → 899)
+  const jitter = (absHash >> 8) % 900;
+  return base + jitter;
+}
+
 export function ChannelCard({ channel }: { channel: Channel }) {
   const setView = useNav((s) => s.setView);
   const has = useFavorites((s) => s.has);
@@ -211,20 +231,18 @@ export function ChannelCard({ channel }: { channel: Channel }) {
           <p className="truncate text-[11px] text-muted-foreground">
             {channel.country?.name ?? "عربية"} · {channel.category?.name ?? "عامة"}
           </p>
-          {/* 📊 شارة نسبة المشاهدة */}
-          {typeof channel.viewCount === "number" && channel.viewCount > 0 && (
-            <span
-              className="flex shrink-0 items-center gap-0.5 rounded-full px-1 py-0.5 text-[9px] font-bold"
-              style={{
-                background: "linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05))",
-                border: "1px solid rgba(0,255,136,0.3)",
-                color: "#00FF88",
-              }}
-            >
-              <Eye className="h-2.5 w-2.5" />
-              {formatViews(channel.viewCount)}
-            </span>
-          )}
+          {/* 📊 شارة نسبة المشاهدة (ديكوري ثابت لكل قناة) */}
+          <span
+            className="flex shrink-0 items-center gap-0.5 rounded-full px-1 py-0.5 text-[9px] font-bold"
+            style={{
+              background: "linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05))",
+              border: "1px solid rgba(0,255,136,0.3)",
+              color: "#00FF88",
+            }}
+          >
+            <Eye className="h-2.5 w-2.5" />
+            {formatViews(generateDecorativeViews(channel.id))}
+          </span>
         </div>
       </div>
       <span
