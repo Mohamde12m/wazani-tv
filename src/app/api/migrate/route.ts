@@ -17,6 +17,8 @@ export async function GET(_req: NextRequest) {
     "ALTER TABLE Match ADD COLUMN streamType TEXT DEFAULT 'none'",
     "ALTER TABLE Match ADD COLUMN externalId TEXT",
     "ALTER TABLE Match ADD COLUMN broadcaster TEXT",
+    /// 📊 إضافة عمود viewCount لجدول Channel (نسبة المشاهدة)
+    "ALTER TABLE Channel ADD COLUMN viewCount INTEGER DEFAULT 0",
   ];
 
   for (const sql of statements) {
