@@ -212,60 +212,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "protocol not allowed" }, { status: 400 });
   }
 
-  const referer = pickReferer(parsed);
-  const isWideiptv = isWideiptvCdn(parsed);
+  // 🔄 ابنِ قائمة URLs للمحاولة (الأصلية + بديل CDN لو كانت wideiptv/hdm1)
+  const urlsToTry: URL[] = [parsed];
+  const altCdn = getAlternateCdn(parsed);
+  if (altCdn) urlsToTry.push(altCdn);
 
-  // المحاولة الأولى: بالـ token الحالي + Referer الصحيح
-  let currentUrl = parsed;
-  let tokenRefreshed = false;
-
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const headers = { ...BROWSER_HEADERS, Referer: referer };
-
-    try {
-      const res = await fetch(currentUrl.toString(), {
-        headers,
-        credentials: "omit",
-        redirect: "follow",
-        // @ts-expect-error — next cache options
-        next: { revalidate: 0 },
-      });
-
-      // لو 403 و wideiptv ولم نجدّد الـ token بعد ← جدّده وأعد المحاولة
-      if (res.status === 403 && isWideiptv && !tokenRefreshed) {
-        const channel = extractWideiptvChannel(currentUrl);
-        const currentToken = extractToken(currentUrl);
-        if (channel && currentToken) {
-          const newToken = await refreshWideiptvToken(channel, currentToken);
-          if (newToken && newToken !== currentToken) {
-            currentUrl = rebuildUrlWithToken(currentUrl, newToken);
-            tokenRefreshed = true;
-            continue; // أعد المحاولة بالـ token الجديد
-          }
-        }
-      }
-
-      if (!res.ok) {
-        // لو فشل، جرّب بدون Referer
-        if (attempt === 0) {
-          const res2 = await fetch(currentUrl.toString(), {
-            headers: { ...BROWSER_HEADERS, Referer: "" },
-            credentials: "omit",
-            redirect: "follow",
-            // @ts-expect-error
-            next: { revalidate: 0 },
-          });
-          if (res2.ok) {
-            return await respondWith(res2, currentUrl);
-          }
-        }
-        continue;
-      }
-
-      return await respondWith(res, currentUrl);
-    } catch {
-      continue;
-    }
+  // جرّب كل URL بدوره (مع token refresh لكل واحد)
+  for (const tryUrl of urlsToTry) {
+    const result = await tryFetchWithRefresh(tryUrl);
+    if (result) return result;
   }
 
   // كل المحاولات فشلت
@@ -276,6 +231,113 @@ export async function GET(req: NextRequest) {
     },
     { status: 502 }
   );
+}
+
+/**
+ * 🔄 يبني رابط CDN البديل لنفس القناة + token:
+ *  - cdn.wideiptv.top ↔ cdn.hdm1.net
+ *  - يُرجع null لو الرابط ليس لأحدهما
+ */
+function getAlternateCdn(url: URL): URL | null {
+  const channel = extractWideiptvChannel(url);
+  const token = extractToken(url);
+  if (!channel || !token) return null;
+
+  const isWideiptvHost = url.hostname.includes("wideiptv.top");
+  const isHdm1Host = url.hostname.includes("hdm1.net");
+
+  if (isWideiptvHost) {
+    // بديل wideiptv → hdm1.net
+    const alt = new URL(url.toString());
+    alt.hostname = "cdn.hdm1.net";
+    return alt;
+  }
+  if (isHdm1Host) {
+    // بديل hdm1.net → wideiptv.top
+    const alt = new URL(url.toString());
+    alt.hostname = "cdn.wideiptv.top";
+    return alt;
+  }
+  return null;
+}
+
+/**
+ * يحاول جلب الـ stream من URL معين، مع تجديد الـ token عند 403.
+ * يُرجع NextResponse لو نجح، أو null لو فشل (للمحاولة التالية).
+ *
+ * ⚡ مهلة 5 ثوانٍ لكل fetch (لفشل سريع والانتقال للبديل)
+ */
+async function tryFetchWithRefresh(currentUrl: URL): Promise<NextResponse | null> {
+  const referer = pickReferer(currentUrl);
+  const isWideiptv = isWideiptvCdn(currentUrl);
+  let tokenRefreshed = false;
+  let activeUrl = currentUrl;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const headers = { ...BROWSER_HEADERS, Referer: referer };
+
+    try {
+      // ⚡ مهلة 5 ثوانٍ (AbortController) لفشل سريع
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch(activeUrl.toString(), {
+        headers,
+        credentials: "omit",
+        redirect: "follow",
+        signal: controller.signal,
+        // @ts-expect-error — next cache options
+        next: { revalidate: 0 },
+      });
+      clearTimeout(timeout);
+
+      // لو 403 و wideiptv ولم نجدّد الـ token بعد ← جدّده وأعد المحاولة
+      if (res.status === 403 && isWideiptv && !tokenRefreshed) {
+        const channel = extractWideiptvChannel(activeUrl);
+        const currentToken = extractToken(activeUrl);
+        if (channel && currentToken) {
+          const newToken = await refreshWideiptvToken(channel, currentToken);
+          if (newToken && newToken !== currentToken) {
+            activeUrl = rebuildUrlWithToken(activeUrl, newToken);
+            tokenRefreshed = true;
+            continue; // أعد المحاولة بالـ token الجديد
+          }
+        }
+      }
+
+      if (!res.ok) {
+        // لو فشل، جرّب بدون Referer
+        if (attempt === 0) {
+          try {
+            const controller2 = new AbortController();
+            const timeout2 = setTimeout(() => controller2.abort(), 5000);
+            const res2 = await fetch(activeUrl.toString(), {
+              headers: { ...BROWSER_HEADERS, Referer: "" },
+              credentials: "omit",
+              redirect: "follow",
+              signal: controller2.signal,
+              // @ts-expect-error
+              next: { revalidate: 0 },
+            });
+            clearTimeout(timeout2);
+            if (res2.ok) {
+              return await respondWith(res2, activeUrl);
+            }
+          } catch {
+            // تجاهل — نحاول البديل
+          }
+        }
+        continue;
+      }
+
+      return await respondWith(res, activeUrl);
+    } catch {
+      // مهلة/خطأ شبكة — جرّب المحاولة التالية أو البديل
+      continue;
+    }
+  }
+
+  return null; // فشل هذا الـ URL — دع المتصل يجرب البديل
 }
 
 /** يبني الاستجابة النهائية حسب نوع المحتوى (m3u8 / segment / غيره)
