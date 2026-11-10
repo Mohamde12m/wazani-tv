@@ -31,23 +31,21 @@ const BROWSER_HEADERS = {
 function pickReferer(url: URL): string {
   const host = url.hostname;
 
-  // wideiptv CDN يتطلب Referer من صفحة المشغل (ليس من الـ CDN نفسه)
-  if (host.includes("wideiptv.top") || host.includes("cdn.wideiptv")) {
+  // wideiptv CDN + hdm1.net كلاهما يتطلبان Referer من صفحة المشغل wideiptv.top
+  // (hdm1.net هو CDN بديل لـ wideiptv.top — نفس نظام الحماية)
+  if (host.includes("wideiptv.top") || host.includes("cdn.wideiptv") || host.includes("hdm1.net")) {
     return "https://wideiptv.top/";
-  }
-  // hdm1.net يستخدم Referer من same-origin غالبًا
-  if (host.includes("hdm1.net")) {
-    return `https://${url.host}/`;
   }
   // افتراضي: same-origin
   return `${url.protocol}//${url.host}/`;
 }
 
-/** يكتشف إن كان الرابط لـ wideiptv CDN (يحتاج تجديد token) */
+/** يكتشف إن كان الرابط لـ wideiptv CDN (يحتاج تجديد token) — يشمل hdm1.net */
 function isWideiptvCdn(url: URL): boolean {
   return (
     url.hostname.includes("cdn.wideiptv.top") ||
-    url.hostname.includes("wideiptv.top")
+    url.hostname.includes("wideiptv.top") ||
+    url.hostname.includes("hdm1.net")
   );
 }
 
@@ -131,8 +129,11 @@ const MASTER_M3U8_TTL = 2 * 60 * 1000; // دقيقتان
 
 /** مفتاح الكاش: نطاق+قناة (يتجاهل الـ token لأن المحتوى لا يعتمد عليه) */
 function getM3u8CacheKey(url: URL): string | null {
-  // فقط للـ master playlist (index.m3u8) من wideiptv CDN
-  if (url.hostname.includes("wideiptv.top") && url.pathname.endsWith("/index.m3u8")) {
+  // فقط للـ master playlist (index.m3u8) من wideiptv CDN أو hdm1.net
+  if (
+    (url.hostname.includes("wideiptv.top") || url.hostname.includes("hdm1.net")) &&
+    url.pathname.endsWith("/index.m3u8")
+  ) {
     const channel = extractWideiptvChannel(url);
     return channel ? `master:${channel}` : null;
   }
