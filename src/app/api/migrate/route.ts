@@ -53,6 +53,27 @@ export async function GET(_req: NextRequest) {
     });
   }
 
+  // 📊 إنشاء جدول Usage لتتبع استهلاك bandwidth
+  try {
+    await db.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS Usage (
+        id TEXT PRIMARY KEY NOT NULL,
+        month TEXT NOT NULL UNIQUE,
+        proxyBytes BIGINT NOT NULL DEFAULT 0,
+        proxyRequests INTEGER NOT NULL DEFAULT 0,
+        updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    results.push({ sql: "CREATE TABLE Usage", ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown error";
+    if (msg.includes("already exists")) {
+      results.push({ sql: "CREATE TABLE Usage", ok: true, error: "already exists" });
+    } else {
+      results.push({ sql: "CREATE TABLE Usage", ok: false, error: msg });
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     results,

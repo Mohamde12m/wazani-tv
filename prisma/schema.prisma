@@ -212,3 +212,17 @@ model NewsTicker {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+/// 📊 تتبع استهلاك bandwidth الشهري (لحماية حدود Vercel المجانية)
+/// مفتاح واحد لكل شهر بصيغة "YYYY-MM"
+model Usage {
+  id            String   @id @default(cuid())
+  /// الشهر بصيغة "YYYY-MM" (مفتاح فريد)
+  month         String   @unique
+  /// إجمالي البايتات المرسلة عبر /api/stream (proxy)
+  proxyBytes    BigInt   @default(0)
+  /// عدد طلبات الـ proxy
+  proxyRequests Int      @default(0)
+  /// تاريخ آخر تحديث
+  updatedAt     DateTime @updatedAt
+}

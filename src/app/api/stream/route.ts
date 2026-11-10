@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { trackBandwidth, isProxyProtected } from "@/lib/bandwidth";
 
 /**
  * Proxy متقدم لـ HLS (m3u8) — يحل مشاكل:
@@ -212,6 +213,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "protocol not allowed" }, { status: 400 });
   }
 
+  // 🛡️ حماية تلقائية: لو الاستهلاك تجاوز 90%، ارفض طلبات الـ proxy
+  // (استثناء: طلبات m3u8 الصغيرة مسموحة لأنها ~1KB فقط)
+  const isM3u8Url = parsed.pathname.endsWith(".m3u8") || parsed.pathname.includes(".m3u8?");
+  try {
+    const protected_ = await isProxyProtected();
+    if (protected_ && !isM3u8Url) {
+      return NextResponse.json(
+        {
+          error: "تم تعطيل البث مؤقتًا للحفاظ على تشغيل الموقع",
+          hint: "تم الوصول للحد الأقصى من الاستهلاك. يعود البث في بداية الشهر القادم.",
+          protected: true,
+        },
+        { status: 503 }
+      );
+    }
+  } catch {
+    // تجاهل أخطاء فحص الحماية — لا نعرقل البث
+  }
+
   // 🔄 ابنِ قائمة URLs للمحاولة (الأصلية + بديل CDN لو كانت wideiptv/hdm1)
   const urlsToTry: URL[] = [parsed];
   const altCdn = getAlternateCdn(parsed);
@@ -220,7 +240,19 @@ export async function GET(req: NextRequest) {
   // جرّب كل URL بدوره (مع token refresh لكل واحد)
   for (const tryUrl of urlsToTry) {
     const result = await tryFetchWithRefresh(tryUrl);
-    if (result) return result;
+    if (result) {
+      // 📊 تتبع البايتات المرسلة (للحماية من تجاوز الحدود)
+      try {
+        const contentLength = result.headers.get("content-length");
+        const bytes = contentLength ? parseInt(contentLength, 10) : 0;
+        if (bytes > 0) {
+          await trackBandwidth(bytes);
+        }
+      } catch {
+        // تجاهل أخطاء التتبع
+      }
+      return result;
+    }
   }
 
   // كل المحاولات فشلت
@@ -374,14 +406,18 @@ async function respondWith(res: Response, sourceUrl: URL): Promise<NextResponse>
 
   // === 1) segment (ts/m4s/mp4) — STREAM مباشر ===
   if (isSegment && res.body) {
+    // 📊 انسخ Content-Length من الـ CDN response لتتبع البايتات
+    const segContentLength = res.headers.get("content-length");
+    const headers: Record<string, string> = {
+      "Content-Type": contentType || "video/mp2t",
+      "Cache-Control": "public, max-age=86400, immutable",
+      "Access-Control-Allow-Origin": "*",
+      "X-Stream-Source": "proxy-segment-stream",
+    };
+    if (segContentLength) headers["Content-Length"] = segContentLength;
     return new NextResponse(res.body, {
       status: 200,
-      headers: {
-        "Content-Type": contentType || "video/mp2t",
-        "Cache-Control": "public, max-age=86400, immutable",
-        "Access-Control-Allow-Origin": "*",
-        "X-Stream-Source": "proxy-segment-stream",
-      },
+      headers,
     });
   }
 
@@ -396,6 +432,7 @@ async function respondWith(res: Response, sourceUrl: URL): Promise<NextResponse>
           status: 200,
           headers: {
             "Content-Type": "application/vnd.apple.mpegurl",
+            "Content-Length": String(new TextEncoder().encode(cached.body).length),
             "Cache-Control": "no-store",
             "Access-Control-Allow-Origin": "*",
             "X-Stream-Source": "proxy-m3u8-cached",
@@ -434,6 +471,7 @@ async function respondWith(res: Response, sourceUrl: URL): Promise<NextResponse>
       status: 200,
       headers: {
         "Content-Type": "application/vnd.apple.mpegurl",
+        "Content-Length": String(new TextEncoder().encode(rewritten).length),
         "Cache-Control": "no-store",
         "Access-Control-Allow-Origin": "*",
         "X-Stream-Source": "proxy-m3u8",

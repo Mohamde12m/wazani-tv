@@ -32,6 +32,7 @@ import {
   Image as ImageIcon,
   Bell,
   Send,
+  Gauge,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -3739,6 +3740,112 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ComponentType<{ cl
 /* ============================================================
    Dashboard
 ============================================================ */
+
+/**
+ * 📊 UsageWidget — شريط استهلاك bandwidth في لوحة الإدارة
+ *
+ * يعرض:
+ * - النسبة المئوية للاستهلاك الشهري
+ * - شريط تقدم ملوّن (أخضر < 70% / أصفر 70-90% / أحمر > 90%)
+ * - تحذير عند 70% + إشعار حماية عند 90%
+ */
+function UsageWidget() {
+  const { data, error } = useFetch<{ usage: {
+    gb: string;
+    limitGb: string;
+    percent: number;
+    status: "safe" | "warning" | "protected";
+    proxyBlocked: boolean;
+    requests: number;
+  } }>("/api/usage");
+
+  if (error || !data?.usage) return null;
+
+  const u = data.usage;
+  const isWarning = u.status === "warning";
+  const isProtected = u.status === "protected";
+
+  // لون الشريط حسب الحالة
+  const barColor = isProtected
+    ? "linear-gradient(90deg, #EF4444, #DC2626)"
+    : isWarning
+      ? "linear-gradient(90deg, #F59E0B, #D97706)"
+      : "linear-gradient(90deg, #00B377, #00FF88)";
+
+  const textColor = isProtected ? "#EF4444" : isWarning ? "#F59E0B" : "#00B377";
+
+  return (
+    <div
+      className="rounded-xl border p-3"
+      style={{
+        background: isProtected
+          ? "rgba(239,68,68,0.08)"
+          : isWarning
+            ? "rgba(245,158,11,0.08)"
+            : "rgba(0,179,119,0.06)",
+        borderColor: isProtected
+          ? "rgba(239,68,68,0.3)"
+          : isWarning
+            ? "rgba(245,158,11,0.3)"
+            : "rgba(0,179,119,0.2)",
+      }}
+    >
+      {/* الرأس */}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <Gauge className="h-4 w-4" style={{ color: textColor }} />
+          <span className="text-xs font-bold text-foreground">
+            استهلاك الشهر
+          </span>
+        </div>
+        <span
+          className="text-sm font-black tabular-nums"
+          style={{ color: textColor }}
+        >
+          {u.gb} / {u.limitGb}GB
+        </span>
+      </div>
+
+      {/* شريط التقدم */}
+      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="absolute inset-y-0 right-0 rounded-full transition-all duration-500"
+          style={{
+            width: `${Math.min(u.percent, 100)}%`,
+            background: barColor,
+            boxShadow: `0 0 8px ${textColor}80`,
+          }}
+        />
+      </div>
+
+      {/* النسبة + الحالة */}
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px]">
+        <span className="font-bold tabular-nums" style={{ color: textColor }}>
+          {u.percent}%
+        </span>
+        <span style={{ color: textColor }}>
+          {isProtected
+            ? "🛡️ تم تفعيل الحماية — البث متوقف"
+            : isWarning
+              ? "⚠️ اقترب من الحد — قلل الاستهلاك"
+              : "✅ آمن"}
+        </span>
+        <span className="text-muted-foreground tabular-nums">
+          {u.requests.toLocaleString("ar")} طلب
+        </span>
+      </div>
+
+      {/* تنبيه الحماية */}
+      {isProtected && (
+        <div className="mt-2 rounded-lg bg-red-500/10 p-2 text-[10px] text-red-500">
+          تم تعطيل بث القنوات (freeshot) تلقائيًا للحفاظ على تشغيل الموقع.
+          يعود البث في بداية الشهر القادم عند تجديد الحصة.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Dashboard() {
   const admin = useAdmin((s) => s.admin);
   const logout = useAdmin((s) => s.logout);
@@ -3807,6 +3914,9 @@ function Dashboard() {
         </nav>
 
         <Separator className="mb-2" />
+
+        {/* 📊 شريط استهلاك bandwidth — يحمي من تجاوز حدود Vercel */}
+        <UsageWidget />
 
         {/* Section content */}
         <main className="pb-12">
